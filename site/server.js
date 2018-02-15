@@ -56,16 +56,31 @@ function checkSite() {
     return ok;
 }
 
+function handle_get_spy_position(request, response) {
+    var pos = {
+        x: 300,
+        y: 200
+    }
+
+    deliver(response, 'application/json', undefined, JSON.stringify(pos));
+}
+
 // Serve a request by delivering a file.
 function handle(request, response) {
     var url = request.url.toLowerCase();
-    if (url.endsWith("/")) url = url + "index.html";
-    if (isBanned(url)) return fail(response, NotFound, "URL has been banned");
-    var type = findType(url);
-    if (type == null) return fail(response, BadType, "File type unsupported");
-    var file = "./public" + url;
-    fs.readFile(file, ready);
-    function ready(err, content) { deliver(response, type, err, content); }
+
+    if (url == '/spy_pos') {
+        handle_get_spy_position(request, response);
+    }
+    else {
+        if (url.endsWith("/")) url = url + "index.html";
+        if (isBanned(url)) return fail(response, NotFound, "URL has been banned");
+        var type = findType(url);
+        if (type == null) return fail(response, BadType, "File type unsupported");
+        var file = "./public" + url;
+        fs.readFile(file, ready);
+        function ready(err, content) { deliver(response, type, err, content); }
+    }
 }
 
 // Forbid any resources which shouldn't be delivered to the browser.

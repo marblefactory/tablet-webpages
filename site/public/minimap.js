@@ -32,7 +32,7 @@ Minimap.prototype = {
     /**
      * Draws the background map.
      */
-    _draw_background: function(callback) {
+    draw_background: function(callback) {
         // var image = document.getElementById('map_background');
         var background = new Image();
         background.src = 'map.jpg';
@@ -41,7 +41,9 @@ Minimap.prototype = {
         var _this = this;
         background.onload = function() {
             _this.ctx.drawImage(background, 0, 0, _this.width(), _this.height());
-            callback();
+            if (callback) {
+                callback();
+            }
         }
     },
 
@@ -72,15 +74,34 @@ Minimap.prototype = {
      */
     draw: function(spy_pos) {
         var _this = this;
-        this._draw_background(function() {
+        this.draw_background(function() {
             _this._draw_spy(spy_pos);
         });
     }
 };
 
+var HttpClient = function() {
+    this.get = function(aUrl, aCallback) {
+        var anHttpRequest = new XMLHttpRequest();
+        anHttpRequest.onreadystatechange = function() {
+            if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+                aCallback(anHttpRequest.responseText);
+        }
+
+        anHttpRequest.open( "GET", aUrl, true );
+        anHttpRequest.send( null );
+    }
+}
+
 window.onload = function() {
     var canvas = document.getElementById('minimap');
     var minimap = new Minimap(canvas);
     minimap.fullscreen();
-    minimap.draw(new Point(100, 200));
+    minimap.draw_background();
+
+    var client = new HttpClient();
+    client.get('http://localhost:8080/spy_pos', function(response) {
+        var pos = JSON.parse(response);
+        minimap.draw(pos);
+    });
 }
