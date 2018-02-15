@@ -111,7 +111,7 @@ var HttpClient = function() {
  */
 function poll_positions(interval_time, callback) {
     var client = new HttpClient();
-    client.get('http://localhost:8080/spy_pos', function(response) {
+    client.get(window.location.origin + '/spy_pos', function(response) {
         var locations = JSON.parse(response);
         callback(locations);
         setTimeout(function() {
