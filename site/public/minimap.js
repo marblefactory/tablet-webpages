@@ -69,13 +69,25 @@ Minimap.prototype = {
     },
 
     /**
-     * Draws the minimap with the position of the spy.
-     * @param {Point} spy_pos - the position of the spy.
+     * Draws markers for the location of the guards on the map.
+     * @param {[Point]} points - the positions to draw the guards at.
      */
-    draw: function(spy_pos) {
+    _draw_guards: function(points) {
+        for (var i=0; i<points.length; i++) {
+            this._draw_marker(points[i].x, points[i].y, 'red');
+        }
+    },
+
+    /**
+     * Draws the minimap with the position of the spy.
+     * @param {Point} spy_loc - the position of the spy.
+     * @param {[Point]} guard_locs - the locations of the guards that can be seen.
+     */
+    draw: function(spy_loc, guard_locs) {
         var _this = this;
         this.draw_background(function() {
-            _this._draw_spy(spy_pos);
+            _this._draw_guards(guard_locs);
+            _this._draw_spy(spy_loc);
         });
     }
 };
@@ -88,20 +100,23 @@ var HttpClient = function() {
                 aCallback(anHttpRequest.responseText);
         }
 
-        anHttpRequest.open( "GET", aUrl, true );
-        anHttpRequest.send( null );
+        anHttpRequest.open("GET", aUrl, true);
+        anHttpRequest.send(null);
     }
 }
 
 /**
- *
+ * Polls the spy and guards position interval_time after the last position
+ * was received.
  */
-function poll_spy_position(callback) {
+function poll_positions(interval_time, callback) {
     var client = new HttpClient();
     client.get('http://localhost:8080/spy_pos', function(response) {
-        var pos = JSON.parse(response);
-        callback(pos);
-        setTimeout(function() { poll_spy_position(callback) }, 1000);
+        var locations = JSON.parse(response);
+        callback(locations);
+        setTimeout(function() {
+            poll_positions(interval_time, callback)
+        }, interval_time);
     });
 }
 
@@ -111,8 +126,7 @@ window.onload = function() {
     minimap.fullscreen();
     minimap.draw_background();
 
-    poll_spy_position(function(pos) {
-        console.log(pos);
-        minimap.draw(pos);
+    poll_positions(500, function(locations) {
+        minimap.draw(locations.spy_loc, locations.guard_locs);
     });
 }

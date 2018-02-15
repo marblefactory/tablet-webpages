@@ -57,12 +57,22 @@ function checkSite() {
 }
 
 function handle_get_spy_position(request, response) {
-    var pos = {
+    var spy_loc = {
         x: Math.random() * 300 + 20,
         y: Math.random() * 300 + 20
     };
 
-    deliver(response, 'application/json', undefined, JSON.stringify(pos));
+    var guard_locs = [
+        { x: 100, y: 100 },
+        { x: 200, y: 100 }
+    ];
+
+    var locations = {
+        spy_loc: spy_loc,
+        guard_locs: guard_locs
+    }
+
+    deliver(response, 'application/json', undefined, JSON.stringify(locations));
 }
 
 // Serve a request by delivering a file.
