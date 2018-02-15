@@ -12,6 +12,10 @@ Minimap.prototype = {
         return this.ctx.canvas.height;
     },
 
+    marker_radius: function() {
+        return this.width() * 0.015;
+    },
+
     /**
      * Resizes the canvas to fit to fullscreen.
      */
@@ -23,16 +27,37 @@ Minimap.prototype = {
     /**
      * Draws the background map.
      */
-    draw_background: function() {
+    draw_background: function(callback) {
         // var image = document.getElementById('map_background');
         var background = new Image();
-        background.src = "map.jpg";
+        background.src = 'map.jpg';
 
         // Make sure the image is loaded first otherwise nothing will draw.
         var _this = this;
         background.onload = function() {
             _this.ctx.drawImage(background, 0, 0, _this.width(), _this.height());
+            callback();
         }
+    },
+
+    /**
+     * Draws a marker for a guard, spy, etc with a center at the given position.
+     */
+    _draw_marker: function(x, y, color) {
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, this.marker_radius(), 0, 2 * Math.PI, false);
+        this.ctx.fillStyle = color;
+        this.ctx.fill();
+        this.ctx.lineWidth = 5;
+        this.ctx.strokeStyle = color;
+        this.ctx.stroke();
+    },
+
+    /**
+     * Draws a marker for the location of the spy on the map.
+     */
+    draw_spy: function(x, y) {
+        this._draw_marker(x, y, 'black');
     }
 };
 
@@ -40,73 +65,7 @@ window.onload = function() {
     var canvas = document.getElementById('minimap');
     var minimap = new Minimap(canvas);
     minimap.fullscreen();
-    minimap.draw_background();
-
-    // var background = new Image();
-    // background.src = "map.jpg";
-    //
-    // var canvas = document.getElementById("minimap");
-    // var ctx = canvas.getContext("2d");
-    //
-    //
-    //
-    // // // Make sure the image is loaded first otherwise nothing will draw.
-    // background.onload = function(){
-    //     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-    // }
+    minimap.draw_background(function() {
+        minimap.draw_spy(100, 100);
+    });
 }
-
-// window.onload = function() {
-//     var div = document.createElement("div");
-//     var div_text = document.createTextNode("HelloWorld");
-//     div.appendChild(div_text);
-//     document.body.appendChild(div);
-//     //load();
-// }
-//
-// var Board = function() {
-//     this.canvas = document.createElement("canvas");
-//
-//     this.loadCanvas = function(){
-//         document.body.appendChild(this.canvas);
-//         this.context = canvas.getContext("2d");
-//         loadMap("map.jpg");
-//     }
-//
-//     this.loadMap = function(imgstr){
-//         var image = document.createElement("img");
-//         image.src = imgstr;
-//         this.context.drawImage(image);
-//     }
-//
-//     this.drawPoint = function(x, y){
-//         ctx.strokeStyle = "red";
-//         this.context.beginPath();
-//         this.context.moveTo(x, y);
-//         this.context.stroke();
-//         ctx.strokeStyle = "black";
-//     }
-// };
-//
-// var update = function(board){
-//
-// }
-//
-// window.onkeydown = function(event){
-//     switch(event.keyCode()){
-//         case 37:
-//
-//         case 38:
-//
-//         case 39:
-//
-//         case 40:
-//
-//     }
-// }
-//
-// var load = function(){
-//     var board = new Board();
-//     board.loadCanvas();
-//     window.setInterval(update(board));
-// }
