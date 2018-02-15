@@ -1,4 +1,9 @@
 
+function Point(x, y) {
+    this.x = x;
+    this.y = y;
+}
+
 function Minimap(canvas) {
     this.ctx = canvas.getContext('2d');
 }
@@ -27,7 +32,7 @@ Minimap.prototype = {
     /**
      * Draws the background map.
      */
-    draw_background: function(callback) {
+    _draw_background: function(callback) {
         // var image = document.getElementById('map_background');
         var background = new Image();
         background.src = 'map.jpg';
@@ -55,9 +60,21 @@ Minimap.prototype = {
 
     /**
      * Draws a marker for the location of the spy on the map.
+     * @param {Point} pos - the position to draw the spy.
      */
-    draw_spy: function(x, y) {
-        this._draw_marker(x, y, 'black');
+    _draw_spy: function(pos) {
+        this._draw_marker(pos.x, pos.y, 'black');
+    },
+
+    /**
+     * Draws the minimap with the position of the spy.
+     * @param {Point} spy_pos - the position of the spy.
+     */
+    draw: function(spy_pos) {
+        var _this = this;
+        this._draw_background(function() {
+            _this._draw_spy(spy_pos);
+        });
     }
 };
 
@@ -65,7 +82,5 @@ window.onload = function() {
     var canvas = document.getElementById('minimap');
     var minimap = new Minimap(canvas);
     minimap.fullscreen();
-    minimap.draw_background(function() {
-        minimap.draw_spy(100, 100);
-    });
+    minimap.draw(new Point(100, 200));
 }
