@@ -93,15 +93,26 @@ var HttpClient = function() {
     }
 }
 
+/**
+ *
+ */
+function poll_spy_position(callback) {
+    var client = new HttpClient();
+    client.get('http://localhost:8080/spy_pos', function(response) {
+        var pos = JSON.parse(response);
+        callback(pos);
+        setTimeout(function() { poll_spy_position(callback) }, 1000);
+    });
+}
+
 window.onload = function() {
     var canvas = document.getElementById('minimap');
     var minimap = new Minimap(canvas);
     minimap.fullscreen();
     minimap.draw_background();
 
-    var client = new HttpClient();
-    client.get('http://localhost:8080/spy_pos', function(response) {
-        var pos = JSON.parse(response);
+    poll_spy_position(function(pos) {
+        console.log(pos);
         minimap.draw(pos);
     });
 }

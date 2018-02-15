@@ -58,9 +58,9 @@ function checkSite() {
 
 function handle_get_spy_position(request, response) {
     var pos = {
-        x: 300,
-        y: 200
-    }
+        x: Math.random() * 300 + 20,
+        y: Math.random() * 300 + 20
+    };
 
     deliver(response, 'application/json', undefined, JSON.stringify(pos));
 }
