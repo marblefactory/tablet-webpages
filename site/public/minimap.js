@@ -32,8 +32,12 @@ Minimap.prototype = {
         return this.ctx.canvas.height;
     },
 
-    marker_radius: function() {
-        return this.width() * 0.01;
+    _marker_radius: function() {
+        return Math.min(this.width() * 0.011, 50);
+    },
+
+    _camera_icon_radius: function() {
+        return Math.min(this.width() * 0.02, 50);
     },
 
     /**
@@ -55,7 +59,7 @@ Minimap.prototype = {
         this.floor_label_elem.innerHTML = this.floor_names[floor_num];
 
         var background = new Image();
-        background.src = 'floor_maps/floor' + floor_num + '.jpg';
+        background.src = 'images/floor_maps/floor' + floor_num + '.jpg';
 
         // Make sure the image is loaded first otherwise nothing will draw.
         var _this = this;
@@ -90,12 +94,33 @@ Minimap.prototype = {
         var minimap_point = this._convert_to_minimap_point(game_pos);
 
         this.ctx.beginPath();
-        this.ctx.arc(minimap_point.x, minimap_point.y, this.marker_radius(), 0, 2 * Math.PI, false);
+        this.ctx.arc(minimap_point.x, minimap_point.y, this._marker_radius(), 0, 2 * Math.PI, false);
         this.ctx.fillStyle = color;
         this.ctx.fill();
         this.ctx.lineWidth = 5;
         this.ctx.strokeStyle = color;
         this.ctx.stroke();
+    },
+
+    /**
+     * Draws the icon for a camera at the given position.
+     */
+    _draw_camera_icon: function(game_pos) {
+        var minimap_point = this._convert_to_minimap_point(game_pos);
+
+        var cctv_icon = new Image();
+        cctv_icon.src = 'images/cctv_icon.png';
+
+        // Make sure the image is loaded first otherwise nothing will draw.
+        var _this = this;
+        cctv_icon.onload = function() {
+            var icon_radius = _this._camera_icon_radius()
+            _this.ctx.drawImage(cctv_icon,
+                                minimap_point.x + icon_radius,
+                                minimap_point.y + icon_radius,
+                                icon_radius * 2,
+                                icon_radius * 2);
+        }
     },
 
     /**
@@ -117,15 +142,27 @@ Minimap.prototype = {
     },
 
     /**
+     * Draws markers for cameras at the given locations on the map.
+     * @param {[Point]} points - the positions of cameras in the game.
+     */
+    _draw_cameras: function(points) {
+        for (var i=0; i<points.length; i++) {
+            this._draw_camera_icon(points[i]);
+        }
+    },
+
+    /**
      * Draws the minimap with the position of the spy.
      * @param {Point} spy_loc - the position of the spy in the game.
      * @param {[Point]} guard_locs - the locations of the guards in the game.
+     * @param {[Point]} camera_locs - the locations of the cameras in the game.
      */
-    draw: function(spy_loc, guard_locs, floor_num) {
+    draw: function(spy_loc, guard_locs, camera_locs, floor_num) {
         var _this = this;
         this.draw_background(floor_num, function() {
             _this._draw_guards(guard_locs);
             _this._draw_spy(spy_loc);
+            _this._draw_cameras(camera_locs)
         });
     }
 };
@@ -179,7 +216,10 @@ window.onload = function() {
         minimap.draw_background();
 
         poll_positions(500, function(locations) {
-            minimap.draw(locations.spy_loc, locations.guard_locs, locations.floor_num);
+            minimap.draw(locations.spy_loc,
+                         locations.guard_locs,
+                         locations.camera_locs,
+                         locations.floor_num);
         });
     }
 

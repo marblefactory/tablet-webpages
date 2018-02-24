@@ -70,9 +70,16 @@ function handle_get_spy_position(request, response) {
         { x: 175, y: 175 }
     ];
 
+    var camera_locs = [
+        { x: 200, y: 150 },
+        { x: 50, y: 60},
+        { x: 260, y: 240 }
+    ];
+
     var locations = {
         spy_loc: spy_loc,
         guard_locs: guard_locs,
+        camera_locs: camera_locs,
         floor_num: (floor_num++) % 3
     }
 
