@@ -18,12 +18,55 @@ function Boundaries(min_x, min_y, max_x, max_y) {
  */
 function Minimap(canvas, game_boundaries) {
     this.ctx = canvas.getContext('2d');
+    this.num_floors = 3;
     this.floor_names = ['Basement', 'Floor 1', 'Roof'];
     this.floor_label_elem = document.querySelector('#floor');
-    this.game_boundaries = game_boundaries
+    this.game_boundaries = game_boundaries;
+
+    this.onload = function() {};
+
+    // Preload the any images.
+    this.background_images = [];
+    this.cctv_icon = null;
+
+    // Add all the preloaded background images to a dictionary.
+    var _this = this;
+    function loaded_background(key, background_img) {
+        _this.background_images[key] = background_img;
+
+        // Call onload if all the background images have been loaded.
+        if (Object.keys(_this.background_images).length == _this.num_floors) {
+            _this.onload();
+        }
+    }
+
+    function preload_backgrounds() {
+        for (var i=0; i<_this.num_floors; i++) {
+            var img_name = 'images/floor_maps/floor' + i + '.jpg';
+            _this._preload_image(img_name, i, loaded_background);
+        }
+    }
+
+    function loaded_cctv_icon(_, cctv_icon) {
+        _this.cctv_icon = cctv_icon;
+
+        preload_backgrounds();
+    }
+
+    this._preload_image('images/cctv_icon.png', null, loaded_cctv_icon);
 }
 
 Minimap.prototype = {
+    _preload_image: function(image_name, key, callback) {
+        var img = new Image();
+        img.src = image_name;
+
+        var _this = this;
+        img.onload = function() {
+            callback(key, img);
+        };
+    },
+
     width: function() {
         return this.ctx.canvas.width;
     },
@@ -51,24 +94,15 @@ Minimap.prototype = {
     /**
      * Draws the background map.
      */
-    draw_background: function(floor_num, callback) {
-        if (floor_num < 0 || floor_num > 2) {
+    _draw_background: function(floor_num) {
+        if (floor_num < 0 || floor_num > this.num_floors) {
             throw 'incorrect floor num: ' + floor_num
         }
 
         this.floor_label_elem.innerHTML = this.floor_names[floor_num];
 
-        var background = new Image();
-        background.src = 'images/floor_maps/floor' + floor_num + '.jpg';
-
-        // Make sure the image is loaded first otherwise nothing will draw.
-        var _this = this;
-        background.onload = function() {
-            _this.ctx.drawImage(background, 0, 0, _this.width(), _this.height());
-            if (callback) {
-                callback();
-            }
-        }
+        var floor_img = this.background_images[floor_num];
+        this.ctx.drawImage(floor_img, 0, 0, this.width(), this.height());
     },
 
     /**
@@ -107,20 +141,13 @@ Minimap.prototype = {
      */
     _draw_camera_icon: function(game_pos) {
         var minimap_point = this._convert_to_minimap_point(game_pos);
+        var icon_radius = this._camera_icon_radius();
 
-        var cctv_icon = new Image();
-        cctv_icon.src = 'images/cctv_icon.png';
-
-        // Make sure the image is loaded first otherwise nothing will draw.
-        var _this = this;
-        cctv_icon.onload = function() {
-            var icon_radius = _this._camera_icon_radius()
-            _this.ctx.drawImage(cctv_icon,
-                                minimap_point.x + icon_radius,
-                                minimap_point.y + icon_radius,
-                                icon_radius * 2,
-                                icon_radius * 2);
-        }
+        this.ctx.drawImage(this.cctv_icon,
+                           minimap_point.x + icon_radius,
+                           minimap_point.y + icon_radius,
+                           icon_radius * 2,
+                           icon_radius * 2);
     },
 
     /**
@@ -158,12 +185,10 @@ Minimap.prototype = {
      * @param {[Point]} camera_locs - the locations of the cameras in the game.
      */
     draw: function(spy_loc, guard_locs, camera_locs, floor_num) {
-        var _this = this;
-        this.draw_background(floor_num, function() {
-            _this._draw_guards(guard_locs);
-            _this._draw_spy(spy_loc);
-            _this._draw_cameras(camera_locs)
-        });
+        this._draw_background(floor_num);
+        this._draw_guards(guard_locs);
+        this._draw_spy(spy_loc);
+        this._draw_cameras(camera_locs);
     }
 };
 
@@ -213,14 +238,14 @@ window.onload = function() {
         var canvas = document.getElementById('minimap');
         var minimap = new Minimap(canvas, boundaries);
         minimap.fullscreen();
-        minimap.draw_background();
-
-        poll_positions(500, function(locations) {
-            minimap.draw(locations.spy_loc,
-                         locations.guard_locs,
-                         locations.camera_locs,
-                         locations.floor_num);
-        });
+        minimap.onload = function() {
+            poll_positions(500, function(locations) {
+                minimap.draw(locations.spy_loc,
+                             locations.guard_locs,
+                             locations.camera_locs,
+                             locations.floor_num);
+            });
+        };
     }
 
     get_game_map_boundaries(got_game_map_boundaries);
