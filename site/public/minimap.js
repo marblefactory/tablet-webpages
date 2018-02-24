@@ -20,7 +20,7 @@ Minimap.prototype = {
     },
 
     marker_radius: function() {
-        return this.width() * 0.015;
+        return this.width() * 0.01;
     },
 
     /**
@@ -99,17 +99,20 @@ Minimap.prototype = {
     }
 };
 
-var HttpClient = function() {
-    this.get = function(aUrl, aCallback) {
-        var anHttpRequest = new XMLHttpRequest();
-        anHttpRequest.onreadystatechange = function() {
-            if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
-                aCallback(anHttpRequest.responseText);
-        }
-
-        anHttpRequest.open("GET", aUrl, true);
-        anHttpRequest.send(null);
+/**
+ * Sends a GET requst to the server, with the given url_postfix added to the
+ * end of the url of the server.
+ */
+function get(url_postfix, callback) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200)
+            callback(request.responseText);
     }
+
+    url = window.location.origin + '/' + url_postfix
+    request.open("GET", url, true);
+    request.send(null);
 }
 
 /**
@@ -117,8 +120,7 @@ var HttpClient = function() {
  * was received.
  */
 function poll_positions(interval_time, callback) {
-    var client = new HttpClient();
-    client.get(window.location.origin + '/positions', function(response) {
+    get('positions', function(response) {
         var locations = JSON.parse(response);
         callback(locations);
         setTimeout(function() {
