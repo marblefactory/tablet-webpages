@@ -6,7 +6,8 @@ function Point(x, y) {
 
 function Minimap(canvas) {
     this.ctx = canvas.getContext('2d');
-    this.floor_names = ['basement', 'floor 1', 'roof'];
+    this.floor_names = ['Basement', 'Floor 1', 'Roof'];
+    this.floor_label_elem = document.querySelector('#floor');
 }
 
 Minimap.prototype = {
@@ -37,6 +38,8 @@ Minimap.prototype = {
         if (floor_num < 0 || floor_num > 2) {
             throw 'incorrect floor num: ' + floor_num
         }
+
+        this.floor_label_elem.innerHTML = this.floor_names[floor_num];
 
         var background = new Image();
         background.src = 'floor_maps/floor' + floor_num + '.jpg';
