@@ -56,6 +56,8 @@ function checkSite() {
     return ok;
 }
 
+var floor_num = 0;
+
 function handle_get_spy_position(request, response) {
     var spy_loc = {
         x: Math.random() * 300 + 20,
@@ -69,7 +71,8 @@ function handle_get_spy_position(request, response) {
 
     var locations = {
         spy_loc: spy_loc,
-        guard_locs: guard_locs
+        guard_locs: guard_locs,
+        floor_num: (floor_num++) % 3
     }
 
     deliver(response, 'application/json', undefined, JSON.stringify(locations));
@@ -79,7 +82,7 @@ function handle_get_spy_position(request, response) {
 function handle(request, response) {
     var url = request.url.toLowerCase();
 
-    if (url == '/spy_pos') {
+    if (url == '/positions') {
         handle_get_spy_position(request, response);
     }
     else {

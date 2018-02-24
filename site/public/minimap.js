@@ -6,6 +6,7 @@ function Point(x, y) {
 
 function Minimap(canvas) {
     this.ctx = canvas.getContext('2d');
+    this.floor_names = ['basement', 'floor 1', 'roof'];
 }
 
 Minimap.prototype = {
@@ -32,10 +33,13 @@ Minimap.prototype = {
     /**
      * Draws the background map.
      */
-    draw_background: function(callback) {
-        // var image = document.getElementById('map_background');
+    draw_background: function(floor_num, callback) {
+        if (floor_num < 0 || floor_num > 2) {
+            throw 'incorrect floor num: ' + floor_num
+        }
+
         var background = new Image();
-        background.src = 'map.jpg';
+        background.src = 'floor_maps/floor' + floor_num + '.jpg';
 
         // Make sure the image is loaded first otherwise nothing will draw.
         var _this = this;
@@ -83,9 +87,9 @@ Minimap.prototype = {
      * @param {Point} spy_loc - the position of the spy.
      * @param {[Point]} guard_locs - the locations of the guards that can be seen.
      */
-    draw: function(spy_loc, guard_locs) {
+    draw: function(spy_loc, guard_locs, floor_num) {
         var _this = this;
-        this.draw_background(function() {
+        this.draw_background(floor_num, function() {
             _this._draw_guards(guard_locs);
             _this._draw_spy(spy_loc);
         });
@@ -111,7 +115,7 @@ var HttpClient = function() {
  */
 function poll_positions(interval_time, callback) {
     var client = new HttpClient();
-    client.get(window.location.origin + '/spy_pos', function(response) {
+    client.get(window.location.origin + '/positions', function(response) {
         var locations = JSON.parse(response);
         callback(locations);
         setTimeout(function() {
@@ -127,6 +131,6 @@ window.onload = function() {
     minimap.draw_background();
 
     poll_positions(500, function(locations) {
-        minimap.draw(locations.spy_loc, locations.guard_locs);
+        minimap.draw(locations.spy_loc, locations.guard_locs, locations.floor_num);
     });
 }
