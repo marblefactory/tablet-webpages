@@ -66,7 +66,8 @@ function handle_get_spy_position(request, response) {
 
     var guard_locs = [
         { x: 100, y: 100 },
-        { x: 200, y: 100 }
+        { x: 200, y: 100 },
+        { x: 175, y: 175 }
     ];
 
     var locations = {
@@ -78,12 +79,26 @@ function handle_get_spy_position(request, response) {
     deliver(response, 'application/json', undefined, JSON.stringify(locations));
 }
 
+function handle_boundaries(request, response) {
+    var boundaries = {
+        min_x: 0,
+        min_y: 0,
+        max_x: 350,
+        max_y: 350
+    };
+
+    deliver(response, 'application/json', undefined, JSON.stringify(boundaries));
+}
+
 // Serve a request by delivering a file.
 function handle(request, response) {
     var url = request.url.toLowerCase();
 
     if (url == '/positions') {
         handle_get_spy_position(request, response);
+    }
+    else if (url == '/boundaries') {
+        handle_boundaries(request, response)
     }
     else {
         if (url.endsWith("/")) url = url + "index.html";

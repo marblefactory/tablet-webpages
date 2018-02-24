@@ -4,10 +4,23 @@ function Point(x, y) {
     this.y = y;
 }
 
-function Minimap(canvas) {
+function Boundaries(min_x, min_y, max_x, max_y) {
+    this.min_x = min_x;
+    this.min_y = min_y;
+    this.max_x = max_x;
+    this.max_y = max_y;
+}
+
+/**
+ * @param {Canvas} canvas - used to draw the minimap.
+ * @param {Boundaries} game_boundaries - used to convert between game and
+ *                                       minimap coordinates.
+ */
+function Minimap(canvas, game_boundaries) {
     this.ctx = canvas.getContext('2d');
     this.floor_names = ['Basement', 'Floor 1', 'Roof'];
     this.floor_label_elem = document.querySelector('#floor');
+    this.game_boundaries = game_boundaries
 }
 
 Minimap.prototype = {
@@ -55,11 +68,29 @@ Minimap.prototype = {
     },
 
     /**
+     * Returns the point in game coordinates into minimap coordinates.
+     */
+    _convert_to_minimap_point: function(game_point) {
+        var game_w = (this.game_boundaries.max_x - this.game_boundaries.min_x);
+        var width_mult = this.width() / game_w;
+
+        var game_h = (this.game_boundaries.max_y - this.game_boundaries.min_y);
+        var height_mult = this.height() / game_h;
+
+        var minimap_x = (game_point.x - this.game_boundaries.min_x) * width_mult;
+        var minimap_y = (game_point.y - this.game_boundaries.min_y) * height_mult;
+
+        return new Point(minimap_x, minimap_y);
+    },
+
+    /**
      * Draws a marker for a guard, spy, etc with a center at the given position.
      */
-    _draw_marker: function(x, y, color) {
+    _draw_marker: function(game_pos, color) {
+        var minimap_point = this._convert_to_minimap_point(game_pos);
+
         this.ctx.beginPath();
-        this.ctx.arc(x, y, this.marker_radius(), 0, 2 * Math.PI, false);
+        this.ctx.arc(minimap_point.x, minimap_point.y, this.marker_radius(), 0, 2 * Math.PI, false);
         this.ctx.fillStyle = color;
         this.ctx.fill();
         this.ctx.lineWidth = 5;
@@ -69,26 +100,26 @@ Minimap.prototype = {
 
     /**
      * Draws a marker for the location of the spy on the map.
-     * @param {Point} pos - the position to draw the spy.
+     * @param {Point} game_pos - the position in the game of the spy.
      */
-    _draw_spy: function(pos) {
-        this._draw_marker(pos.x, pos.y, 'black');
+    _draw_spy: function(game_pos) {
+        this._draw_marker(game_pos, 'black');
     },
 
     /**
      * Draws markers for the location of the guards on the map.
-     * @param {[Point]} points - the positions to draw the guards at.
+     * @param {[Point]} points - the positions of the guards in the game.
      */
     _draw_guards: function(points) {
         for (var i=0; i<points.length; i++) {
-            this._draw_marker(points[i].x, points[i].y, 'red');
+            this._draw_marker(points[i], 'red');
         }
     },
 
     /**
      * Draws the minimap with the position of the spy.
-     * @param {Point} spy_loc - the position of the spy.
-     * @param {[Point]} guard_locs - the locations of the guards that can be seen.
+     * @param {Point} spy_loc - the position of the spy in the game.
+     * @param {[Point]} guard_locs - the locations of the guards in the game.
      */
     draw: function(spy_loc, guard_locs, floor_num) {
         var _this = this;
@@ -116,6 +147,17 @@ function get(url_postfix, callback) {
 }
 
 /**
+ * Gets the boundaries of the map in the game. The boundaries are used to
+ * convert between 3D game positions, and positions on the minimap.
+ */
+function get_game_map_boundaries(callback) {
+    get('boundaries', function(response) {
+        var boundaries = JSON.parse(response);
+        callback(boundaries);
+    });
+}
+
+/**
  * Polls the spy and guards position interval_time after the last position
  * was received.
  */
@@ -130,12 +172,16 @@ function poll_positions(interval_time, callback) {
 }
 
 window.onload = function() {
-    var canvas = document.getElementById('minimap');
-    var minimap = new Minimap(canvas);
-    minimap.fullscreen();
-    minimap.draw_background();
+    function got_game_map_boundaries(boundaries) {
+        var canvas = document.getElementById('minimap');
+        var minimap = new Minimap(canvas, boundaries);
+        minimap.fullscreen();
+        minimap.draw_background();
 
-    poll_positions(500, function(locations) {
-        minimap.draw(locations.spy_loc, locations.guard_locs, locations.floor_num);
-    });
+        poll_positions(500, function(locations) {
+            minimap.draw(locations.spy_loc, locations.guard_locs, locations.floor_num);
+        });
+    }
+
+    get_game_map_boundaries(got_game_map_boundaries);
 }
