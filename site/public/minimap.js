@@ -152,8 +152,6 @@ Minimap.prototype = {
     _handle_canvas_pressed: function(event) {
         var press_loc = this._get_press_loc(this.ctx.canvas, event);
 
-        console.log(press_loc);
-
         // Check which camera was pressed, if any.
         for (var i=0; i<this.camera_locs.length; i++) {
             if (this._is_inside_box(press_loc, this.camera_locs[i], this._camera_icon_radius())) {
