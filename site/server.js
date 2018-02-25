@@ -117,6 +117,10 @@ function handle_posted_camera_chosen(request, response) {
         var json = JSON.parse(body);
         console.log(`Replaced camera ${json.replace_index} with ${json.new_camera_index}`);
     });
+
+    // TODO: Send the response correctly.
+    var x = {};
+    deliver(response, 'application/json', undefined, JSON.stringify(x));
 }
 
 // Serve a request by delivering a file.
