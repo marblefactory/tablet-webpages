@@ -58,6 +58,9 @@ function checkSite() {
 
 var floor_num = 0;
 
+/**
+ * Sends the client the position of the spy, guards, cameras, and the floor number.
+ */
 function handle_get_spy_position(request, response) {
     var spy_loc = {
         x: Math.random() * 300 + 20,
@@ -86,7 +89,10 @@ function handle_get_spy_position(request, response) {
     deliver(response, 'application/json', undefined, JSON.stringify(locations));
 }
 
-function handle_boundaries(request, response) {
+/**
+ * Sends the client the boundaries of the game space.
+ */
+function handle_get_boundaries(request, response) {
     var boundaries = {
         min_x: 0,
         min_y: 0,
@@ -97,6 +103,22 @@ function handle_boundaries(request, response) {
     deliver(response, 'application/json', undefined, JSON.stringify(boundaries));
 }
 
+/**
+ * Recieves the index of the camera, in the list of cameras sent using
+ * `handle_get_spy_position`, that the user selected.
+ */
+function handle_posted_camera_chosen(request, response) {
+    //console.log('User selected camera: ' + request.body.camera_index);
+    var body = "";
+    request.on('data', function (chunk) {
+        body += chunk;
+    });
+    request.on('end', function () {
+        var json = JSON.parse(body);
+        console.log(`Replaced camera ${json.replace_index} with ${json.new_camera_index}`);
+    });
+}
+
 // Serve a request by delivering a file.
 function handle(request, response) {
     var url = request.url.toLowerCase();
@@ -105,7 +127,10 @@ function handle(request, response) {
         handle_get_spy_position(request, response);
     }
     else if (url == '/boundaries') {
-        handle_boundaries(request, response)
+        handle_get_boundaries(request, response);
+    }
+    else if (url == '/camera_chosen') {
+        handle_posted_camera_chosen(request, response);
     }
     else {
         if (url.endsWith("/")) url = url + "index.html";
