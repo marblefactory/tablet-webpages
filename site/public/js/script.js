@@ -22,27 +22,24 @@ window.onload = function() {
 
     // Setup the model for the minimap.
     var model = new Model();
-    model.get_boundaries(got_game_map_boundaries);
 
     // Setup the minimap.
-    function got_game_map_boundaries(boundaries) {
-        var canvas = document.getElementById('minimap');
-        var minimap = new Minimap(canvas, model);
+    var canvas = document.getElementById('minimap');
+    var minimap = new Minimap(canvas, model);
 
-        minimap.onload = function() {
-            minimap.fullscreen();
+    minimap.onload = function() {
+        minimap.fullscreen();
+        minimap.draw_loop();
 
-            // Once the positions have been received the first time, the minimap
-            // can be drawn.
-            model.poll_positions(1000, function() {
-                minimap.draw_loop();
-            });
-        };
+        // Start the model getting the positions.
+        model.poll_positions(1000, function() {
+            minimap.refresh_positons();
+        });
+    };
 
-        // Open the camera selector if a camera is pressed.
-        minimap.on_camera_pressed = function(i) {
-            camera_selector.show();
-            new_camera_index = i;
-        }
+    // Open the camera selector if a camera is pressed.
+    minimap.on_camera_pressed = function(i) {
+        camera_selector.show();
+        new_camera_index = i;
     }
 }
