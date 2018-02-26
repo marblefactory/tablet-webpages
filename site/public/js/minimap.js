@@ -11,6 +11,12 @@ function Boundaries(min_x, min_y, max_x, max_y) {
     this.max_y = max_y;
 }
 
+// Represents a marker on the minimap that fades over time.
+function RadarMarker(minimap_loc, color) {
+    this.minimap_loc = minimap_loc;
+    this.color = color;
+}
+
 /**
  * @param {Canvas} canvas - used to draw the minimap.
  * @param {Boundaries} model - used to get information about what to display.
@@ -21,6 +27,13 @@ function Minimap(canvas, model) {
     this.floor_label_elem = document.querySelector('#floor');
     // The locations in 2d of the cameras on the canvas.
     this.camera_locs_2d = [];
+
+    this.spy_marker = null;
+    this.guard_markers = null;
+
+    // The time between refreshing the state of the minimap, i.e. positions
+    // of objects.
+    this.refresh_time_s = 1000;
 
     // Called when the minimap is finished loading.
     this.onload = function() {};
@@ -164,16 +177,15 @@ Minimap.prototype = {
 
     /**
      * Draws a marker for a guard, spy, etc with a center at the given position.
+     * @param {RadarMarker} marker - the marker to draw.
      */
-    _draw_marker: function(game_pos, color) {
-        var minimap_point = this._convert_to_minimap_point(game_pos);
-
+    _draw_marker: function(marker) {
         this.ctx.beginPath();
-        this.ctx.arc(minimap_point.x, minimap_point.y, this._marker_radius(), 0, 2 * Math.PI, false);
-        this.ctx.fillStyle = color;
+        this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, this._marker_radius(), 0, 2 * Math.PI, false);
+        this.ctx.fillStyle = marker.color;
         this.ctx.fill();
         this.ctx.lineWidth = 5;
-        this.ctx.strokeStyle = color;
+        this.ctx.strokeStyle = marker.color;
         this.ctx.stroke();
     },
 
@@ -182,7 +194,6 @@ Minimap.prototype = {
      */
     _draw_camera_icon: function(minimap_point) {
         var icon_radius = this._camera_icon_radius();
-
         this.ctx.drawImage(this.cctv_icon,
                            minimap_point.x - icon_radius,
                            minimap_point.y - icon_radius,
@@ -191,46 +202,55 @@ Minimap.prototype = {
     },
 
     /**
-     * Draws a marker for the location of the spy on the map.
-     * @param {Point} game_pos - the position in the game of the spy.
+     * Refreshers the marker for the location of the spy on the map.
      */
-    _draw_spy: function(game_pos) {
-        this._draw_marker(game_pos, 'black');
+    _refresh_spy_loc: function() {
+        var minimap_loc = this._convert_to_minimap_point(this.model.spy_game_loc);
+        this.spy_marker = new RadarMarker(minimap_loc, 'black');
     },
 
     /**
-     * Draws markers for the location of the guards on the map.
-     * @param {[Point]} points - the positions of the guards in the game.
+     * Refreshers the markers for the location of the guards on the map.
      */
-    _draw_guards: function(points) {
-        for (var i=0; i<points.length; i++) {
-            this._draw_marker(points[i], 'red');
-        }
+    _refresh_guard_locs: function() {
+        var guard_locs_2d = this.model.guard_game_locs.map(this._convert_to_minimap_point.bind(this));
+        this.guard_markers = guard_locs_2d.map(loc => new RadarMarker(loc, 'red'));
     },
 
     /**
-     * Draws markers for cameras at the given locations on the map.
-     * @param {[Point]} points - the positions of cameras in the game.
+     * Refreshers markers for cameras at the given locations on the map.
      */
-    _draw_cameras: function(points) {
-        for (var i=0; i<points.length; i++) {
-            this._draw_camera_icon(points[i]);
-        }
+    _refresh_camera_locs: function() {
+        this.camera_locs_2d = this.model.camera_game_locs.map(this._convert_to_minimap_point.bind(this));
     },
 
     /**
-     * Draws the minimap with the position of the spy.
-     * @param {Point} spy_loc - the position of the spy in the game.
-     * @param {[Point]} guard_locs - the locations of the guards in the game.
-     * @param {[Point]} camera_locs - the locations of the cameras in the game.
+     * Refreshes the minimap with the position of the spy, guards, and cameras.
+     */
+    _refresh: function() {
+        this._refresh_spy_loc(this.model.spy_game_loc);
+        this._refresh_guard_locs(this.model.guard_game_locs);
+        this._refresh_camera_locs(this.model.camera_game_locs);
+    },
+
+    /**
+     * Draws the markers and background.
      */
     _draw: function() {
-        this.camera_locs_2d = this.model.camera_game_locs.map(this._convert_to_minimap_point.bind(this));
-
         this._draw_background(this.model.floor_num);
-        this._draw_guards(this.model.guard_game_locs);
-        this._draw_spy(this.model.spy_game_loc);
-        this._draw_cameras(this.camera_locs_2d);
+
+        // Draw the camera positions.
+        for (var i=0; i<this.camera_locs_2d.length; i++) {
+            this._draw_camera_icon(this.camera_locs_2d[i]);
+        }
+
+        // Draw the radar markers for the spy.
+        this._draw_marker(this.spy_marker);
+
+        // Draw the radar markers for the guards.
+        for (var i=0; i<this.guard_markers.length; i++) {
+            this._draw_marker(this.guard_markers[i]);
+        }
     },
 
     /**
@@ -238,6 +258,12 @@ Minimap.prototype = {
      * according to the model.
      */
     draw_loop: function() {
-        setInterval(this._draw.bind(this), 1000);
+        setInterval(update, this.refresh_time_s);
+
+        var _this = this;
+        function update() {
+            _this._refresh();
+            _this._draw();
+        }
     }
 };
