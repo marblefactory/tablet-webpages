@@ -12,9 +12,10 @@ function Boundaries(min_x, min_y, max_x, max_y) {
 }
 
 // Represents a marker on the minimap that fades over time.
-function RadarMarker(minimap_loc, color) {
+function RadarMarker(minimap_loc, color, radius) {
     this.minimap_loc = minimap_loc;
     this.color = color;
+    this.radius = radius;
     this.opacity = 1.0;
 }
 
@@ -34,7 +35,7 @@ function Minimap(canvas, model) {
 
     // The time between refreshing the state of the minimap, i.e. positions
     // of objects.
-    this.refresh_time_s = 200;
+    this.refresh_time_ms = 0.5;
 
     // Called when the minimap is finished loading.
     this.onload = function() {};
@@ -181,13 +182,19 @@ Minimap.prototype = {
      * @param {RadarMarker} marker - the marker to draw.
      */
     _draw_marker: function(marker) {
+        if (marker.opacity <= 0) {
+            return;
+        }
+
+        this.ctx.globalAlpha = marker.opacity;
+        marker.opacity -= 0.0025;
+
         this.ctx.beginPath();
-        this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, this._marker_radius(), 0, 2 * Math.PI, false);
+        this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, marker.radius, 0, 2 * Math.PI, false);
         this.ctx.fillStyle = marker.color;
         this.ctx.fill();
-        this.ctx.lineWidth = 5;
-        this.ctx.strokeStyle = marker.color;
-        this.ctx.stroke();
+
+        this.ctx.globalAlpha = 1.0;
     },
 
     /**
@@ -207,7 +214,7 @@ Minimap.prototype = {
      */
     _refresh_spy_loc: function() {
         var minimap_loc = this._convert_to_minimap_point(this.model.spy_game_loc);
-        this.spy_marker = new RadarMarker(minimap_loc, 'black');
+        this.spy_marker = new RadarMarker(minimap_loc, 'black', this._marker_radius() * 1.2);
     },
 
     /**
@@ -215,7 +222,7 @@ Minimap.prototype = {
      */
     _refresh_guard_locs: function() {
         var guard_locs_2d = this.model.guard_game_locs.map(this._convert_to_minimap_point.bind(this));
-        this.guard_markers = guard_locs_2d.map(loc => new RadarMarker(loc, 'red'));
+        this.guard_markers = guard_locs_2d.map(loc => new RadarMarker(loc, 'red', this._marker_radius()));
     },
 
     /**
@@ -250,7 +257,7 @@ Minimap.prototype = {
      * according to the model.
      */
     draw_loop: function() {
-        setInterval(this._draw.bind(this), this.refresh_time_s);
+        setInterval(this._draw.bind(this), this.refresh_time_ms);
     },
 
     /**
