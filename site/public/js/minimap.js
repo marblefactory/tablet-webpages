@@ -19,26 +19,32 @@ function RadarMarker(minimap_loc, color, radius) {
     this.opacity = 1.0;
 }
 
+// Represents a camera marker on the minimap, which is used to display a
+// camera icon and plusing sphere to show with cameras are active.
+function CameraMarker(minimap_loc, is_active, pulse_radius) {
+    this.minimap_loc = minimap_loc;
+    this.is_active = is_active;
+    this.pulse_radius = pulse_radius;
+}
+
+
 /**
  * @param {Canvas} canvas - used to draw the minimap.
  * @param {Boundaries} model - used to get information about what to display.
  */
-function Minimap(canvas, model) {
+function Minimap(canvas, model, onload) {
     this.model = model;
     this.ctx = canvas.getContext('2d');
     this.floor_label_elem = document.querySelector('#floor');
-    // The locations in 2d of the cameras on the canvas.
-    this.camera_locs_2d = [];
 
     this.spy_marker = null;
     this.guard_markers = null;
+    this.camera_markers = null;
 
     // The time between refreshing the state of the minimap, i.e. positions
     // of objects.
     this.refresh_time_ms = 0.5;
 
-    // Called when the minimap is finished loading.
-    this.onload = function() {};
     // Called when a camera icon is pressed. The index of the camera is given
     // to the callback.
     this.on_camera_pressed = function(index) {};
@@ -54,7 +60,7 @@ function Minimap(canvas, model) {
 
         // Call onload if all the background images have been loaded.
         if (Object.keys(_this.background_images).length == _this.model.num_floors) {
-            _this.onload();
+            onload();
         }
     }
 
@@ -140,8 +146,8 @@ Minimap.prototype = {
         var press_loc = this._get_press_loc(this.ctx.canvas, event);
 
         // Check which camera was pressed, if any.
-        for (var i=0; i<this.camera_locs_2d.length; i++) {
-            if (this._is_inside_box(press_loc, this.camera_locs_2d[i], this._camera_icon_radius())) {
+        for (var i=0; i<this.camera_markers.length; i++) {
+            if (this._is_inside_box(press_loc, this.camera_markers[i].minimap_loc, this._camera_icon_radius())) {
                 this.on_camera_pressed(i);
             }
         }
@@ -178,10 +184,11 @@ Minimap.prototype = {
     },
 
     /**
-     * Draws a marker for a guard, spy, etc with a center at the given position.
+     * Draws a marker for a guard, spy, etc with a center at the given position,
+     * and updates the opacity of the marker.
      * @param {RadarMarker} marker - the marker to draw.
      */
-    _draw_marker: function(marker) {
+    _draw_radar_marker: function(marker) {
         if (marker.opacity <= 0) {
             return;
         }
@@ -198,13 +205,14 @@ Minimap.prototype = {
     },
 
     /**
-     * Draws the icon for a camera at the given position.
+     * Draws a marker for a camera and updates its pulse radius.
+     * @param {CameraMarker} marker - the marker to draw.
      */
-    _draw_camera_icon: function(minimap_point) {
+    _draw_camera_marker: function(marker) {
         var icon_radius = this._camera_icon_radius();
         this.ctx.drawImage(this.cctv_icon,
-                           minimap_point.x - icon_radius,
-                           minimap_point.y - icon_radius,
+                           marker.minimap_loc.x - icon_radius,
+                           marker.minimap_loc.y - icon_radius,
                            icon_radius * 2,
                            icon_radius * 2);
     },
@@ -229,7 +237,8 @@ Minimap.prototype = {
      * Refreshers markers for cameras at the given locations on the map.
      */
     _refresh_camera_locs: function() {
-        this.camera_locs_2d = this.model.camera_game_locs.map(this._convert_to_minimap_point.bind(this));
+        var camera_locs_2d = this.model.camera_game_locs.map(this._convert_to_minimap_point.bind(this));
+        this.camera_markers = camera_locs_2d.map(loc => new CameraMarker(loc, true, this._marker_radius()));
     },
 
     /**
@@ -239,16 +248,16 @@ Minimap.prototype = {
         this._draw_background(this.model.floor_num);
 
         // Draw the camera positions.
-        for (var i=0; i<this.camera_locs_2d.length; i++) {
-            this._draw_camera_icon(this.camera_locs_2d[i]);
+        for (var i=0; i<this.camera_markers.length; i++) {
+            this._draw_camera_marker(this.camera_markers[i]);
         }
 
         // Draw the radar markers for the spy.
-        this._draw_marker(this.spy_marker);
+        this._draw_radar_marker(this.spy_marker);
 
         // Draw the radar markers for the guards.
         for (var i=0; i<this.guard_markers.length; i++) {
-            this._draw_marker(this.guard_markers[i]);
+            this._draw_radar_marker(this.guard_markers[i]);
         }
     },
 

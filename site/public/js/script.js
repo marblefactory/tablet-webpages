@@ -25,17 +25,20 @@ window.onload = function() {
 
     // Setup the minimap.
     var canvas = document.getElementById('minimap');
-    var minimap = new Minimap(canvas, model);
+    var minimap = new Minimap(canvas, model, minimap_loaded);
 
-    minimap.onload = function() {
+    function minimap_loaded() {
         minimap.fullscreen();
-        minimap.draw_loop();
+
+        model.onload = function() {
+            minimap.draw_loop();
+        };
 
         // Start the model getting the positions.
-        model.poll_positions(1000, function() {
+        model.poll_positions(2000, function() {
             minimap.refresh_positons();
         });
-    };
+    }
 
     // Open the camera selector if a camera is pressed.
     minimap.on_camera_pressed = function(i) {

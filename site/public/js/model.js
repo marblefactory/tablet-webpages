@@ -10,6 +10,10 @@ function Model() {
     this.spy_game_loc = null;
     this.guard_game_locs = null;
     this.camera_game_locs = null;
+
+    // Called once the positions of objects have been retreived the first time.
+    this.onload = function() {};
+    this._called_onload = false;
 }
 
 Model.prototype = {
@@ -39,6 +43,11 @@ Model.prototype = {
                 _this.spy_game_loc = locations.spy_loc;
                 _this.guard_game_locs = locations.guard_locs;
                 _this.camera_game_locs = locations.camera_locs;
+
+                if (!_this._called_onload) {
+                    _this.onload();
+                    _this._called_onload = true;
+                }
 
                 callback();
 
