@@ -35,7 +35,7 @@ window.onload = function() {
         };
 
         // Start the model getting the positions.
-        model.poll_positions(2000, function() {
+        model.poll_positions(1200, function() {
             minimap.refresh_positons();
         });
     }

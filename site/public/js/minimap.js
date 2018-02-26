@@ -11,8 +11,15 @@ function Boundaries(min_x, min_y, max_x, max_y) {
     this.max_y = max_y;
 }
 
+// Represents a marker for the spy on the map.
+function SpyMarker(minimap_loc, color, radius) {
+    this.minimap_loc = minimap_loc;
+    this.color = color;
+    this.radius = radius;
+}
+
 // Represents a marker on the minimap that fades over time.
-function RadarMarker(minimap_loc, color, radius) {
+function GuardMarker(minimap_loc, color, radius) {
     this.minimap_loc = minimap_loc;
     this.color = color;
     this.radius = radius;
@@ -184,11 +191,22 @@ Minimap.prototype = {
     },
 
     /**
-     * Draws a marker for a guard, spy, etc with a center at the given position,
-     * and updates the opacity of the marker.
-     * @param {RadarMarker} marker - the marker to draw.
+     * Draws a marker for spy with a center at the given position.
+     * @param {SpyMarker} marker - the marker to draw.
      */
-    _draw_radar_marker: function(marker) {
+    _draw_spy_marker: function(marker) {
+        this.ctx.beginPath();
+        this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, marker.radius, 0, 2 * Math.PI, false);
+        this.ctx.fillStyle = marker.color;
+        this.ctx.fill();
+    },
+
+    /**
+     * Draws a marker for a guard with a center at the given position, and
+     * updates the opacity of the marker.
+     * @param {GuardMarker} marker - the marker to draw.
+     */
+    _draw_guard_marker: function(marker) {
         if (marker.opacity <= 0) {
             return;
         }
@@ -222,7 +240,7 @@ Minimap.prototype = {
      */
     _refresh_spy_loc: function() {
         var minimap_loc = this._convert_to_minimap_point(this.model.spy_game_loc);
-        this.spy_marker = new RadarMarker(minimap_loc, 'black', this._marker_radius() * 1.2);
+        this.spy_marker = new SpyMarker(minimap_loc, 'black', this._marker_radius() * 1.2);
     },
 
     /**
@@ -230,7 +248,7 @@ Minimap.prototype = {
      */
     _refresh_guard_locs: function() {
         var guard_locs_2d = this.model.guard_game_locs.map(this._convert_to_minimap_point.bind(this));
-        this.guard_markers = guard_locs_2d.map(loc => new RadarMarker(loc, 'red', this._marker_radius()));
+        this.guard_markers = guard_locs_2d.map(loc => new GuardMarker(loc, 'red', this._marker_radius()));
     },
 
     /**
@@ -253,11 +271,11 @@ Minimap.prototype = {
         }
 
         // Draw the radar markers for the spy.
-        this._draw_radar_marker(this.spy_marker);
+        this._draw_spy_marker(this.spy_marker);
 
         // Draw the radar markers for the guards.
         for (var i=0; i<this.guard_markers.length; i++) {
-            this._draw_radar_marker(this.guard_markers[i]);
+            this._draw_guard_marker(this.guard_markers[i]);
         }
     },
 
