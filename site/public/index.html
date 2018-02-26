@@ -3,11 +3,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <link rel="stylesheet" href="index.css"/>
-        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:700" rel="stylesheet"/>
-        <script src="minimap.js"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700" rel="stylesheet"/>
+        <script src="js/server.js"></script>
+        <script src="js/camera_select.js"></script>
+        <script src="js/minimap.js"></script>
+        <script src="js/script.js"></script>
     </head>
     <body>
         <h1 id="floor">Floor</h1>
         <canvas id="minimap"></canvas>
+
+        <div id="camera_select_background" class="modal_background">
+            <div id="camera_select_foreground" class="modal_foreground grid-container"></div>
+        </div>
     </body>
 </html>

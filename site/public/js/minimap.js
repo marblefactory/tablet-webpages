@@ -12,35 +12,6 @@ function Boundaries(min_x, min_y, max_x, max_y) {
 }
 
 /**
- * Sends a GET requst to the server, with the given url_postfix added to the
- * end of the url of the server.
- */
-function get(url_postfix, callback) {
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status == 200)
-            callback(request.responseText);
-    }
-
-    url = window.location.origin + '/' + url_postfix;
-    request.open("GET", url, true);
-    request.send(null);
-}
-
-/**
- * Sends a post request to the server, with the given ulr_postfix added to the
- * end of the url of the server.
- */
-function post_obj(url_postfix, obj) {
-    var request = new XMLHttpRequest();
-    url = window.location.origin + '/' + url_postfix;
-
-    request.open("POST", url, true);
-    request.setRequestHeader('Content-Type', 'application/json');
-    request.send(JSON.stringify(obj));
-}
-
-/**
  * @param {Canvas} canvas - used to draw the minimap.
  * @param {Boundaries} game_boundaries - used to convert between game and
  *                                       minimap coordinates.
@@ -294,22 +265,4 @@ function poll_positions(interval_time, callback) {
             poll_positions(interval_time, callback)
         }, interval_time);
     });
-}
-
-window.onload = function() {
-    function got_game_map_boundaries(boundaries) {
-        var canvas = document.getElementById('minimap');
-        var minimap = new Minimap(canvas, boundaries);
-        minimap.onload = function() {
-            minimap.fullscreen();
-            poll_positions(500, function(locations) {
-                minimap.draw(locations.spy_loc,
-                             locations.guard_locs,
-                             locations.camera_locs,
-                             locations.floor_num);
-            });
-        };
-    }
-
-    get_game_map_boundaries(got_game_map_boundaries);
 }
