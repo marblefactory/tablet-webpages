@@ -14,7 +14,7 @@ CameraSelectorView.prototype = {
     },
 
     _setup_foreground: function() {
-        var foreground = document.querySelector("#camera_select_foreground");
+        var foreground = document.querySelector("#camera_feed_container");
 
         // Add images for the 4 feeds to select.
         var static_images = [
@@ -33,6 +33,7 @@ CameraSelectorView.prototype = {
 
             // An image of the camera static.
             var camera_static_div = document.createElement('div');
+            camera_static_div.data_index = i; // Used to tell which feed was pressed.
             camera_static_div.className = 'camera_static';
             camera_static_div.style.backgroundImage = `url(${static_images[i]})`;
             feed_div.append(camera_static_div);
@@ -44,6 +45,12 @@ CameraSelectorView.prototype = {
             feed_div.append(feed_label);
 
             // Add touch events for pressing
+            add_press_event_listener(camera_static_div, pressed);
+
+            var _this = this;
+            function pressed() {
+                _this.on_feed_pressed(this.data_index);
+            }
         }
     },
 

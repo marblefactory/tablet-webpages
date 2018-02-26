@@ -38,6 +38,14 @@ h1 {
     position: relative;
 }
 
+.grid-item:hover {
+    background-color: #666;
+}
+
+.grid-item:active {
+    background-color: white;
+}
+
 .modal_background {
     display: none;
     display: block;
@@ -82,4 +90,6 @@ h1 {
     font-family: 'Roboto Mono', monospace;
     font-weight: normal;
     font-size: 130%;
+    pointer-events: none;
+    user-select: none;
 }

@@ -1,11 +1,23 @@
 
 window.onload = function() {
+    // Used to store the pressed camera index. This is then combined with the
+    // feed pressed to tell which camera view to replace and the new camera view.
+    var new_camera_index = -1;
+
     // Setup the camera selector view, used to replace a camera feed.
     var camera_selector = new CameraSelectorView();
     camera_selector.hide();
 
     camera_selector.on_feed_pressed = function(i) {
-        console.log("")
+        console.log(`Replace feed ${i} with camera ${new_camera_index}`);
+
+        // Which camera to replace with the new feed.
+        var obj = {
+            replace_index: i,
+            new_camera_index: new_camera_index
+        };
+
+        post_obj('camera_chosen', obj);
     };
 
     // Setup the minimap.
@@ -25,15 +37,7 @@ window.onload = function() {
 
         minimap.on_camera_pressed = function(i) {
             camera_selector.show();
-            // console.log(`Pressed camera ${i}`);
-            //
-            // // Which camera to replace with the new feed.
-            // var obj = {
-            //     replace_index: 0, // TODO
-            //     new_camera_index: i
-            // };
-            //
-            // post_obj('camera_chosen', obj);
+            new_camera_index = i;
         }
     }
 
