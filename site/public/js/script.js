@@ -6,7 +6,7 @@ window.onload = function() {
 
     // Setup the camera selector view, used to replace a camera feed.
     var camera_selector = new CameraSelectorView();
-    //camera_selector.hide();
+    camera_selector.hide();
 
     camera_selector.on_feed_pressed = function(i) {
         console.log(`Replace feed ${i} with camera ${new_camera_index}`);
