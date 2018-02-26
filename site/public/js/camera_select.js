@@ -23,6 +23,12 @@ function setup_camera_select() {
         camera_static_div.style.backgroundImage = `url(${static_images[i]})`;
         feed_div.append(camera_static_div);
 
+        // A label indicating the name of the camera feed.
+        var feed_label = document.createElement('h2');
+        feed_label.className = 'feed_label';
+        feed_label.innerHTML = `feed 0${i}`;
+        feed_div.append(feed_label);
+
         // A button used to select the camera to replace.
         // var button = document.createElement('button');
     }
