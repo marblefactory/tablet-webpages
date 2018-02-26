@@ -39,6 +39,7 @@ h1 {
 }
 
 .modal_background {
+    display: none;
     display: block;
     position: fixed;
     z-index: 1;

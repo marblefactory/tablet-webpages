@@ -24,7 +24,11 @@ function Minimap(canvas, game_boundaries) {
     this.game_boundaries = game_boundaries;
     this.camera_locs = [];
 
+    // Called when the minimap is finished loading.
     this.onload = function() {};
+    // Called when a camera icon is pressed. The index of the camera is given
+    // to the callback.
+    this.on_camera_pressed = function(index) {};
 
     // Preload the any images.
     this.background_images = [];
@@ -58,8 +62,7 @@ function Minimap(canvas, game_boundaries) {
 
     // Add event handlers for touching the canvas.
     // This allows the index of the camera pressed to be sent back to the server.
-    canvas.addEventListener('click', this._handle_canvas_pressed.bind(this), false);
-    canvas.addEventListener('touch', this._handle_canvas_pressed.bind(this), false);
+    add_press_event_listener(canvas, this._handle_canvas_pressed.bind(this));
 }
 
 Minimap.prototype = {
@@ -126,15 +129,7 @@ Minimap.prototype = {
         // Check which camera was pressed, if any.
         for (var i=0; i<this.camera_locs.length; i++) {
             if (this._is_inside_box(press_loc, this.camera_locs[i], this._camera_icon_radius())) {
-                console.log(`Pressed camera ${i}`);
-
-                // Which camera to replace with the new feed.
-                var obj = {
-                    replace_index: 0, // TODO
-                    new_camera_index: i
-                };
-
-                post_obj('camera_chosen', obj);
+                this.on_camera_pressed(i);
             }
         }
     },
