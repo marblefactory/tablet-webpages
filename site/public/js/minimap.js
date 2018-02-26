@@ -24,6 +24,7 @@ function GuardMarker(minimap_loc, color, radius) {
     this.color = color;
     this.radius = radius;
     this.opacity = 1.0;
+    this.delta_opacity = -0.0025;
 }
 
 // Represents a camera marker on the minimap, which is used to display a
@@ -32,8 +33,14 @@ function CameraMarker(minimap_loc, is_active, pulse_radius) {
     this.minimap_loc = minimap_loc;
     this.is_active = is_active;
     this.pulse_radius = pulse_radius;
-}
+    this.pulse_opacity = 1.0;
 
+    var min_delta_r = 0.6;
+    var max_delta_r = 0.8;
+
+    this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
+    this.delta_opacity = -0.004;
+}
 
 /**
  * @param {Canvas} canvas - used to draw the minimap.
@@ -66,7 +73,7 @@ function Minimap(canvas, model, onload) {
         _this.background_images[key] = background_img;
 
         // Call onload if all the background images have been loaded.
-        if (Object.keys(_this.background_images).length == _this.model.num_floors) {
+        if (Object.keys(_this.background_images).length === _this.model.num_floors) {
             onload();
         }
     }
@@ -212,14 +219,13 @@ Minimap.prototype = {
         }
 
         this.ctx.globalAlpha = marker.opacity;
-        marker.opacity -= 0.0025;
-
         this.ctx.beginPath();
         this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, marker.radius, 0, 2 * Math.PI, false);
         this.ctx.fillStyle = marker.color;
         this.ctx.fill();
-
         this.ctx.globalAlpha = 1.0;
+
+        marker.opacity += marker.delta_opacity;
     },
 
     /**
@@ -233,6 +239,19 @@ Minimap.prototype = {
                            marker.minimap_loc.y - icon_radius,
                            icon_radius * 2,
                            icon_radius * 2);
+
+        if (marker.is_active && marker.pulse_opacity > 0) {
+            this.ctx.globalAlpha = marker.pulse_opacity;
+            this.ctx.beginPath();
+            this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, marker.pulse_radius, 0, 2 * Math.PI, false);
+            this.ctx.strokeStyle = 'red';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+            this.ctx.globalAlpha = 1.0;
+
+            marker.pulse_radius += marker.delta_radius;
+            marker.pulse_opacity += marker.delta_opacity;
+        }
     },
 
     /**
@@ -255,8 +274,20 @@ Minimap.prototype = {
      * Refreshers markers for cameras at the given locations on the map.
      */
     _refresh_camera_locs: function() {
-        var camera_locs_2d = this.model.camera_game_locs.map(this._convert_to_minimap_point.bind(this));
-        this.camera_markers = camera_locs_2d.map(loc => new CameraMarker(loc, true, this._marker_radius()));
+        // var camera_locs_2d = this.model.camera_game_locs.map(this._convert_to_minimap_point.bind(this));
+        // this.camera_markers = camera_locs_2d.map(loc => new CameraMarker(loc, true, this._camera_icon_radius()));
+
+        /**
+         * Returns a camera marker which can be displayed on the minimap.
+         * @param {Camera} game_camera - a camera in game coordinates.
+         */
+        var _this = this;
+        function transform(game_camera) {
+            var minimap_loc = _this._convert_to_minimap_point(game_camera.loc);
+            return new CameraMarker(minimap_loc, game_camera.is_active, _this._camera_icon_radius());
+        }
+
+        this.camera_markers = this.model.game_cameras.map(transform);
     },
 
     /**

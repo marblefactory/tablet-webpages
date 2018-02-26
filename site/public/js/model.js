@@ -1,4 +1,11 @@
 
+// The location of a camera in the game, and whether the user is viewing the
+// camera feed.
+function Camera(game_loc, is_active) {
+    this.game_loc = game_loc;
+    this.is_active = is_active;
+}
+
 function Model() {
     this.num_floors = 3;
     this.floor_names = ['Basement', 'Floor 1', 'Roof'];
@@ -9,7 +16,7 @@ function Model() {
     // The positions of objects in the game.
     this.spy_game_loc = null;
     this.guard_game_locs = null;
-    this.camera_game_locs = null;
+    this.game_cameras = null;
 
     // Called once the positions of objects have been retreived the first time.
     this.onload = function() {};
@@ -42,7 +49,7 @@ Model.prototype = {
                 _this.floor_num = locations.floor_num;
                 _this.spy_game_loc = locations.spy_loc;
                 _this.guard_game_locs = locations.guard_locs;
-                _this.camera_game_locs = locations.camera_locs;
+                _this.game_cameras = locations.cameras;
 
                 if (!_this._called_onload) {
                     _this.onload();
