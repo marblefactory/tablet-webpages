@@ -224,26 +224,20 @@ Minimap.prototype = {
      * @param {[Point]} guard_locs - the locations of the guards in the game.
      * @param {[Point]} camera_locs - the locations of the cameras in the game.
      */
-    draw: function(spy_loc, guard_locs, camera_locs, floor_num) {
-        this.camera_locs_2d = camera_locs.map(this._convert_to_minimap_point.bind(this));
+    _draw: function() {
+        this.camera_locs_2d = this.model.camera_game_locs.map(this._convert_to_minimap_point.bind(this));
 
-        this._draw_background(floor_num);
-        this._draw_guards(guard_locs);
-        this._draw_spy(spy_loc);
+        this._draw_background(this.model.floor_num);
+        this._draw_guards(this.model.guard_game_locs);
+        this._draw_spy(this.model.spy_game_loc);
         this._draw_cameras(this.camera_locs_2d);
+    },
+
+    /**
+     * Infinitely loops drawing the canvas with the game objects at locations
+     * according to the model.
+     */
+    draw_loop: function() {
+        setInterval(this._draw.bind(this), 1000);
     }
 };
-
-/**
- * Polls the spy and guards position interval_time after the last position
- * was received.
- */
-function poll_positions(interval_time, callback) {
-    get('positions', function(response) {
-        var locations = JSON.parse(response);
-        callback(locations);
-        setTimeout(function() {
-            poll_positions(interval_time, callback)
-        }, interval_time);
-    });
-}
