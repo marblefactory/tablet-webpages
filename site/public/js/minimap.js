@@ -13,16 +13,14 @@ function Boundaries(min_x, min_y, max_x, max_y) {
 
 /**
  * @param {Canvas} canvas - used to draw the minimap.
- * @param {Boundaries} game_boundaries - used to convert between game and
- *                                       minimap coordinates.
+ * @param {Boundaries} model - used to get information about what to display.
  */
-function Minimap(canvas, game_boundaries) {
+function Minimap(canvas, model) {
+    this.model = model;
     this.ctx = canvas.getContext('2d');
-    this.num_floors = 3;
-    this.floor_names = ['Basement', 'Floor 1', 'Roof'];
     this.floor_label_elem = document.querySelector('#floor');
-    this.game_boundaries = game_boundaries;
-    this.camera_locs = [];
+    // The locations in 2d of the cameras on the canvas.
+    this.camera_locs_2d = [];
 
     // Called when the minimap is finished loading.
     this.onload = function() {};
@@ -40,13 +38,13 @@ function Minimap(canvas, game_boundaries) {
         _this.background_images[key] = background_img;
 
         // Call onload if all the background images have been loaded.
-        if (Object.keys(_this.background_images).length == _this.num_floors) {
+        if (Object.keys(_this.background_images).length == _this.model.num_floors) {
             _this.onload();
         }
     }
 
     function preload_backgrounds() {
-        for (var i=0; i<_this.num_floors; i++) {
+        for (var i=0; i<_this.model.num_floors; i++) {
             var img_name = 'images/floor_maps/floor' + i + '.jpg';
             _this._preload_image(img_name, i, loaded_background);
         }
@@ -127,8 +125,8 @@ Minimap.prototype = {
         var press_loc = this._get_press_loc(this.ctx.canvas, event);
 
         // Check which camera was pressed, if any.
-        for (var i=0; i<this.camera_locs.length; i++) {
-            if (this._is_inside_box(press_loc, this.camera_locs[i], this._camera_icon_radius())) {
+        for (var i=0; i<this.camera_locs_2d.length; i++) {
+            if (this._is_inside_box(press_loc, this.camera_locs_2d[i], this._camera_icon_radius())) {
                 this.on_camera_pressed(i);
             }
         }
@@ -138,11 +136,11 @@ Minimap.prototype = {
      * Draws the background map.
      */
     _draw_background: function(floor_num) {
-        if (floor_num < 0 || floor_num > this.num_floors) {
+        if (floor_num < 0 || floor_num > this.model.num_floors) {
             throw 'incorrect floor num: ' + floor_num
         }
 
-        this.floor_label_elem.innerHTML = this.floor_names[floor_num];
+        this.floor_label_elem.innerHTML = this.model.floor_names[floor_num];
 
         var floor_img = this.background_images[floor_num];
         this.ctx.drawImage(floor_img, 0, 0, this.width(), this.height());
@@ -152,14 +150,14 @@ Minimap.prototype = {
      * Returns the point in game coordinates into minimap coordinates.
      */
     _convert_to_minimap_point: function(game_point) {
-        var game_w = (this.game_boundaries.max_x - this.game_boundaries.min_x);
+        var game_w = (this.model.game_boundaries.max_x - this.model.game_boundaries.min_x);
         var width_mult = this.width() / game_w;
 
-        var game_h = (this.game_boundaries.max_y - this.game_boundaries.min_y);
+        var game_h = (this.model.game_boundaries.max_y - this.model.game_boundaries.min_y);
         var height_mult = this.height() / game_h;
 
-        var minimap_x = (game_point.x - this.game_boundaries.min_x) * width_mult;
-        var minimap_y = (game_point.y - this.game_boundaries.min_y) * height_mult;
+        var minimap_x = (game_point.x - this.model.game_boundaries.min_x) * width_mult;
+        var minimap_y = (game_point.y - this.model.game_boundaries.min_y) * height_mult;
 
         return new Point(minimap_x, minimap_y);
     },
@@ -182,8 +180,7 @@ Minimap.prototype = {
     /**
      * Draws the icon for a camera at the given position.
      */
-    _draw_camera_icon: function(game_pos) {
-        var minimap_point = this._convert_to_minimap_point(game_pos);
+    _draw_camera_icon: function(minimap_point) {
         var icon_radius = this._camera_icon_radius();
 
         this.ctx.drawImage(this.cctv_icon,
@@ -228,25 +225,14 @@ Minimap.prototype = {
      * @param {[Point]} camera_locs - the locations of the cameras in the game.
      */
     draw: function(spy_loc, guard_locs, camera_locs, floor_num) {
-        this.camera_locs = camera_locs.map(this._convert_to_minimap_point.bind(this));
+        this.camera_locs_2d = camera_locs.map(this._convert_to_minimap_point.bind(this));
 
         this._draw_background(floor_num);
         this._draw_guards(guard_locs);
         this._draw_spy(spy_loc);
-        this._draw_cameras(camera_locs);
+        this._draw_cameras(this.camera_locs_2d);
     }
 };
-
-/**
- * Gets the boundaries of the map in the game. The boundaries are used to
- * convert between 3D game positions, and positions on the minimap.
- */
-function get_game_map_boundaries(callback) {
-    get('boundaries', function(response) {
-        var boundaries = JSON.parse(response);
-        callback(boundaries);
-    });
-}
 
 /**
  * Polls the spy and guards position interval_time after the last position

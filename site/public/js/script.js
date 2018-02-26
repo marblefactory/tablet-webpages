@@ -20,10 +20,13 @@ window.onload = function() {
         post_obj('camera_chosen', obj);
     };
 
+    // Setup the model for the minimap.
+    var model = new Model();
+
     // Setup the minimap.
     function got_game_map_boundaries(boundaries) {
         var canvas = document.getElementById('minimap');
-        var minimap = new Minimap(canvas, boundaries);
+        var minimap = new Minimap(canvas, model);
 
         minimap.onload = function() {
             minimap.fullscreen();
@@ -41,5 +44,5 @@ window.onload = function() {
         }
     }
 
-    get_game_map_boundaries(got_game_map_boundaries);
+    model.get_boundaries(got_game_map_boundaries);
 }

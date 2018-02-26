@@ -83,7 +83,8 @@ function handle_get_spy_position(request, response) {
         spy_loc: spy_loc,
         guard_locs: guard_locs,
         camera_locs: camera_locs,
-        floor_num: (floor_num++) % 3
+        floor_num: (floor_num) % 3
+        // floor_num: (floor_num++) % 3
     }
 
     deliver(response, 'application/json', undefined, JSON.stringify(locations));
