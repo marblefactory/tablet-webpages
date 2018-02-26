@@ -33,13 +33,15 @@ function CameraMarker(minimap_loc, is_active, pulse_radius) {
     this.minimap_loc = minimap_loc;
     this.is_active = is_active;
     this.pulse_radius = pulse_radius;
-    this.pulse_opacity = 1.0;
+    this.pulse_opacity = 0.8;
 
     var min_delta_r = 0.6;
     var max_delta_r = 0.8;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
     this.delta_opacity = -0.004;
+
+    this.pulse_color = "#0163b7";
 }
 
 /**
@@ -244,7 +246,7 @@ Minimap.prototype = {
             this.ctx.globalAlpha = marker.pulse_opacity;
             this.ctx.beginPath();
             this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, marker.pulse_radius, 0, 2 * Math.PI, false);
-            this.ctx.strokeStyle = 'red';
+            this.ctx.strokeStyle = marker.pulse_color;
             this.ctx.lineWidth = 2;
             this.ctx.stroke();
             this.ctx.globalAlpha = 1.0;
