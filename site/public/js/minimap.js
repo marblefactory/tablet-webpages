@@ -236,18 +236,35 @@ Minimap.prototype = {
         this._draw_marker(marker);
 
         // Draw an indicator of the direction the spy is facing.
-        // this.ctx.translate(marker.minimap_loc.x + marker.radius, marker.minimap_loc.y + marker.radius);
-        // this.ctx.rotate(45);
-        //
-        // this.ctx.beginPath();
-        // this.ctx.moveTo(-marker.radius, 0);
-        // this.ctx.lineTo(0,              marker.radius * 1.6);
-        // this.ctx.lineTo(marker.radius,  0);
-        // this.ctx.fillStyle = marker.color;
-        // this.ctx.fill();
-        //
-        // this.ctx.rotate(-45);
-        // this.ctx.translate(-(marker.minimap_loc.x + marker.radius), -(marker.minimap_loc.y + marker.radius));
+        var dx = marker.minimap_loc.x;
+        var dy = marker.minimap_loc.y;
+        draw_with_translation(this.ctx, dx, dy, draw_rotated_arrow.bind(this))
+
+        function draw_rotated_arrow() {
+            draw_with_rotation(this.ctx, this.model.spy_dir_deg, draw_arrow_at_horizontal.bind(this));
+        }
+
+        // Draws an arrow pointing horzontally to the right.
+        function draw_arrow_at_horizontal() {
+            var offset = Math.PI * 0.8;
+            var p1 = point_on_circle(marker.radius, offset);
+            var p2 = point_on_circle(marker.radius, 0);
+            var p3 = point_on_circle(marker.radius, -offset);
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(p1.x, p1.y);
+            this.ctx.lineTo(p2.x, p2.y);
+            this.ctx.lineTo(p3.x, p3.y);
+            this.ctx.fillStyle = 'blue';
+            this.ctx.fill();
+        }
+
+        // Returns a point on the edge of a circle at the origin.
+        function point_on_circle(radius, angle_rads) {
+            var x = radius * Math.cos(angle_rads);
+            var y = radius * Math.sin(angle_rads);
+            return {x, y};
+        }
     },
 
     /**
