@@ -7,6 +7,7 @@ function Camera(game_loc, is_active) {
 }
 
 function Model() {
+    this.floor_num = 0;
     this.num_floors = 3;
     this.floor_names = ['Basement', 'Floor 1', 'Roof'];
     // The boundaries of the 3d game. The locations of objects cannot go

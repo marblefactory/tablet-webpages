@@ -11,6 +11,19 @@ function Boundaries(min_x, min_y, max_x, max_y) {
     this.max_y = max_y;
 }
 
+/**
+ * @param {Image} image - the blueprint of the floor plan.
+ * @param {number} screen_width - the width of the screen, used to calculate
+ *                                the width that the floor map should be
+ *                                displayed at (it may not fill the entire width).
+ * @param {number} screen_height - the height of the screen.
+ */
+function FloorMap(image, screen_width, screen_height) {
+    this.image = image;
+    this.render_width = image.width * (screen_height / image.height);
+    this.start_x = (screen_width - this.render_width) / 2;
+}
+
 // Represents a marker for the spy on the map.
 function SpyMarker(minimap_loc, color, radius) {
     this.minimap_loc = minimap_loc;
@@ -71,16 +84,16 @@ function Minimap(canvas, model, onload) {
     this.on_camera_pressed = function(index) {};
 
     // Preload the any images.
-    this.background_images = [];
+    this.floor_maps = [];
     this.cctv_icon = null;
 
     // Add all the preloaded background images to a dictionary.
     var _this = this;
     function loaded_background(key, background_img) {
-        _this.background_images[key] = background_img;
+        _this.floor_maps[key] = new FloorMap(background_img, screen.width, screen.height);
 
         // Call onload if all the background images have been loaded.
-        if (Object.keys(_this.background_images).length === _this.model.num_floors) {
+        if (Object.keys(_this.floor_maps).length === _this.model.num_floors) {
             onload();
         }
     }
@@ -124,6 +137,10 @@ Minimap.prototype = {
         return this.ctx.canvas.height;
     },
 
+    current_floormap: function() {
+        return this.floor_maps[this.model.floor_num];
+    },
+
     _marker_radius: function() {
         return Math.min(this.width() * 0.011, 50);
     },
@@ -133,11 +150,21 @@ Minimap.prototype = {
     },
 
     /**
-     * Resizes the canvas to fit to fullscreen.
+     * Returns the point in game coordinates into minimap coordinates.
      */
-    fullscreen: function() {
-        this.ctx.canvas.width = window.innerWidth;
-        this.ctx.canvas.height = window.innerHeight;
+    _convert_to_minimap_point: function(game_point) {
+        var floormap = this.current_floormap();
+
+        var game_w = (this.model.game_boundaries.max_x - this.model.game_boundaries.min_x);
+        var width_mult = floormap.render_width / game_w;
+
+        var game_h = (this.model.game_boundaries.max_y - this.model.game_boundaries.min_y);
+        var height_mult = this.height() / game_h;
+
+        var minimap_x = (game_point.x - this.model.game_boundaries.min_x) * width_mult + floormap.start_x;
+        var minimap_y = (game_point.y - this.model.game_boundaries.min_y) * height_mult;
+
+        return new Point(minimap_x, minimap_y);
     },
 
     /**
@@ -185,42 +212,11 @@ Minimap.prototype = {
     /**
      * Draws the background map.
      */
-    _draw_background_image: function(floor_num) {
-        if (floor_num < 0 || floor_num > this.model.num_floors) {
-            throw 'incorrect floor num: ' + floor_num
-        }
+    _draw_background_image: function() {
+        this.floor_label_elem.innerHTML = this.model.floor_names[this.model.floor_num];
 
-        this.floor_label_elem.innerHTML = this.model.floor_names[floor_num];
-
-        var floor_img = this.background_images[floor_num];
-
-        // The height will fill the screen, but we want to preserve the aspect
-        // ratio so the width will be dependent on the height.
-        renderable_height = this.height();
-		renderable_width = floor_img.width * (renderable_height / floor_img.height);
-		x_start = (this.width() - renderable_width) / 2;
-		y_start = 0;
-
-        this.ctx.drawImage(floor_img, x_start, y_start, renderable_width, renderable_height);
-
-        this._floor_map_start_x = x_start;
-        this._floor_map_width = renderable_width;
-    },
-
-    /**
-     * Returns the point in game coordinates into minimap coordinates.
-     */
-    _convert_to_minimap_point: function(game_point) {
-        var game_w = (this.model.game_boundaries.max_x - this.model.game_boundaries.min_x);
-        var width_mult = this._floor_map_width / game_w;
-
-        var game_h = (this.model.game_boundaries.max_y - this.model.game_boundaries.min_y);
-        var height_mult = this.height() / game_h;
-
-        var minimap_x = (game_point.x - this.model.game_boundaries.min_x) * width_mult + this._floor_map_start_x;
-        var minimap_y = (game_point.y - this.model.game_boundaries.min_y) * height_mult;
-
-        return new Point(minimap_x, minimap_y);
+        var floormap = this.current_floormap();
+        this.ctx.drawImage(floormap.image, floormap.start_x, 0, floormap.render_width, this.height());
     },
 
     /**
@@ -352,5 +348,13 @@ Minimap.prototype = {
         this._refresh_spy_loc(this.model.spy_game_loc);
         this._refresh_guard_locs(this.model.guard_game_locs);
         this._refresh_camera_locs(this.model.camera_game_locs);
+    },
+
+    /**
+     * Resizes the canvas to fit to fullscreen.
+     */
+    fullscreen: function() {
+        this.ctx.canvas.width = window.innerWidth;
+        this.ctx.canvas.height = window.innerHeight;
     }
 };
