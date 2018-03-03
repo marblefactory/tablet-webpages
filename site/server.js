@@ -63,8 +63,9 @@ var floor_num = 0;
  */
 function handle_get_spy_position(request, response) {
     var spy_loc = {
-        x: Math.random() * 300 + 20,
-        y: Math.random() * 300 + 20
+        x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
+        y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
+        dir: Math.random() % 360     // The angle the spy is facing.
     };
 
     var guard_locs = [

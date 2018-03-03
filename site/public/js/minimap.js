@@ -82,7 +82,7 @@ function Minimap(canvas, model, onload) {
 
     function preload_backgrounds() {
         for (var i=0; i<_this.model.num_floors; i++) {
-            var img_name = 'images/floor_maps/floor' + i + '.jpg';
+            var img_name = 'images/floor_maps/floor' + i + '.png';
             _this._preload_image(img_name, i, loaded_background);
         }
     }
