@@ -42,19 +42,30 @@ function GuardMarker(minimap_loc, color, radius) {
 
 // Represents a camera marker on the minimap, which is used to display a
 // camera icon and plusing sphere to show with cameras are active.
-function CameraMarker(minimap_loc, is_active, pulse_radius) {
+function CameraMarker(minimap_loc, is_active) {
     this.minimap_loc = minimap_loc;
     this.is_active = is_active;
-    this.pulse_radius = pulse_radius;
-    this.pulse_opacity = 0.8;
+}
 
+// Represents a radar pulse from a camera.
+function CameraPulse(minimap_loc, start_radius) {
+    this.minimap_loc = minimap_loc;
+    this.color = 'white';
+    this.radius = start_radius;
+    this.opacity = 0.8;
+
+    // The minimum and maximum rate at which the radius can increase.
+    // Randomness helps make the cameras look less 'samey'.
     var min_delta_r = 0.6;
     var max_delta_r = 0.8;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
     this.delta_opacity = -0.004;
 
-    this.pulse_color = "white";
+    this.update = function() {
+        this.radius += this.delta_radius;
+        this.opacity += this.start_opacity;
+    };
 }
 
 /**
@@ -75,9 +86,11 @@ function Minimap(canvas, model, onload) {
     this._floor_map_start_x = null;
     this._floor_map_width = null;
 
-    // The time between refreshing the state of the minimap, i.e. positions
-    // of objects.
-    this.refresh_time_ms = 0.5;
+    // The time between refreshing the context on which the minimap is drawn.
+    this.draw_refresh_time_ms = 0.5;
+
+    // All the radar pulses that have been emitted from cameras.
+    this._pulses = [];
 
     // Called when a camera icon is pressed. The index of the camera is given
     // to the callback.
@@ -296,16 +309,89 @@ Minimap.prototype = {
         // A white stroke around the icon.
         stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, 1, 'white');
 
-        // The pulse (radar) coming from the camera.
-        if (marker.is_active && marker.pulse_opacity > 0) {
-            draw_with_alpha(this.ctx, marker.pulse_opacity, draw_pulse.bind(this));
-            function draw_pulse() {
-                stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, marker.pulse_radius, 2, marker.pulse_color)
-            }
-
-            marker.pulse_radius += marker.delta_radius;
-            marker.pulse_opacity += marker.delta_opacity;
+        // If the camera is active, create a pulse from it.
+        if (marker.is_active) {
+            var pulse = new CameraPulse(marker.minimap_loc, icon_radius);
+            this._pulses.push(pulse);
         }
+
+        // // The pulse (radar) coming from the camera.
+        // if (marker.is_active && marker.pulse_opacity > 0) {
+            // draw_with_alpha(this.ctx, marker.pulse_opacity, draw_pulse.bind(this));
+            // function draw_pulse() {
+            //     stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, marker.pulse_radius, 2, marker.pulse_color)
+            // }
+        //
+        //     marker.pulse_radius += marker.delta_radius;
+        //     marker.pulse_opacity += marker.delta_opacity;
+        // }
+    },
+
+    /**
+     * Draws a pulse, but doesn't update it's opacity or radius.
+     * @param {CameraPulse} pulse - the pulse to draw.
+     */
+    _draw_pulse: function(pulse) {
+        draw_with_alpha(this.ctx, pulse.opacity, stroke_pulse.bind(this));
+        function stroke_pulse() {
+            stroke_circle(this.ctx, pulse.minimap_loc.x, pulse.minimap_loc.y, pulse.radius, 2, pulse.color)
+        }
+    },
+
+    /**
+     * Draws a pulse from a camera. And also updates the pulses - if the pulse
+     * has no strength (opacity) left then it is removed from the collection of
+     * pulses.
+     */
+    _update_draw_all_pulses: function() {
+        // The pulses which will be kept to be updated again, i.e. still have
+        // opacity left.
+        var new_pulses = [];
+
+        for (var i=0; i<this._pulses.length; i++) {
+            // Only update and keep pulses with opacity left.
+            var pulse = this._pulses[i];
+            if (pulse.opacity > 0) {
+                this._draw_pulse(pulse);
+                pulse.update();
+
+                new_pulses.push(pulse);
+            }
+        }
+
+        this.pulses = new_pulses;
+    },
+
+    /**
+     * Draws the markers and background.
+     */
+    _draw: function() {
+        this._draw_background_color();
+        this._draw_background_image(this.model.floor_num);
+
+        // Draw the camera positions.
+        for (var i=0; i<this.camera_markers.length; i++) {
+            this._draw_camera_marker(this.camera_markers[i]);
+        }
+
+        // Draw the radar markers for the spy.
+        this._draw_spy_marker(this.spy_marker);
+
+        // Draw the radar markers for the guards.
+        for (var i=0; i<this.guard_markers.length; i++) {
+            this._draw_guard_marker(this.guard_markers[i]);
+        }
+
+        // Draw and update the camera radar pulses.
+        this._update_draw_all_pulses();
+    },
+
+    /**
+     * Infinitely loops drawing the canvas with the game objects at locations
+     * according to the model.
+     */
+    draw_loop: function() {
+        setInterval(this._draw.bind(this), this.draw_refresh_time_ms);
     },
 
     /**
@@ -340,35 +426,6 @@ Minimap.prototype = {
         }
 
         this.camera_markers = this.model.game_cameras.map(transform);
-    },
-
-    /**
-     * Draws the markers and background.
-     */
-    _draw: function() {
-        this._draw_background_color();
-        this._draw_background_image(this.model.floor_num);
-
-        // Draw the camera positions.
-        for (var i=0; i<this.camera_markers.length; i++) {
-            this._draw_camera_marker(this.camera_markers[i]);
-        }
-
-        // Draw the radar markers for the spy.
-        this._draw_spy_marker(this.spy_marker);
-
-        // Draw the radar markers for the guards.
-        for (var i=0; i<this.guard_markers.length; i++) {
-            this._draw_guard_marker(this.guard_markers[i]);
-        }
-    },
-
-    /**
-     * Infinitely loops drawing the canvas with the game objects at locations
-     * according to the model.
-     */
-    draw_loop: function() {
-        setInterval(this._draw.bind(this), this.refresh_time_ms);
     },
 
     /**
