@@ -57,6 +57,11 @@ function Minimap(canvas, model, onload) {
     this.guard_markers = null;
     this.camera_markers = null;
 
+    // These variables are used for converting to minimap coordinates because
+    // the floor map may not fit the screen exactly.
+    this._floor_map_start_x = null;
+    this._floor_map_width = null;
+
     // The time between refreshing the state of the minimap, i.e. positions
     // of objects.
     this.refresh_time_ms = 0.5;
@@ -197,6 +202,9 @@ Minimap.prototype = {
 		y_start = 0;
 
         this.ctx.drawImage(floor_img, x_start, y_start, renderable_width, renderable_height);
+
+        this._floor_map_start_x = x_start;
+        this._floor_map_width = renderable_width;
     },
 
     /**
@@ -204,12 +212,12 @@ Minimap.prototype = {
      */
     _convert_to_minimap_point: function(game_point) {
         var game_w = (this.model.game_boundaries.max_x - this.model.game_boundaries.min_x);
-        var width_mult = this.width() / game_w;
+        var width_mult = this._floor_map_width / game_w;
 
         var game_h = (this.model.game_boundaries.max_y - this.model.game_boundaries.min_y);
         var height_mult = this.height() / game_h;
 
-        var minimap_x = (game_point.x - this.model.game_boundaries.min_x) * width_mult;
+        var minimap_x = (game_point.x - this.model.game_boundaries.min_x) * width_mult + this._floor_map_start_x;
         var minimap_y = (game_point.y - this.model.game_boundaries.min_y) * height_mult;
 
         return new Point(minimap_x, minimap_y);
