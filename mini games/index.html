@@ -6,16 +6,20 @@
     <title>Hello World</title>
 </head>
 <script src="pixi/pixi.min.js"></script>
+<!--<script src="js/main.js"></script>-->
 
 <body>
-    <h1>This is a test page for mini games</h1>
     <script type="text/javascript">
         let type = "WebGL"
-        if (!PIXI.utils.isWebGLSupported()) {
-            type = "canvas"
-        }
-
-        PIXI.utils.sayHello(type)
+        let app = new PIXI.Application({
+            backgroundColor: 0xFF00FF
+        });
+        document.body.appendChild(app.view);
+        app.renderer.view.style.position = "absolute";
+        app.renderer.view.style.display = "block";
+        app.renderer.autoResize = true;
+        app.renderer.resize(window.innerWidth, window.innerHeight);
+        console.log("rendering everything");
     </script>
 </body>
 
