@@ -170,9 +170,17 @@ Minimap.prototype = {
     },
 
     /**
+     * Fills the background with a background color.
+     */
+    _draw_background_color: function() {
+        this.ctx.fillStyle = "white";
+        this.ctx.fillRect(0, 0, this.width(), this.height());
+    },
+
+    /**
      * Draws the background map.
      */
-    _draw_background: function(floor_num) {
+    _draw_background_image: function(floor_num) {
         if (floor_num < 0 || floor_num > this.model.num_floors) {
             throw 'incorrect floor num: ' + floor_num
         }
@@ -180,7 +188,15 @@ Minimap.prototype = {
         this.floor_label_elem.innerHTML = this.model.floor_names[floor_num];
 
         var floor_img = this.background_images[floor_num];
-        this.ctx.drawImage(floor_img, 0, 0, this.width(), this.height());
+
+        // The height will fill the screen, but we want to preserve the aspect
+        // ratio so the width will be dependent on the height.
+        renderable_height = this.height();
+		renderable_width = floor_img.width * (renderable_height / floor_img.height);
+		x_start = (this.width() - renderable_width) / 2;
+		y_start = 0;
+
+        this.ctx.drawImage(floor_img, x_start, y_start, renderable_width, renderable_height);
     },
 
     /**
@@ -296,7 +312,8 @@ Minimap.prototype = {
      * Draws the markers and background.
      */
     _draw: function() {
-        this._draw_background(this.model.floor_num);
+        this._draw_background_color();
+        this._draw_background_image(this.model.floor_num);
 
         // Draw the camera positions.
         for (var i=0; i<this.camera_markers.length; i++) {
