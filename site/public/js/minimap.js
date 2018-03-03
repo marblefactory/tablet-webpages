@@ -220,14 +220,34 @@ Minimap.prototype = {
     },
 
     /**
+     * Draws the marker on the minimap.
+     * @{{minimap_loc: {x: number, y: number}, radius: number, color: string}} marker - describes the circular marker to draw.
+     */
+    _draw_marker(marker) {
+        fill_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, marker.radius, marker.color);
+    },
+
+    /**
      * Draws a marker for spy with a center at the given position.
      * @param {SpyMarker} marker - the marker to draw.
      */
     _draw_spy_marker: function(marker) {
-        this.ctx.beginPath();
-        this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, marker.radius, 0, 2 * Math.PI, false);
-        this.ctx.fillStyle = marker.color;
-        this.ctx.fill();
+        // Draw a circle for the spy.
+        this._draw_marker(marker);
+
+        // Draw an indicator of the direction the spy is facing.
+        // this.ctx.translate(marker.minimap_loc.x + marker.radius, marker.minimap_loc.y + marker.radius);
+        // this.ctx.rotate(45);
+        //
+        // this.ctx.beginPath();
+        // this.ctx.moveTo(-marker.radius, 0);
+        // this.ctx.lineTo(0,              marker.radius * 1.6);
+        // this.ctx.lineTo(marker.radius,  0);
+        // this.ctx.fillStyle = marker.color;
+        // this.ctx.fill();
+        //
+        // this.ctx.rotate(-45);
+        // this.ctx.translate(-(marker.minimap_loc.x + marker.radius), -(marker.minimap_loc.y + marker.radius));
     },
 
     /**
@@ -240,13 +260,7 @@ Minimap.prototype = {
             return;
         }
 
-        this.ctx.globalAlpha = marker.opacity;
-        this.ctx.beginPath();
-        this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, marker.radius, 0, 2 * Math.PI, false);
-        this.ctx.fillStyle = marker.color;
-        this.ctx.fill();
-        this.ctx.globalAlpha = 1.0;
-
+        draw_with_alpha(this.ctx, marker.opacity, () => this._draw_marker(marker));
         marker.opacity += marker.delta_opacity;
     },
 
@@ -262,20 +276,15 @@ Minimap.prototype = {
                            icon_radius * 2,
                            icon_radius * 2);
 
-         this.ctx.beginPath();
-         this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, 0, 2 * Math.PI, false);
-         this.ctx.strokeStyle = "white";
-         this.ctx.lineWidth = 1;
-         this.ctx.stroke();
+        // A white stroke around the icon.
+        stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, 1, 'white');
 
+        // The pulse (radar) coming from the camera.
         if (marker.is_active && marker.pulse_opacity > 0) {
-            this.ctx.globalAlpha = marker.pulse_opacity;
-            this.ctx.beginPath();
-            this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, marker.pulse_radius, 0, 2 * Math.PI, false);
-            this.ctx.strokeStyle = marker.pulse_color;
-            this.ctx.lineWidth = 2;
-            this.ctx.stroke();
-            this.ctx.globalAlpha = 1.0;
+            draw_with_alpha(this.ctx, marker.pulse_opacity, draw_pulse.bind(this));
+            function draw_pulse() {
+                stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, marker.pulse_radius, 2, marker.pulse_color)
+            }
 
             marker.pulse_radius += marker.delta_radius;
             marker.pulse_opacity += marker.delta_opacity;
@@ -302,12 +311,12 @@ Minimap.prototype = {
      * Refreshers markers for cameras at the given locations on the map.
      */
     _refresh_camera_locs: function() {
-        // var camera_locs_2d = this.model.camera_game_locs.map(this._convert_to_minimap_point.bind(this));
+        var _this = this;
+
         /**
          * Returns a camera marker which can be displayed on the minimap.
          * @param {Camera} game_camera - a camera in game coordinates.
          */
-        var _this = this;
         function transform(game_camera) {
             var minimap_loc = _this._convert_to_minimap_point(game_camera.loc);
             return new CameraMarker(minimap_loc, game_camera.is_active, _this._camera_icon_radius());

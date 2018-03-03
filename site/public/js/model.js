@@ -14,6 +14,9 @@ function Model() {
     // outside these boundaries.
     this.game_boundaries = null;
 
+    // The direction the spy is looking in.
+    this.spy_dir_deg = null;
+
     // The positions of objects in the game.
     this.spy_game_loc = null;
     this.guard_game_locs = null;
@@ -47,6 +50,7 @@ Model.prototype = {
             get('positions', function(response) {
                 var locations = JSON.parse(response);
 
+                _this.spy_dir_deg = locations.spy_dir_deg;
                 _this.floor_num = locations.floor_num;
                 _this.spy_game_loc = locations.spy_loc;
                 _this.guard_game_locs = locations.guard_locs;

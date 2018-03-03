@@ -56,7 +56,7 @@ function checkSite() {
     return ok;
 }
 
-var floor_num = 1;
+var floor_num = 2;
 
 /**
  * Sends the client the position of the spy, guards, cameras, and the floor number.
@@ -65,7 +65,6 @@ function handle_get_spy_position(request, response) {
     var spy_loc = {
         x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
         y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
-        dir: Math.random() % 360     // The angle the spy is facing.
     };
 
     var guard_locs = [
@@ -81,11 +80,11 @@ function handle_get_spy_position(request, response) {
     ];
 
     var locations = {
+        spy_dir_deg: Math.random() * 360, // The angle the spy is facing, measured from horizontal.
         spy_loc: spy_loc,
         guard_locs: guard_locs,
         cameras: cameras,
         floor_num: (floor_num) % 3
-        // floor_num: (floor_num++) % 3
     }
 
     deliver(response, 'application/json', undefined, JSON.stringify(locations));
