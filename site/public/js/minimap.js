@@ -54,7 +54,7 @@ function CameraMarker(minimap_loc, is_active, pulse_radius) {
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
     this.delta_opacity = -0.004;
 
-    this.pulse_color = "#0163b7";
+    this.pulse_color = "white";
 }
 
 /**
@@ -205,7 +205,7 @@ Minimap.prototype = {
      * Fills the background with a background color.
      */
     _draw_background_color: function() {
-        this.ctx.fillStyle = "white";
+        this.ctx.fillStyle = "#1b5f9a";
         this.ctx.fillRect(0, 0, this.width(), this.height());
     },
 
@@ -262,6 +262,12 @@ Minimap.prototype = {
                            icon_radius * 2,
                            icon_radius * 2);
 
+         this.ctx.beginPath();
+         this.ctx.arc(marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, 0, 2 * Math.PI, false);
+         this.ctx.strokeStyle = "white";
+         this.ctx.lineWidth = 1;
+         this.ctx.stroke();
+
         if (marker.is_active && marker.pulse_opacity > 0) {
             this.ctx.globalAlpha = marker.pulse_opacity;
             this.ctx.beginPath();
@@ -297,8 +303,6 @@ Minimap.prototype = {
      */
     _refresh_camera_locs: function() {
         // var camera_locs_2d = this.model.camera_game_locs.map(this._convert_to_minimap_point.bind(this));
-        // this.camera_markers = camera_locs_2d.map(loc => new CameraMarker(loc, true, this._camera_icon_radius()));
-
         /**
          * Returns a camera marker which can be displayed on the minimap.
          * @param {Camera} game_camera - a camera in game coordinates.
