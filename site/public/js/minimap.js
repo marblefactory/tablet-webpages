@@ -320,6 +320,10 @@ Minimap.prototype = {
      * @param {CameraPulse} pulse - the pulse to draw.
      */
     _draw_pulse: function(pulse) {
+        if (pulse.opacity <= 0) {
+            return;
+        }
+
         draw_with_alpha(this.ctx, pulse.opacity, stroke_pulse.bind(this));
         function stroke_pulse() {
             stroke_circle(this.ctx, pulse.minimap_loc.x, pulse.minimap_loc.y, pulse.radius, 2, pulse.color)
@@ -350,6 +354,13 @@ Minimap.prototype = {
 
         // Draw the radar markers for the spy on top of everything else.
         this._draw_spy_marker(this.spy_marker);
+    },
+
+    /**
+     * Updates the guard markers - if a camera pulse hits them then their
+     * opacity returns to full, like a radar marker.
+     */
+    _update_guard_markers: function() {
     },
 
     /**
