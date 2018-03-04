@@ -18,34 +18,18 @@ document.getElementById("display").appendChild(app.view);
 const background = PIXI.Sprite.fromImage("/images/background_texture.png");
 app.stage.addChild(background);
 
-const cat = PIXI.Sprite.fromImage("/images/cat.png");
-cat.anchor.set(0.5);
-cat.interactive = true;
-cat.x = app.renderer.view.width / 2;
-cat.y = app.renderer.view.height / 2;
+const pipe1 = PIXI.Sprite.fromImage("/images/pipe1.png");
 
-app.stage.addChild(cat);
+pipe1.interactive = true;
+pipe1.anchor.set(0.5);
+pipe1.scale.x = 0.05
+pipe1.scale.y = 0.05;
+pipe1.x = app.renderer.view.width / 4;
+pipe1.y = app.renderer.view.height / 2;
 
+app.stage.addChild(pipe1);
 
-const onDragStart = event => {
-    cat.data = event.data;
-    cat.dragging = true;
-};
-
-const onDragMove = event => {
-    if (cat.dragging) {
-        const newPosition = cat.data.getLocalPosition(cat.parent);
-        cat.x = newPosition.x;
-        cat.y = newPosition.y;
-    }
-}
-
-const onDragStop = event => {
-    delete cat.data;
-    cat.dragging = false;
-}
-
-cat.on('pointerdown', onDragStart)
-    .on('pointerup', onDragStop)
-    .on('pointermove', onDragMove)
-    .on('pointerupoutside', onDragStop);
+pipe1.on('pointerdown', () => {
+    pipe1.rotation += (Math.PI / 2);
+    console.log("rotation is happening");
+});
