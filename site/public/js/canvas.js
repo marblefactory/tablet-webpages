@@ -1,4 +1,11 @@
 
+function Color(r, g, b) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+}
+
+
 /**
  * Creates the path for a circle, then uses operation to stroke, fill, etc
  * the circle.
@@ -65,4 +72,11 @@ function draw_with_rotation(ctx, degrees, operation) {
     ctx.rotate(degrees);
     operation();
     ctx.rotate(-degrees);
+}
+
+/**
+ * Linearly interpolates from x to y using a proportion t.
+ */
+function lerp(x, y, t) {
+    return x + (y - x) * t;
 }

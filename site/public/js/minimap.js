@@ -51,7 +51,7 @@ function GuardMarker(minimap_loc, color, radius) {
 
 // Represents a camera marker on the minimap, which is used to display a
 // camera icon and plusing sphere to show with cameras are active.
-function CameraMarker(minimap_loc, is_active) {
+function CameraMarker(minimap_loc, is_active, max_pulse_dist) {
     this.minimap_loc = minimap_loc;
     this.is_active = is_active;
     // The maximum time before a new pulse is made.
@@ -59,14 +59,17 @@ function CameraMarker(minimap_loc, is_active) {
     // The time remaining before a pulse is made. A pulse is made immediately
     // when the camera is created.
     this.time_before_pulse = 0;
+    // The maximum distance on the minimap which pulses can travel.
+    this.max_pulse_dist = max_pulse_dist;
 }
 
 // Represents a radar pulse from a camera.
-function CameraPulse(minimap_loc, start_radius) {
+function CameraPulse(minimap_loc, start_radius, max_radius) {
     this.minimap_loc = minimap_loc;
     this.color = 'white';
     this.radius = start_radius;
-    this.opacity = 0.3;
+    this.max_radius = max_radius;
+    this.max_opacity = 0.3;
 
     // The minimum and maximum rate at which the radius can increase.
     // Randomness helps make the cameras look less 'samey'.
@@ -74,11 +77,9 @@ function CameraPulse(minimap_loc, start_radius) {
     var max_delta_r = 0.8;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
-    this.delta_opacity = -0.001;//-0.004;
 
     this.update = function() {
         this.radius += this.delta_radius;
-        this.opacity += this.delta_opacity;
     };
 }
 
@@ -174,6 +175,16 @@ Minimap.prototype = {
 
     _camera_icon_radius: function() {
         return Math.min(this.width() * 0.02, 50);
+    },
+
+    /**
+     * Returns a horizontal distance in the game into a horizontal distance
+     * in the minimap.
+     */
+    _convert_game_dist_to_minimap: function(game_dist) {
+        var game_w = (this.model.game_boundaries.max_x - this.model.game_boundaries.min_x);
+        var width_mult = this.current_floormap().render_width / game_w;
+        return width_mult * game_dist;
     },
 
     /**
@@ -328,11 +339,16 @@ Minimap.prototype = {
      * @param {CameraPulse} pulse - the pulse to draw.
      */
     _draw_pulse: function(pulse) {
-        if (pulse.opacity <= 0) {
+        if (pulse.radius > pulse.max_radius) {
             return;
         }
 
-        draw_with_alpha(this.ctx, pulse.opacity, stroke_pulse.bind(this));
+        // The opacity of the pulse is determined by linearly interpolation.
+        var opacity = lerp(pulse.max_opacity, 0.0, pulse.radius / pulse.max_radius);
+
+        console.log(pulse.radius / pulse.max_radius);
+
+        draw_with_alpha(this.ctx, opacity, stroke_pulse.bind(this));
         function stroke_pulse() {
             stroke_circle(this.ctx, pulse.minimap_loc.x, pulse.minimap_loc.y, pulse.radius, 2, pulse.color)
         }
@@ -406,7 +422,7 @@ Minimap.prototype = {
         for (var i = this._pulses.length - 1; i >= 0; i--) {
             var pulse = this._pulses[i];
 
-            if (pulse.opacity > 0) {
+            if (pulse.radius <= pulse.max_radius) {
                 pulse.update();
             } else {
                 this._pulses.splice(i, 1);
@@ -424,7 +440,7 @@ Minimap.prototype = {
         // If the camera is active, create a pulse from it.
         if (camera_marker.is_active && camera_marker.time_before_pulse <= 0) {
             camera_marker.time_before_pulse = camera_marker.start_time_before_pulse;
-            var pulse = new CameraPulse(camera_marker.minimap_loc, this._camera_icon_radius());
+            var pulse = new CameraPulse(camera_marker.minimap_loc, this._camera_icon_radius(), camera_marker.max_pulse_dist);
             this._pulses.push(pulse);
         }
     },
@@ -453,8 +469,8 @@ Minimap.prototype = {
     run_loop: function() {
         setInterval(iter.bind(this), this.draw_refresh_time_ms);
         function iter() {
-            this._update();
             this._draw();
+            this._update();
         }
     },
 
@@ -510,7 +526,8 @@ Minimap.prototype = {
         else {
             var num_to_add = game_cameras.length - this.camera_markers.length;
             for (var i=0; i<num_to_add; i++) {
-                // This information will be fill in properly after.
+                // This is used to create a marker, which can be properly
+                // initialised after.
                 var marker = new CameraMarker(new Point(0, 0), false, this._camera_icon_radius());
                 marker.time_before_pulse = 0;
                 this.camera_markers.push(marker);
@@ -520,8 +537,11 @@ Minimap.prototype = {
         // Update camera markers from the game data.
         for (var i=0; i<game_cameras.length; i++) {
             var marker = this.camera_markers[i];
-            marker.minimap_loc = this._convert_to_minimap_point(game_cameras[i].loc);
-            marker.is_active = game_cameras[i].is_active;
+            var game_camera = game_cameras[i];
+
+            marker.minimap_loc = this._convert_to_minimap_point(game_camera.loc);
+            marker.is_active = game_camera.is_active;
+            marker.max_pulse_dist = this._convert_game_dist_to_minimap(game_camera.max_visibility_dist);
         }
     },
 
