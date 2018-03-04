@@ -31,7 +31,7 @@ window.onload = function() {
         minimap.fullscreen();
 
         model.onload = function() {
-            minimap.draw_loop();
+            minimap.run_loop();
         };
 
         // Start the model getting the positions.

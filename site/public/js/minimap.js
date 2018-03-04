@@ -327,18 +327,42 @@ Minimap.prototype = {
     },
 
     /**
-     * Draws a pulse from a camera. And also updates the pulses - if the pulse
-     * has no strength (opacity) left then it is removed from the collection of
-     * pulses.
+     * Draws the markers and background.
      */
-    _update_draw_all_pulses: function() {
+    _draw: function() {
+        this._draw_background_color();
+        this._draw_background_image(this.model.floor_num);
+
+        // Draw the camera positions.
+        for (var i=0; i<this.camera_markers.length; i++) {
+            this._draw_camera_marker(this.camera_markers[i]);
+        }
+
+        // Draw the radar markers for the guards.
+        for (var i=0; i<this.guard_markers.length; i++) {
+            this._draw_guard_marker(this.guard_markers[i]);
+        }
+
+        // Draw and update the camera radar pulses.
+        for (var i=0; i<this._pulses.length; i++) {
+            this._draw_pulse(this._pulses[i]);
+        }
+
+        // Draw the radar markers for the spy on top of everything else.
+        this._draw_spy_marker(this.spy_marker);
+    },
+
+    /**
+     * Updates all pulses - if the pulse has no strength (opacity) left then it
+     * is removed from the collection of pulses.
+     */
+    _update_pulses: function() {
         // Iterate backwards so we can remove pulses that have lost all their
         // opacity.
         for (var i = this._pulses.length - 1; i >= 0; i--) {
             var pulse = this._pulses[i];
 
             if (pulse.opacity > 0) {
-                this._draw_pulse(pulse);
                 pulse.update();
             } else {
                 this._pulses.splice(i, 1);
@@ -362,36 +386,29 @@ Minimap.prototype = {
     },
 
     /**
-     * Draws the markers and background.
+     * Updates elements of the minimap, e.g. pulses.
      */
-    _draw: function() {
-        this._draw_background_color();
-        this._draw_background_image(this.model.floor_num);
-
-        // Draw the camera positions.
+    _update: function() {
+        // Create pulses from cameras that have waited long enough.
         for (var i=0; i<this.camera_markers.length; i++) {
-            this._draw_camera_marker(this.camera_markers[i]);
             this._create_pulse_from_camera(this.camera_markers[i]);
         }
 
-        // Draw the radar markers for the guards.
-        for (var i=0; i<this.guard_markers.length; i++) {
-            this._draw_guard_marker(this.guard_markers[i]);
-        }
-
-        // Draw and update the camera radar pulses.
-        this._update_draw_all_pulses();
-
-        // Draw the radar markers for the spy on top of everything else.
-        this._draw_spy_marker(this.spy_marker);
+        // Update the radii and opactity of the pulses on the minimap.
+        // We also need to remove any pulses that can no longer be seen.
+        this._update_pulses();
     },
 
     /**
-     * Infinitely loops drawing the canvas with the game objects at locations
-     * according to the model.
+     * Infinitely loops drawing the canvas, and updating, with the game objects
+     * at locations according to the model.
      */
-    draw_loop: function() {
-        setInterval(this._draw.bind(this), this.draw_refresh_time_ms);
+    run_loop: function() {
+        setInterval(iter.bind(this), this.draw_refresh_time_ms);
+        function iter() {
+            this._update();
+            this._draw();
+        }
     },
 
     /**
