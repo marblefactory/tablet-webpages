@@ -55,7 +55,7 @@ function CameraMarker(minimap_loc, is_active, max_pulse_dist) {
     this.minimap_loc = minimap_loc;
     this.is_active = is_active;
     // The maximum time before a new pulse is made.
-    this.start_time_before_pulse = 200;
+    this.start_time_before_pulse = 250;//200;
     // The time remaining before a pulse is made. A pulse is made immediately
     // when the camera is created.
     this.time_before_pulse = 0;
@@ -69,12 +69,12 @@ function CameraPulse(minimap_loc, start_radius, max_radius) {
     this.color = 'white';
     this.radius = start_radius;
     this.max_radius = max_radius;
-    this.max_opacity = 0.3;
+    this.max_opacity = 0.25;
 
     // The minimum and maximum rate at which the radius can increase.
     // Randomness helps make the cameras look less 'samey'.
-    var min_delta_r = 0.6;
-    var max_delta_r = 0.8;
+    var min_delta_r = 0.5;
+    var max_delta_r = 0.7;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
 
@@ -345,8 +345,6 @@ Minimap.prototype = {
 
         // The opacity of the pulse is determined by linearly interpolation.
         var opacity = lerp(pulse.max_opacity, 0.0, pulse.radius / pulse.max_radius);
-
-        console.log(pulse.radius / pulse.max_radius);
 
         draw_with_alpha(this.ctx, opacity, stroke_pulse.bind(this));
         function stroke_pulse() {

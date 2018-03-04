@@ -69,7 +69,7 @@ function handle_get_spy_position(request, response) {
 
     var guard_locs = [];
 
-    for (var i=0; i<Math.floor(Math.random() * 10); i++) {
+    for (var i=0; i<Math.floor(Math.random() * 10) + 5; i++) {
         guard_loc = {
             x: Math.random() * 300 + 20,
             y: Math.random() * 300 + 20
@@ -94,9 +94,9 @@ function handle_get_spy_position(request, response) {
     // }
 
     var cameras = [
-        { loc: { x: 200, y: 150 }, is_active: true, max_visibility_dist: 80 },
+        { loc: { x: 200, y: 150 }, is_active: false, max_visibility_dist: 80 },
         { loc: { x: 50,  y: 60 },  is_active: true, max_visibility_dist: 80 },
-        { loc: { x: 260, y: 240 }, is_active: false, max_visibility_dist: 80 },
+        { loc: { x: 260, y: 240 }, is_active: true, max_visibility_dist: 80 },
     ];
 
     var locations = {
