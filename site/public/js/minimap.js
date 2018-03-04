@@ -46,7 +46,7 @@ function GuardMarker(minimap_loc, color, radius) {
     this.color = color;
     this.radius = radius;
     this.opacity = 1.0;
-    this.delta_opacity = -0.0025;
+    this.delta_opacity = -0.003;//-0.0025;
 }
 
 // Represents a camera marker on the minimap, which is used to display a
@@ -66,7 +66,7 @@ function CameraPulse(minimap_loc, start_radius) {
     this.minimap_loc = minimap_loc;
     this.color = 'white';
     this.radius = start_radius;
-    this.opacity = 0.8;
+    this.opacity = 0.3;
 
     // The minimum and maximum rate at which the radius can increase.
     // Randomness helps make the cameras look less 'samey'.
@@ -74,7 +74,7 @@ function CameraPulse(minimap_loc, start_radius) {
     var max_delta_r = 0.8;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
-    this.delta_opacity = -0.002;//-0.004;
+    this.delta_opacity = -0.001;//-0.004;
 
     this.update = function() {
         this.radius += this.delta_radius;
