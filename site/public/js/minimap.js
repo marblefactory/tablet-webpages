@@ -270,9 +270,6 @@ Minimap.prototype = {
      * @param {SpyMarker} marker - the marker to draw.
      */
     _draw_spy_marker: function(marker) {
-        // Draw a circle for the spy.
-        this._draw_marker(marker);
-
         // Draw an indicator of the direction the spy is facing.
         var dx = marker.minimap_loc.x;
         var dy = marker.minimap_loc.y;
@@ -293,7 +290,7 @@ Minimap.prototype = {
             this.ctx.moveTo(p1.x, p1.y);
             this.ctx.lineTo(p2.x, p2.y);
             this.ctx.lineTo(p3.x, p3.y);
-            this.ctx.fillStyle = 'blue';
+            this.ctx.fillStyle = 'black';
             this.ctx.fill();
         }
 
@@ -477,7 +474,7 @@ Minimap.prototype = {
      */
     _refresh_spy_loc: function() {
         var minimap_loc = this._convert_to_minimap_point(this.model.spy_game_loc);
-        this.spy_marker = new SpyMarker(minimap_loc, 'black', this._marker_radius() * 1.2);
+        this.spy_marker = new SpyMarker(minimap_loc, 'black', this._marker_radius() * 1.5);
     },
 
     /**
