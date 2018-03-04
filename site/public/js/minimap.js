@@ -46,10 +46,10 @@ function CameraMarker(minimap_loc, is_active) {
     this.minimap_loc = minimap_loc;
     this.is_active = is_active;
     // The maximum time before a new pulse is made.
-    this.start_time_before_pulse_ms = 50;
+    this.start_time_before_pulse = 200;
     // The time remaining before a pulse is made. A pulse is made immediately
     // when the camera is created.
-    this.time_before_pulse_ms = 0;
+    this.time_before_pulse = 0;
 }
 
 // Represents a radar pulse from a camera.
@@ -92,7 +92,7 @@ function Minimap(canvas, model, onload) {
     this._floor_map_width = null;
 
     // The time between refreshing the context on which the minimap is drawn.
-    this.draw_refresh_time_ms = 0.5;
+    this.draw_refresh_time_ms = 0.016; // 60 fps
 
     // All the radar pulses that have been emitted from cameras.
     this._pulses = [];
@@ -351,11 +351,11 @@ Minimap.prototype = {
      * elapsed since their last pulse.
      */
     _create_pulse_from_camera: function(camera_marker) {
-        camera_marker.time_before_pulse_ms -= this.draw_refresh_time_ms;
+        camera_marker.time_before_pulse -= 1;
 
         // If the camera is active, create a pulse from it.
-        if (camera_marker.is_active && camera_marker.time_before_pulse_ms <= 0) {
-            camera_marker.time_before_pulse_ms = camera_marker.start_time_before_pulse_ms;
+        if (camera_marker.is_active && camera_marker.time_before_pulse <= 0) {
+            camera_marker.time_before_pulse = camera_marker.start_time_before_pulse;
             var pulse = new CameraPulse(camera_marker.minimap_loc, this._camera_icon_radius());
             this._pulses.push(pulse);
         }
@@ -426,6 +426,7 @@ Minimap.prototype = {
             for (var i=0; i<num_to_add; i++) {
                 // This information will be fill in properly after.
                 var marker = new CameraMarker(new Point(0, 0), false, this._camera_icon_radius());
+                marker.time_before_pulse = 0;
                 this.camera_markers.push(marker);
             }
         }
