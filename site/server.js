@@ -73,11 +73,21 @@ function handle_get_spy_position(request, response) {
         { x: 175, y: 175 }
     ];
 
-    var cameras = [
-        { loc: { x: 200, y: 150 }, is_active: true },
-        { loc: { x: 50,  y: 60 },  is_active: true },
-        { loc: { x: 260, y: 240 }, is_active: false },
-    ];
+    var cameras = [];
+
+    for (var i=0; i<Math.floor(Math.random() * 10); i++) {
+        camera = {
+            loc: { x: Math.random() * 300 + 20, y: Math.random() * 300 + 20 },
+            is_active: true
+        };
+        cameras.push(camera);
+    }
+
+    // var cameras = [
+    //     { loc: { x: 200, y: 150 }, is_active: true },
+    //     { loc: { x: 50,  y: 60 },  is_active: true },
+    //     { loc: { x: 260, y: 240 }, is_active: false },
+    // ];
 
     var locations = {
         spy_dir_deg: Math.random() * 360, // The angle the spy is facing, measured from horizontal.

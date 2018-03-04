@@ -45,6 +45,11 @@ function GuardMarker(minimap_loc, color, radius) {
 function CameraMarker(minimap_loc, is_active) {
     this.minimap_loc = minimap_loc;
     this.is_active = is_active;
+    // The maximum time before a new pulse is made.
+    this.start_time_before_pulse_ms = 50;
+    // The time remaining before a pulse is made. A pulse is made immediately
+    // when the camera is created.
+    this.time_before_pulse_ms = 0;
 }
 
 // Represents a radar pulse from a camera.
@@ -64,7 +69,7 @@ function CameraPulse(minimap_loc, start_radius) {
 
     this.update = function() {
         this.radius += this.delta_radius;
-        this.opacity += this.start_opacity;
+        this.opacity += this.delta_opacity;
     };
 }
 
@@ -79,7 +84,7 @@ function Minimap(canvas, model, onload) {
 
     this.spy_marker = null;
     this.guard_markers = null;
-    this.camera_markers = null;
+    this.camera_markers = [];
 
     // These variables are used for converting to minimap coordinates because
     // the floor map may not fit the screen exactly.
@@ -308,23 +313,6 @@ Minimap.prototype = {
 
         // A white stroke around the icon.
         stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, 1, 'white');
-
-        // If the camera is active, create a pulse from it.
-        if (marker.is_active) {
-            var pulse = new CameraPulse(marker.minimap_loc, icon_radius);
-            this._pulses.push(pulse);
-        }
-
-        // // The pulse (radar) coming from the camera.
-        // if (marker.is_active && marker.pulse_opacity > 0) {
-            // draw_with_alpha(this.ctx, marker.pulse_opacity, draw_pulse.bind(this));
-            // function draw_pulse() {
-            //     stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, marker.pulse_radius, 2, marker.pulse_color)
-            // }
-        //
-        //     marker.pulse_radius += marker.delta_radius;
-        //     marker.pulse_opacity += marker.delta_opacity;
-        // }
     },
 
     /**
@@ -344,22 +332,33 @@ Minimap.prototype = {
      * pulses.
      */
     _update_draw_all_pulses: function() {
-        // The pulses which will be kept to be updated again, i.e. still have
-        // opacity left.
-        var new_pulses = [];
-
-        for (var i=0; i<this._pulses.length; i++) {
-            // Only update and keep pulses with opacity left.
+        // Iterate backwards so we can remove pulses that have lost all their
+        // opacity.
+        for (var i = this._pulses.length - 1; i >= 0; i--) {
             var pulse = this._pulses[i];
+
             if (pulse.opacity > 0) {
                 this._draw_pulse(pulse);
                 pulse.update();
-
-                new_pulses.push(pulse);
+            } else {
+                this._pulses.splice(i, 1);
             }
         }
+    },
 
-        this.pulses = new_pulses;
+    /**
+     * Creates pulses from active cameras that for which enough time has
+     * elapsed since their last pulse.
+     */
+    _create_pulse_from_camera: function(camera_marker) {
+        camera_marker.time_before_pulse_ms -= this.draw_refresh_time_ms;
+
+        // If the camera is active, create a pulse from it.
+        if (camera_marker.is_active && camera_marker.time_before_pulse_ms <= 0) {
+            camera_marker.time_before_pulse_ms = camera_marker.start_time_before_pulse_ms;
+            var pulse = new CameraPulse(camera_marker.minimap_loc, this._camera_icon_radius());
+            this._pulses.push(pulse);
+        }
     },
 
     /**
@@ -372,10 +371,8 @@ Minimap.prototype = {
         // Draw the camera positions.
         for (var i=0; i<this.camera_markers.length; i++) {
             this._draw_camera_marker(this.camera_markers[i]);
+            this._create_pulse_from_camera(this.camera_markers[i]);
         }
-
-        // Draw the radar markers for the spy.
-        this._draw_spy_marker(this.spy_marker);
 
         // Draw the radar markers for the guards.
         for (var i=0; i<this.guard_markers.length; i++) {
@@ -384,6 +381,9 @@ Minimap.prototype = {
 
         // Draw and update the camera radar pulses.
         this._update_draw_all_pulses();
+
+        // Draw the radar markers for the spy on top of everything else.
+        this._draw_spy_marker(this.spy_marker);
     },
 
     /**
@@ -414,18 +414,28 @@ Minimap.prototype = {
      * Refreshers markers for cameras at the given locations on the map.
      */
     _refresh_camera_locs: function() {
-        var _this = this;
+        var game_cameras = this.model.game_cameras;
 
-        /**
-         * Returns a camera marker which can be displayed on the minimap.
-         * @param {Camera} game_camera - a camera in game coordinates.
-         */
-        function transform(game_camera) {
-            var minimap_loc = _this._convert_to_minimap_point(game_camera.loc);
-            return new CameraMarker(minimap_loc, game_camera.is_active, _this._camera_icon_radius());
+        // Add or remove cameras so the number of game_cameras matches the
+        // camera markers.
+        if (this.camera_markers.length > game_cameras.length) {
+            this.camera_markers = this.camera_markers.slice(0, game_cameras.length);
+        }
+        else {
+            var num_to_add = game_cameras.length - this.camera_markers.length;
+            for (var i=0; i<num_to_add; i++) {
+                // This information will be fill in properly after.
+                var marker = new CameraMarker(new Point(0, 0), false, this._camera_icon_radius());
+                this.camera_markers.push(marker);
+            }
         }
 
-        this.camera_markers = this.model.game_cameras.map(transform);
+        // Update camera markers from the game data.
+        for (var i=0; i<game_cameras.length; i++) {
+            var marker = this.camera_markers[i];
+            marker.minimap_loc = this._convert_to_minimap_point(game_cameras[i].loc);
+            marker.is_active = game_cameras[i].is_active;
+        }
     },
 
     /**
