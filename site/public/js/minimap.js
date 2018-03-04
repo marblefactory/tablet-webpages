@@ -2,6 +2,15 @@
 function Point(x, y) {
     this.x = x;
     this.y = y;
+
+    /**
+     * @return {number} the distance from this point to the given point.
+     */
+    this.dist_to = function(point) {
+        var dx = this.x - point.x;
+        var dy = this.y - point.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 }
 
 function Boundaries(min_x, min_y, max_x, max_y) {
@@ -65,7 +74,7 @@ function CameraPulse(minimap_loc, start_radius) {
     var max_delta_r = 0.8;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
-    this.delta_opacity = -0.004;
+    this.delta_opacity = -0.002;//-0.004;
 
     this.update = function() {
         this.radius += this.delta_radius;
@@ -83,7 +92,7 @@ function Minimap(canvas, model, onload) {
     this.floor_label_elem = document.querySelector('#floor');
 
     this.spy_marker = null;
-    this.guard_markers = null;
+    this.guard_markers = [];
     this.camera_markers = [];
 
     // These variables are used for converting to minimap coordinates because
@@ -296,7 +305,6 @@ Minimap.prototype = {
         }
 
         draw_with_alpha(this.ctx, marker.opacity, () => this._draw_marker(marker));
-        marker.opacity += marker.delta_opacity;
     },
 
     /**
@@ -361,6 +369,31 @@ Minimap.prototype = {
      * opacity returns to full, like a radar marker.
      */
     _update_guard_markers: function() {
+        // Returns whether the point (x, y) lies within the defined ring.
+        function is_inside_ring(center, r_outer, r_inner, point) {
+            var dist = center.dist_to(point);
+            return r_inner <= dist && dist <= r_outer;
+        }
+
+        for (var i=0; i<this.guard_markers.length; i++) {
+            var marker = this.guard_markers[i];
+            marker.opacity += marker.delta_opacity;
+
+            // Check whether a pulse is touching the marker.
+            for (var j=0; j<this._pulses.length; j++) {
+                var pulse = this._pulses[j];
+
+                // The offset to the radius of the pulse, creating a ring in
+                // which to check whether the marker lies.
+                var offset = 10;
+                var r_outer = pulse.radius + offset;
+                var r_inner = pulse.radius - offset;
+
+                if (is_inside_ring(pulse.minimap_loc, r_outer, r_inner, marker.minimap_loc)) {
+                    marker.opacity = 1.0;
+                }
+            }
+        }
     },
 
     /**
@@ -408,6 +441,9 @@ Minimap.prototype = {
         // Update the radii and opactity of the pulses on the minimap.
         // We also need to remove any pulses that can no longer be seen.
         this._update_pulses();
+
+        // Update whether the guard markers have been 'hit' by the pulses.
+        this._update_guard_markers();
     },
 
     /**
@@ -434,8 +470,30 @@ Minimap.prototype = {
      * Refreshers the markers for the location of the guards on the map.
      */
     _refresh_guard_locs: function() {
-        var guard_locs_2d = this.model.guard_game_locs.map(this._convert_to_minimap_point.bind(this));
-        this.guard_markers = guard_locs_2d.map(loc => new GuardMarker(loc, 'red', this._marker_radius()));
+        // var guard_locs_2d = this.model.guard_game_locs.map(this._convert_to_minimap_point.bind(this));
+        // this.guard_markers = guard_locs_2d.map(loc => new GuardMarker(loc, 'red', this._marker_radius()));
+
+        var guard_game_locs = this.model.guard_game_locs;
+
+        // Add or remove guard markers so the number of guard_locs matches the
+        // guard markers.
+        if (this.guard_markers.length > guard_game_locs.length) {
+            this.guard_markers = this.guard_markers.slice(0, guard_game_locs.length);
+        }
+        else {
+            var num_to_add = guard_game_locs.length - this.guard_markers.length;
+            for (var i=0; i<num_to_add; i++) {
+                // This position will be filled in after.
+                var marker = new GuardMarker(new Point(0, 0), 'red', this._marker_radius());
+                this.guard_markers.push(marker);
+            }
+        }
+
+        // Update camera markers from the game data.
+        for (var i=0; i<guard_game_locs.length; i++) {
+            var marker = this.guard_markers[i];
+            marker.minimap_loc = this._convert_to_minimap_point(guard_game_locs[i]);
+        }
     },
 
     /**

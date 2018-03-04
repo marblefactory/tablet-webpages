@@ -35,7 +35,11 @@ window.onload = function() {
         };
 
         // Start the model getting the positions.
-        model.poll_positions(800, function() {
+        // model.poll_positions(800, function() {
+        //     minimap.refresh_positons();
+        // });
+
+        model.poll_positions(3000, function() {
             minimap.refresh_positons();
         });
     }
