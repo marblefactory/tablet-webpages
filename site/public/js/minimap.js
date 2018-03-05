@@ -30,7 +30,7 @@ function Boundaries(min_x, min_y, max_x, max_y) {
 function FloorMap(image, screen_width, screen_height) {
     this.image = image;
 
-    this.render_height = image.height * 0.7;
+    this.render_height = screen_height * 0.9;
     this.render_width = image.width * (this.render_height / image.height);
 
     this.start_x = (screen_width - this.render_width) / 2;

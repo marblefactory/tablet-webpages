@@ -56,7 +56,7 @@ function checkSite() {
     return ok;
 }
 
-var floor_num = 2;
+var floor_num = 1;
 
 /**
  * Sends the client the position of the spy, guards, cameras, and the floor number.
