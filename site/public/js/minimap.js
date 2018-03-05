@@ -120,6 +120,7 @@ function Minimap(canvas, model) {
     this.on_camera_pressed = function(index) {};
 
     this.floor_maps = [];
+    this.grid_background = null;
     this.cctv_icon = null;
 
     // Add event handlers for touching the canvas.
@@ -131,15 +132,17 @@ Minimap.prototype = {
     load_images: function(callback) {
         var image_names = [
             'images/cctv_icon.png',
-            'images/floor_maps/floor0.png',
+            'images/floor_maps/background-grid.png',
+            'images/floor_maps/floor2.png',
             'images/floor_maps/floor1.png',
-            'images/floor_maps/floor2.png'
+            'images/floor_maps/floor0.png'
         ]
 
         preload(image_names, complete.bind(this));
 
         function complete(images) {
             this.cctv_icon = images.pop();
+            this.grid_background = images.pop();
             this.floor_maps = images.map(img => new FloorMap(img, this.width(), this.height()));
             callback();
         }
@@ -230,17 +233,14 @@ Minimap.prototype = {
     /**
      * Fills the background with a background color.
      */
-    _draw_background_color: function() {
-        this.ctx.fillStyle = "#1b5f9a";
-        this.ctx.fillRect(0, 0, this.width(), this.height());
+    _draw_background_grid: function() {
+        this.ctx.drawImage(this.grid_background, 0, 0, this.width(), this.height());
     },
 
     /**
      * Draws the background map.
      */
     _draw_background_image: function() {
-        this.floor_label_elem.innerHTML = this.model.floor_names[this.model.floor_num];
-
         var floormap = this.current_floormap();
         this.ctx.drawImage(floormap.image, floormap.start_x, floormap.start_y, floormap.render_width, floormap.render_height);
     },
@@ -349,7 +349,7 @@ Minimap.prototype = {
      * Draws the markers and background.
      */
     _draw: function() {
-        this._draw_background_color();
+        this._draw_background_grid();
         this._draw_background_image(this.model.floor_num);
 
         // Draw and update the camera radar pulses.
@@ -392,7 +392,7 @@ Minimap.prototype = {
 
                 // The offset to the radius of the pulse, creating a ring in
                 // which to check whether the marker lies.
-                var offset = 10;
+                var offset = marker.radius;
                 var r_outer = pulse.radius + offset;
                 var r_inner = pulse.radius - offset;
 
@@ -540,6 +540,8 @@ Minimap.prototype = {
      * Refreshes the minimap with the position of the spy, guards, and cameras.
      */
     refresh_positons: function() {
+        this.floor_label_elem.innerHTML = this.model.floor_names[this.model.floor_num];
+
         this._refresh_spy_loc(this.model.spy_game_loc);
         this._refresh_guard_locs(this.model.guard_game_locs);
         this._refresh_camera_locs(this.model.camera_game_locs);
