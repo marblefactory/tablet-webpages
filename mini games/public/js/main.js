@@ -7,8 +7,8 @@ window.addEventListener("load", function() {
 PIXI.utils.sayHello();
 
 const app = new PIXI.Application({
-    height: window.innerHeight * 0.9,
-    width: window.innerWidth * 0.5,
+    height: 1536 * 0.9,
+    width: 2048 * 0.9,
     backgroundColor: 0x9D9D9D
 });
 
@@ -22,8 +22,8 @@ const pipe1 = PIXI.Sprite.fromImage("/images/pipe1.png");
 
 pipe1.interactive = true;
 pipe1.anchor.set(0.5);
-pipe1.scale.x = 0.05
-pipe1.scale.y = 0.05;
+pipe1.scale.x = 0.1;
+pipe1.scale.y = 0.1;
 pipe1.x = app.renderer.view.width / 4;
 pipe1.y = app.renderer.view.height / 2;
 
