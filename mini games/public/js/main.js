@@ -22,7 +22,7 @@ const pipe1 = PIXI.Sprite.fromImage("/images/pipe1.png");
 
 pipe1.interactive = true;
 pipe1.anchor.set(0.5);
-pipe1.scale.x = 0.1
+pipe1.scale.x = 0.1;
 pipe1.scale.y = 0.1;
 pipe1.x = app.renderer.view.width / 4;
 pipe1.y = app.renderer.view.height / 2;
