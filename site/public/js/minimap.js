@@ -69,7 +69,7 @@ function CameraPulse(minimap_loc, max_radius) {
     this.color = 'white';
     this.radius = 0;
     this.max_radius = max_radius;
-    this.max_opacity = 0.25;
+    this.max_opacity = 0.2;
 
     // The minimum and maximum rate at which the radius can increase.
     // Randomness helps make the cameras look less 'samey'.
@@ -170,11 +170,11 @@ Minimap.prototype = {
     },
 
     _marker_radius: function() {
-        return Math.min(this.width() * 0.011, 50);
+        return Math.min(this.width() * 0.008, 50);
     },
 
     _camera_icon_radius: function() {
-        return Math.min(this.width() * 0.02, 50);
+        return Math.min(this.width() * 0.015 , 50);
     },
 
     /**
