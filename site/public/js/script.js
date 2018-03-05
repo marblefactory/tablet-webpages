@@ -30,8 +30,6 @@ window.onload = function() {
     minimap.load_images(minimap_loaded);
 
     function minimap_loaded() {
-        minimap.fullscreen();
-
         model.onload = function() {
             minimap.run_loop();
         };

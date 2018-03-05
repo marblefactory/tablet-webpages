@@ -29,8 +29,12 @@ function Boundaries(min_x, min_y, max_x, max_y) {
  */
 function FloorMap(image, screen_width, screen_height) {
     this.image = image;
-    this.render_width = image.width * (screen_height / image.height);
+
+    this.render_height = image.height * 0.7;
+    this.render_width = image.width * (this.render_height / image.height);
+
     this.start_x = (screen_width - this.render_width) / 2;
+    this.start_y = (screen_height - this.render_height) / 2;
 }
 
 // Represents a marker for the spy on the map.
@@ -46,7 +50,7 @@ function GuardMarker(minimap_loc, color, radius) {
     this.color = color;
     this.radius = radius;
     this.opacity = 1.0;
-    this.delta_opacity = -0.003;//-0.0025;
+    this.delta_opacity = -0.003;
 }
 
 // Represents a camera marker on the minimap, which is used to display a
@@ -55,7 +59,7 @@ function CameraMarker(minimap_loc, is_active, max_pulse_dist) {
     this.minimap_loc = minimap_loc;
     this.is_active = is_active;
     // The maximum time before a new pulse is made.
-    this.start_time_before_pulse = 250;//200;
+    this.start_time_before_pulse = 250;
     // The time remaining before a pulse is made. A pulse is made immediately
     // when the camera is created.
     this.time_before_pulse = 0;
@@ -91,6 +95,10 @@ function Minimap(canvas, model) {
     this.model = model;
     this.ctx = canvas.getContext('2d');
     this.floor_label_elem = document.querySelector('#floor');
+
+    // Make the canvas fullscreen.
+    this.ctx.canvas.width = window.innerWidth;
+    this.ctx.canvas.height = window.innerHeight;
 
     this.spy_marker = null;
     this.guard_markers = [];
@@ -132,7 +140,7 @@ Minimap.prototype = {
 
         function complete(images) {
             this.cctv_icon = images.pop();
-            this.floor_maps = images.map(img => new FloorMap(img, screen.width, screen.height));
+            this.floor_maps = images.map(img => new FloorMap(img, this.width(), this.height()));
             callback();
         }
     },
@@ -177,10 +185,10 @@ Minimap.prototype = {
         var width_mult = floormap.render_width / game_w;
 
         var game_h = (this.model.game_boundaries.max_y - this.model.game_boundaries.min_y);
-        var height_mult = this.height() / game_h;
+        var height_mult = floormap.render_height / game_h;
 
         var minimap_x = (game_point.x - this.model.game_boundaries.min_x) * width_mult + floormap.start_x;
-        var minimap_y = (game_point.y - this.model.game_boundaries.min_y) * height_mult;
+        var minimap_y = (game_point.y - this.model.game_boundaries.min_y) * height_mult + floormap.start_y;
 
         return new Point(minimap_x, minimap_y);
     },
@@ -234,7 +242,7 @@ Minimap.prototype = {
         this.floor_label_elem.innerHTML = this.model.floor_names[this.model.floor_num];
 
         var floormap = this.current_floormap();
-        this.ctx.drawImage(floormap.image, floormap.start_x, 0, floormap.render_width, this.height());
+        this.ctx.drawImage(floormap.image, floormap.start_x, floormap.start_y, floormap.render_width, floormap.render_height);
     },
 
     /**
@@ -535,13 +543,5 @@ Minimap.prototype = {
         this._refresh_spy_loc(this.model.spy_game_loc);
         this._refresh_guard_locs(this.model.guard_game_locs);
         this._refresh_camera_locs(this.model.camera_game_locs);
-    },
-
-    /**
-     * Resizes the canvas to fit to fullscreen.
-     */
-    fullscreen: function() {
-        this.ctx.canvas.width = window.innerWidth;
-        this.ctx.canvas.height = window.innerHeight;
     }
 };
