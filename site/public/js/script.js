@@ -25,17 +25,21 @@ window.onload = function() {
 
     // Setup the minimap.
     var canvas = document.getElementById('minimap');
-    var minimap = new Minimap(canvas, model, minimap_loaded);
+    var minimap = new Minimap(canvas, model);
+
+    minimap.load_images(minimap_loaded);
 
     function minimap_loaded() {
-        minimap.fullscreen();
-
         model.onload = function() {
-            minimap.draw_loop();
+            minimap.run_loop();
         };
 
         // Start the model getting the positions.
-        model.poll_positions(1200, function() {
+        // model.poll_positions(800, function() {
+        //     minimap.refresh_positons();
+        // });
+
+        model.poll_positions(3000, function() {
             minimap.refresh_positons();
         });
     }

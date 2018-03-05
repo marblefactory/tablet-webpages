@@ -1,9 +1,16 @@
 
 // The location of a camera in the game, and whether the user is viewing the
 // camera feed.
-function Camera(game_loc, is_active) {
+/**
+ * @param {Point} game_loc - the location of the camera in the game.
+ * @param {boolean} is_active - whether the feed of the camera is being viewed.
+ * @param {number} max_visibility_dist - the maximum distance from the camera
+ *                                       which guards can be automatically detected.
+ */
+function Camera(game_loc, is_active, max_visibility_dist) {
     this.game_loc = game_loc;
     this.is_active = is_active;
+    this.max_visibility_dist = max_visibility_dist;
 }
 
 function Model() {
