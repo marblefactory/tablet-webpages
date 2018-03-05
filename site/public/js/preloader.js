@@ -9,6 +9,7 @@ function preload(image_names, callback) {
     function _preload(images, image_names, complete) {
         if (image_names.length == 0) {
             complete(images);
+            return;
         }
 
         var name = image_names.pop();
