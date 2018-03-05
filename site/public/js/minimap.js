@@ -87,7 +87,7 @@ function CameraPulse(minimap_loc, max_radius) {
  * @param {Canvas} canvas - used to draw the minimap.
  * @param {Boundaries} model - used to get information about what to display.
  */
-function Minimap(canvas, model, onload) {
+function Minimap(canvas, model) {
     this.model = model;
     this.ctx = canvas.getContext('2d');
     this.floor_label_elem = document.querySelector('#floor');
@@ -111,35 +111,8 @@ function Minimap(canvas, model, onload) {
     // to the callback.
     this.on_camera_pressed = function(index) {};
 
-    // Preload the any images.
     this.floor_maps = [];
     this.cctv_icon = null;
-
-    // Add all the preloaded background images to a dictionary.
-    var _this = this;
-    function loaded_background(key, background_img) {
-        _this.floor_maps[key] = new FloorMap(background_img, screen.width, screen.height);
-
-        // Call onload if all the background images have been loaded.
-        if (Object.keys(_this.floor_maps).length === _this.model.num_floors) {
-            onload();
-        }
-    }
-
-    function preload_backgrounds() {
-        for (var i=0; i<_this.model.num_floors; i++) {
-            var img_name = 'images/floor_maps/floor' + i + '.png';
-            _this._preload_image(img_name, i, loaded_background);
-        }
-    }
-
-    function loaded_cctv_icon(_, cctv_icon) {
-        _this.cctv_icon = cctv_icon;
-
-        preload_backgrounds();
-    }
-
-    this._preload_image('images/cctv_icon.png', null, loaded_cctv_icon);
 
     // Add event handlers for touching the canvas.
     // This allows the index of the camera pressed to be sent back to the server.
@@ -147,14 +120,21 @@ function Minimap(canvas, model, onload) {
 }
 
 Minimap.prototype = {
-    _preload_image: function(image_name, key, callback) {
-        var img = new Image();
-        img.src = image_name;
+    load_images: function(callback) {
+        var image_names = [
+            'images/cctv_icon.png',
+            'images/floor_maps/floor0.png',
+            'images/floor_maps/floor1.png',
+            'images/floor_maps/floor2.png'
+        ]
 
-        var _this = this;
-        img.onload = function() {
-            callback(key, img);
-        };
+        preload(image_names, complete.bind(this));
+
+        function complete(images) {
+            this.cctv_icon = images.pop();
+            this.floor_maps = images.map(img => new FloorMap(img, screen.width, screen.height));
+            callback();
+        }
     },
 
     width: function() {

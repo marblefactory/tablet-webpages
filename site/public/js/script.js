@@ -25,7 +25,9 @@ window.onload = function() {
 
     // Setup the minimap.
     var canvas = document.getElementById('minimap');
-    var minimap = new Minimap(canvas, model, minimap_loaded);
+    var minimap = new Minimap(canvas, model);
+
+    minimap.load_images(minimap_loaded);
 
     function minimap_loaded() {
         minimap.fullscreen();
