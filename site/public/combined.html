@@ -410,7 +410,11 @@
 
                 var name = image_names.pop();
                 var image = new Image();
-                image.onload = () => _preload(images, image_names, complete);
+                //image.onload = () => _preload(images, image_names, complete);
+                image.onload = function() {
+                    console.log(`Loaded ${name}`);
+                    _preload(images, image_names, complete);
+                }
                 image.src = name;
                 images.push(image);
             }
@@ -994,10 +998,14 @@
             var canvas = document.getElementById('minimap');
             var minimap = new Minimap(canvas, model);
 
+            console.log("Starting Loading Images...");
             minimap.load_images(minimap_loaded);
+            console.log("Done Loading Images...");
 
             function minimap_loaded() {
+                console.log("LOADED MAP");
                 model.onload = function() {
+                    console.log("LOADED MODEL");
                     minimap.run_loop();
                 };
 
@@ -1017,6 +1025,8 @@
                 new_camera_index = i;
             }
         }
+
+        console.log("Reached end of JS");
 
         //]]>
         </script>
