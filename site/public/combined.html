@@ -147,8 +147,14 @@
          * Sends a post request to the server, with the given ulr_postfix added to the
          * end of the url of the server.
          */
-        function post_obj(url_postfix, obj) {
+        function post_obj(url_postfix, obj, callback) {
             var request = new XMLHttpRequest();
+            request.onreadystatechange = function() {
+                if (request.readyState == 4 && request.status == 200 && callback) {
+                    callback(request.responseText);
+                }
+            }
+
             url = window.location.origin + '/' + url_postfix;
 
             request.open("POST", url, true);
@@ -276,7 +282,13 @@
             poll_positions: function(interval_time, callback) {
                 var _this = this;
                 this._get_boundaries(function() {
-                    get('positions', function(response) {
+                    // A floor number of -1 indicates that we want the server to send
+                    // back the floor on which the spy is.
+                    var floor_num_obj = {
+                        floor_num: -1
+                    };
+
+                    post_obj('positions', floor_num_obj, function(response) {
                         var locations = JSON.parse(response);
 
                         _this.spy_dir_deg = locations.spy_dir_deg;
@@ -536,7 +548,7 @@
             load_images: function(callback) {
                 var image_names = [
                     'images/cctv_icon.png',
-                    'images/floor_maps/background-grid.png',
+                    'images/floor_maps/background.png',
                     'images/floor_maps/floor2.png',
                     'images/floor_maps/floor1.png',
                     'images/floor_maps/floor0.png'
