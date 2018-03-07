@@ -17,6 +17,7 @@ function preload(image_names, callback) {
         image.onload = () => _preload(images, image_names, complete);
         image.onerror = () => console.log(`FAILED LOADING ${name}`);
         image.src = name;
+
         images.push(image);
     }
 }

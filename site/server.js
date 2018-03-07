@@ -190,7 +190,7 @@ function deliver(response, type, err, content) {
     var typeHeader = { "Content-Type": type };
     response.writeHead(OK, typeHeader);
     response.write(content);
-    response.end();
+    response.end();    
 }
 
 // Give a minimal failure response to the browser
