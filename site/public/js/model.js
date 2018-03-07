@@ -54,7 +54,13 @@ Model.prototype = {
     poll_positions: function(interval_time, callback) {
         var _this = this;
         this._get_boundaries(function() {
-            get('positions', function(response) {
+            // A floor number of -1 indicates that we want the server to send
+            // back the floor on which the spy is.
+            var floor_num_obj = {
+                floor_num: -1
+            };
+
+            post_obj('positions', floor_num_obj, function(response) {
                 var locations = JSON.parse(response);
 
                 _this.spy_dir_deg = locations.spy_dir_deg;

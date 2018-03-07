@@ -132,7 +132,7 @@ Minimap.prototype = {
     load_images: function(callback) {
         var image_names = [
             'images/cctv_icon.png',
-            'images/floor_maps/background-grid.png',
+            'images/floor_maps/background.png',
             'images/floor_maps/floor2.png',
             'images/floor_maps/floor1.png',
             'images/floor_maps/floor0.png'
