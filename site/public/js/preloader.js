@@ -15,6 +15,7 @@ function preload(image_names, callback) {
         var name = image_names.pop();
         var image = new Image();
         image.onload = () => _preload(images, image_names, complete);
+        image.onerror = () => console.log(`FAILED LOADING ${name}`);
         image.src = name;
         images.push(image);
     }
