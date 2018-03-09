@@ -275,6 +275,10 @@ function update_pipe_8(){
 function update_sink(){
     sink.visible = false;
     sink_correct.visible = true;
+    pipe1_correct.interactive = false;
+    pipe4_correct.interactive = false;
+    pipe5_correct.interactive = false;
+    pipe8_correct.interactive = false;
     console.log("Game won");
 }
 
