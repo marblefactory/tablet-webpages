@@ -17,6 +17,7 @@ document.getElementById("display").appendChild(app.view);
 const background = PIXI.Sprite.fromImage("/images/background_texture.png");
 app.stage.addChild(background);
 
+const source = PIXI.Sprite.fromImage("/images/source.png");
 const pipe1 = PIXI.Sprite.fromImage("/images/pipe_three.png");
 const pipe1_correct = PIXI.Sprite.fromImage("/images/pipe_three_correct.png");
 const pipe2 = PIXI.Sprite.fromImage("/images/single_pipe.png");
@@ -31,6 +32,16 @@ const pipe6 = PIXI.Sprite.fromImage("/images/single_pipe.png");
 const pipe6_correct = PIXI.Sprite.fromImage("images/single_pipe_correct.png");
 const pipe7 = PIXI.Sprite.fromImage("/images/single_pipe.png");
 const pipe7_correct = PIXI.Sprite.fromImage("images/single_pipe_correct.png");
+const pipe8 = PIXI.Sprite.fromImage("/images/pipe_three.png");
+const pipe8_correct = PIXI.Sprite.fromImage("/images/pipe_three_correct.png");
+const sink = PIXI.Sprite.fromImage("/images/sink.png");
+const sink_correct = PIXI.Sprite.fromImage("/images/sink_correct.png");
+
+source.anchor.set(0.5);
+source.scale.x = 0.1;
+source.scale.y = 0.1;
+source.x = app.renderer.view.width * 0.115;
+source.y = app.renderer.view.height * 0.075;
 
 pipe1.interactive = true;
 pipe1.anchor.set(0.5);
@@ -75,6 +86,7 @@ pipe4.scale.x = 0.1;
 pipe4.scale.y = 0.1;
 pipe4.x = app.renderer.view.width * 0.73;
 pipe4.y = app.renderer.view.height * 0.25;
+pipe4.rotation = (Math.PI/2);
 
 pipe4_correct.interactive = true;
 pipe4_correct.anchor.set(0.5);
@@ -82,6 +94,7 @@ pipe4_correct.scale.x = 0.1;
 pipe4_correct.scale.y = 0.1;
 pipe4_correct.x = app.renderer.view.width * 0.73;
 pipe4_correct.y = app.renderer.view.height * 0.25;
+pipe4_correct.rotation = (Math.PI/2);
 pipe4_correct.visible = false;
 
 pipe5.interactive = true;
@@ -121,6 +134,39 @@ pipe7_correct.x = app.renderer.view.width * 0.76;
 pipe7_correct.y = app.renderer.view.height * 0.32;
 pipe7_correct.visible = false;
 
+pipe8.interactive = true;
+pipe8.anchor.set(0.5);
+pipe8.scale.x = 0.1;
+pipe8.scale.y = 0.1;
+pipe8.x = app.renderer.view.width * 0.76;
+pipe8.y = app.renderer.view.height * 0.85;
+pipe8.rotation = (Math.PI);
+
+pipe8_correct.interactive = true;
+pipe8_correct.anchor.set(0.5);
+pipe8_correct.scale.x = 0.1;
+pipe8_correct.scale.y = 0.1;
+pipe8_correct.x = app.renderer.view.width * 0.76;
+pipe8_correct.y = app.renderer.view.height * 0.85;
+pipe8_correct.rotation = (Math.PI);
+pipe8_correct.visible = false;
+
+sink.anchor.set(0.5);
+sink.scale.x = 0.1;
+sink.scale.y = 0.1;
+sink.x = app.renderer.view.width * 0.85;
+sink.y = app.renderer.view.height * 0.895;
+sink.rotation = (Math.PI * 0.5);
+
+sink_correct.anchor.set(0.5);
+sink_correct.scale.x = 0.1;
+sink_correct.scale.y = 0.1;
+sink_correct.x = app.renderer.view.width * 0.85;
+sink_correct.y = app.renderer.view.height * 0.895;
+sink_correct.rotation = (Math.PI * 0.5);
+sink_correct.visible = false;
+
+app.stage.addChild(source);
 app.stage.addChild(pipe1);
 app.stage.addChild(pipe1_correct);
 app.stage.addChild(pipe2);
@@ -135,6 +181,10 @@ app.stage.addChild(pipe6);
 app.stage.addChild(pipe6_correct);
 app.stage.addChild(pipe7);
 app.stage.addChild(pipe7_correct);
+app.stage.addChild(pipe8);
+app.stage.addChild(pipe8_correct);
+app.stage.addChild(sink);
+app.stage.addChild(sink_correct);
 
 function update_pipe_2(){
     if (pipe2.visible){
@@ -145,6 +195,7 @@ function update_pipe_2(){
         pipe2.visible = true;
         pipe2_correct.visible = false;
     }
+    update_pipe_5();
 }
 
 function update_pipe_3(){
@@ -156,6 +207,7 @@ function update_pipe_3(){
         pipe3.visible = true;
         pipe3_correct.visible = false;
     }
+    update_pipe_4();
 }
 
 function update_pipe_4(){
@@ -167,19 +219,20 @@ function update_pipe_4(){
         pipe4.visible = true;
         pipe4_correct.visible = false;
     }
+    update_pipe_7();
 }
 
 function update_pipe_5(){
     if (Math.round((pipe5.rotation * 360) / (Math.PI * 2) % 360) === 90 && pipe1_correct.visible) {
         pipe5.visible = false;
         pipe5_correct.visible = true;
-        update_pipe_6();
+        
     }
     else {
         pipe5.visible = true;
         pipe5_correct.visible = false;
-        update_pipe_6();
     }
+    update_pipe_6();
 }
 
 function update_pipe_6(){
@@ -191,6 +244,7 @@ function update_pipe_6(){
         pipe6.visible = true;
         pipe6_correct.visible = false
     }
+    update_pipe_8();
 }
 
 function update_pipe_7(){
@@ -202,6 +256,26 @@ function update_pipe_7(){
         pipe7.visible = true;
         pipe7_correct.visible = false
     }
+    update_pipe_8();
+}
+
+function update_pipe_8(){
+    if (pipe7_correct.visible && pipe6_correct.visible  && (pipe8.rotation % (Math.PI * 2) === 0)) {
+        pipe8.visible = false;
+        pipe8_correct.visible = true;
+        update_sink();
+    }
+    else {
+        pipe8.visible = true;
+        pipe8_correct.visible = false;
+    }
+
+}
+
+function update_sink(){
+    sink.visible = false;
+    sink_correct.visible = true;
+    console.log("Game won");
 }
 
 pipe1.on('click', () => {
@@ -212,8 +286,6 @@ pipe1.on('click', () => {
         pipe1.visible = false;
         update_pipe_2();
         update_pipe_3();
-        update_pipe_4();
-        update_pipe_5();
     }
 });
 
@@ -264,3 +336,13 @@ pipe5_correct.on('click', () => {
     update_pipe_6();
 });
 
+pipe8.on('click', () => {
+    pipe8.rotation += (Math.PI / 2);
+    console.log("pipe8 rotation: ", pipe8.rotation);
+    if ((pipe8.rotation % (Math.PI * 2)) === 0  && pipe6_correct.visible && pipe7_correct.visible){
+        pipe8_correct.rotation = pipe8.rotation;
+        pipe8_correct.visible = true;
+        pipe8.visible = false;
+        update_sink();
+    }
+});
