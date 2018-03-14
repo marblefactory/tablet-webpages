@@ -22,7 +22,7 @@ function Model() {
     this.game_boundaries = null;
 
     // The direction the spy is looking in.
-    this.spy_dir_deg = null;
+    this.spy_dir_rad = null;
 
     // The positions of objects in the game.
     this.spy_game_loc = null;
@@ -67,7 +67,7 @@ Model.prototype = {
             post_obj('positions', floor_num_obj, function(response) {
                 var locations = JSON.parse(response);
 
-                _this.spy_dir_deg = locations.spy_dir_deg;
+                _this.spy_dir_rad = locations.spy_dir_rad;
                 _this.floor_num = locations.floor_num;
                 _this.spy_game_loc = locations.spy_loc;
                 _this.guard_game_locs = locations.guard_locs;

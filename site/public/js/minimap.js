@@ -265,7 +265,7 @@ Minimap.prototype = {
         draw_with_translation(this.ctx, dx, dy, draw_rotated_arrow.bind(this))
 
         function draw_rotated_arrow() {
-            draw_with_rotation(this.ctx, this.model.spy_dir_deg, draw_arrow_at_horizontal.bind(this));
+            draw_with_rotation(this.ctx, this.model.spy_dir_rad, draw_arrow_at_horizontal.bind(this));
         }
 
         // Draws an arrow pointing horzontally to the right.

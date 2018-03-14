@@ -104,7 +104,7 @@ function handle_get_spy_position(request, response) {
     ];
 
     var locations = {
-        spy_dir_deg: Math.random() * 360, // The angle the spy is facing, measured from horizontal.
+        spy_dir_rad: Math.random() * 2 * 3.14, // The angle the spy is facing, measured from horizontal.
         spy_loc: spy_loc,
         guard_locs: guard_locs,
         cameras: cameras,
