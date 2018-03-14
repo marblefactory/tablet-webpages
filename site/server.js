@@ -72,7 +72,7 @@ function handle_get_spy_position(request, response) {
     for (var i=0; i<Math.floor(Math.random() * 10) + 5; i++) {
         guard_loc = {
             x: Math.random() * 300 + 20,
-            y: Math.random() * 300 + 20
+            y: Math.random() * 300 + 20,
         };
         guard_locs.push(guard_loc);
     }
@@ -95,8 +95,11 @@ function handle_get_spy_position(request, response) {
 
     var cameras = [
         { loc: { x: 200, y: 150 }, is_active: false, max_visibility_dist: 80 },
-        { loc: { x: 50,  y: 60 },  is_active: true, max_visibility_dist: 80 },
-        { loc: { x: 260, y: 240 }, is_active: true, max_visibility_dist: 80 },
+        { loc: { x: 50,  y: 60 },  is_active: false, max_visibility_dist: 80 },
+        { loc: { x: 260, y: 240 }, is_active: false, max_visibility_dist: 80 },
+        { loc: { x: 20,   y: 300 },   is_active: false, max_visibility_dist: 80 },
+        { loc: { x: 20,   y: 20 },   is_active: true, max_visibility_dist: 80 },
+        { loc: { x: 20,   y: 350 },   is_active: true, max_visibility_dist: 80 }
     ];
 
     var locations = {
@@ -115,8 +118,8 @@ function handle_get_spy_position(request, response) {
  */
 function handle_get_boundaries(request, response) {
     var boundaries = {
-        min_x: 0,
-        min_y: 0,
+        min_x: 20,
+        min_y: 20,
         max_x: 350,
         max_y: 350
     };
@@ -144,6 +147,18 @@ function handle_posted_camera_chosen(request, response) {
     deliver(response, 'application/json', undefined, JSON.stringify(x));
 }
 
+/**
+ * Receives a request to send the distance from the spy to the next objective.
+ * This is used to indicate how far away the spy is from the objective.
+ */
+function handle_distance_to_objective(request, response) {
+    var json = {
+        distance: Math.random() * 320
+    }
+
+    deliver(response, 'application/json', undefined, JSON.stringify(json));
+}
+
 // Serve a request by delivering a file.
 function handle(request, response) {
     var url = request.url.toLowerCase();
@@ -156,6 +171,9 @@ function handle(request, response) {
     }
     else if (url == '/camera_chosen') {
         handle_posted_camera_chosen(request, response);
+    }
+    else if (url == '/dist_to_objective') {
+        handle_distance_to_objective(request, response);
     }
     else {
         if (url.endsWith("/")) url = url + "index.html";

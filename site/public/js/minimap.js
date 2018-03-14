@@ -190,8 +190,11 @@ Minimap.prototype = {
         var game_h = (this.model.game_boundaries.max_y - this.model.game_boundaries.min_y);
         var height_mult = floormap.render_height / game_h;
 
+        // Flipped to make the map in the correct orientation as the game map.
+        var flipped_game_y = this.model.game_boundaries.max_y - game_point.y + this.model.game_boundaries.min_y;
+
         var minimap_x = (game_point.x - this.model.game_boundaries.min_x) * width_mult + floormap.start_x;
-        var minimap_y = (game_point.y - this.model.game_boundaries.min_y) * height_mult + floormap.start_y;
+        var minimap_y = (flipped_game_y - this.model.game_boundaries.min_y) * height_mult + floormap.start_y;
 
         return new Point(minimap_x, minimap_y);
     },
