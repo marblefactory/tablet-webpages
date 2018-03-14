@@ -187,10 +187,22 @@ function findType(url) {
 // Deliver the file that has been read in to the browser.
 function deliver(response, type, err, content) {
     if (err) return fail(response, NotFound, "File not found");
-    var typeHeader = { "Content-Type": type };
-    response.writeHead(OK, typeHeader);
-    response.write(content);
-    response.end();
+
+    if (type === 'image/png') {
+        var textTypeHeader = { "Content-Type": "text/plain" };
+        response.writeHead(OK, textTypeHeader);
+        var base64Encoded = content.toString('base64');
+        response.write(base64Encoded, "utf8");
+        //console.log(base64Encoded);
+        //response.write("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg", "utf8");
+        response.end();
+    }
+    else {
+        var typeHeader = { "Content-Type": type };
+        response.writeHead(OK, typeHeader);
+        response.write(content);
+        response.end();
+    }
 }
 
 // Give a minimal failure response to the browser
