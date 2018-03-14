@@ -52,8 +52,12 @@ Model.prototype = {
      * interval_time after the last position was received.
      */
     poll_positions: function(interval_time, callback) {
-        var _this = this;
         this._get_boundaries(function() {
+            poll();
+        });
+
+        var _this = this;
+        function poll() {
             // A floor number of -1 indicates that we want the server to send
             // back the floor on which the spy is.
             var floor_num_obj = {
@@ -70,16 +74,14 @@ Model.prototype = {
                 _this.game_cameras = locations.cameras;
 
                 if (!_this._called_onload) {
-                    _this.onload();
-                    _this._called_onload = true;
+                _this.onload();
+                _this._called_onload = true;
                 }
 
                 callback();
 
-                setTimeout(function() {
-                    _this.poll_positions(interval_time, callback);
-                }, interval_time);
+                setTimeout(poll, interval_time);
             });
-        });
+        }
     }
 }
