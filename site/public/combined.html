@@ -271,6 +271,8 @@
             _get_boundaries: function(callback) {
                 var _this = this;
                 get('boundaries', function(response) {
+                    console.log("BOUNDARIES");
+                    console.log(response);
                     _this.game_boundaries = JSON.parse(response);
                     callback();
                 });
