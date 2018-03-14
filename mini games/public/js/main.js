@@ -282,7 +282,7 @@ function update_sink(){
     console.log("Game won");
 }
 
-pipe1.on('click', () => {
+pipe1.on('pointerdown', () => {
     pipe1.rotation += (Math.PI / 2);
     if (Math.round((pipe1.rotation * 360) / (Math.PI * 2) % 360) === 90) {
         pipe1_correct.rotation = pipe1.rotation;
@@ -293,18 +293,16 @@ pipe1.on('click', () => {
     }
 });
 
-pipe1_correct.on('click', () => {
+pipe1_correct.on('pointerdown', () => {
     pipe1_correct.rotation += (Math.PI / 2);
     pipe1.rotation = pipe1_correct.rotation;
     pipe1.visible = true;
     pipe1_correct.visible = false;
     update_pipe_2();
     update_pipe_3();
-    update_pipe_4();
-    update_pipe_5();
 });
 
-pipe4.on('click', () => {
+pipe4.on('pointerdown', () => {
     pipe4.rotation += (Math.PI / 2);
     if (Math.round((pipe4.rotation * 360) / (Math.PI * 2) % 360) === 270 && pipe3_correct.visible) {
         pipe4_correct.rotation = pipe4.rotation;
@@ -314,7 +312,7 @@ pipe4.on('click', () => {
     }
 });
 
-pipe4_correct.on('click', () => {
+pipe4_correct.on('pointerdown', () => {
     pipe4_correct.rotation += (Math.PI / 2);
     pipe4.rotation = pipe4_correct.rotation;
     pipe4.visible = true;
@@ -322,7 +320,7 @@ pipe4_correct.on('click', () => {
     update_pipe_7();
 });
 
-pipe5.on('click', () => {
+pipe5.on('pointerdown', () => {
     pipe5.rotation += (Math.PI / 2);
     if (Math.round((pipe5.rotation * 360) / (Math.PI * 2) % 360) === 90 && pipe2_correct.visible) {
         pipe5_correct.rotation = pipe5.rotation;
@@ -332,7 +330,7 @@ pipe5.on('click', () => {
     }
 });
 
-pipe5_correct.on('click', () => {
+pipe5_correct.on('pointerdown', () => {
     pipe5_correct.rotation += (Math.PI / 2);
     pipe5.rotation = pipe5_correct.rotation;
     pipe5.visible = true;
@@ -340,9 +338,8 @@ pipe5_correct.on('click', () => {
     update_pipe_6();
 });
 
-pipe8.on('click', () => {
+pipe8.on('pointerdown', () => {
     pipe8.rotation += (Math.PI / 2);
-    console.log("pipe8 rotation: ", pipe8.rotation);
     if ((pipe8.rotation % (Math.PI * 2)) === 0  && pipe6_correct.visible && pipe7_correct.visible){
         pipe8_correct.rotation = pipe8.rotation;
         pipe8_correct.visible = true;
