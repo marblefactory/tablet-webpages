@@ -165,7 +165,7 @@ Minimap.prototype = {
     },
 
     _camera_icon_radius: function() {
-        return Math.min(this.width() * 0.015 , 50);
+        return Math.min(this.width() * 0.011, 50);
     },
 
     /**

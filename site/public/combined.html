@@ -594,7 +594,7 @@
             },
 
             _camera_icon_radius: function() {
-                return Math.min(this.width() * 0.015 , 50);
+                return Math.min(this.width() * 0.011, 50);
             },
 
             /**
@@ -1025,7 +1025,7 @@
                 //     minimap.refresh_positons();
                 // });
 
-                model.poll_positions(3000, function() {
+                model.poll_positions(800, function() {
                     minimap.refresh_positons();
                 });
             }

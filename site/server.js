@@ -99,7 +99,8 @@ function handle_get_spy_position(request, response) {
         { loc: { x: 260, y: 240 }, is_active: false, max_visibility_dist: 80 },
         { loc: { x: 20,   y: 300 },   is_active: false, max_visibility_dist: 80 },
         { loc: { x: 20,   y: 20 },   is_active: true, max_visibility_dist: 80 },
-        { loc: { x: 20,   y: 350 },   is_active: true, max_visibility_dist: 80 }
+        { loc: { x: 20,   y: 350 },   is_active: true, max_visibility_dist: 80 },
+        { loc: { x: 350,  y: 350 },   is_active: true, max_visibility_dist: 80 }
     ];
 
     var locations = {
