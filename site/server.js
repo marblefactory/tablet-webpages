@@ -94,13 +94,13 @@ function handle_get_spy_position(request, response) {
     // }
 
     var cameras = [
-        { loc: { x: 200, y: 150 }, is_active: false, max_visibility_dist: 80 },
-        { loc: { x: 50,  y: 60 },  is_active: false, max_visibility_dist: 80 },
-        { loc: { x: 260, y: 240 }, is_active: false, max_visibility_dist: 80 },
-        { loc: { x: 20,   y: 300 },   is_active: false, max_visibility_dist: 80 },
-        { loc: { x: 20,   y: 20 },   is_active: true, max_visibility_dist: 80 },
-        { loc: { x: 20,   y: 350 },   is_active: true, max_visibility_dist: 80 },
-        { loc: { x: 350,  y: 350 },   is_active: true, max_visibility_dist: 80 }
+        { loc: { x: 200, y: 150 }, is_active: false, max_visibility_dist: 30 },
+        { loc: { x: 50,  y: 60 },  is_active: false, max_visibility_dist: 30 },
+        { loc: { x: 260, y: 240 }, is_active: true, max_visibility_dist: 30 },
+        { loc: { x: 20,   y: 300 },   is_active: false, max_visibility_dist: 30 },
+        { loc: { x: 20,   y: 20 },   is_active: true, max_visibility_dist: 30 },
+        { loc: { x: 20,   y: 350 },   is_active: true, max_visibility_dist: 30 },
+        { loc: { x: 350,  y: 350 },   is_active: true, max_visibility_dist: 30 }
     ];
 
     var locations = {

@@ -77,8 +77,8 @@ function CameraPulse(minimap_loc, max_radius) {
 
     // The minimum and maximum rate at which the radius can increase.
     // Randomness helps make the cameras look less 'samey'.
-    var min_delta_r = 0.5;
-    var max_delta_r = 0.7;
+    var min_delta_r = 0.4;
+    var max_delta_r = 0.5;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
 
@@ -432,7 +432,7 @@ Minimap.prototype = {
         camera_marker.time_before_pulse -= 1;
 
         // If the camera is active, create a pulse from it.
-        if (camera_marker.is_active && camera_marker.time_before_pulse <= 0) {
+        if (camera_marker.is_active && camera_marker.time_before_pulse < 0) {
             camera_marker.time_before_pulse = camera_marker.start_time_before_pulse;
             var pulse = new CameraPulse(camera_marker.minimap_loc, camera_marker.max_pulse_dist);
             this._pulses.push(pulse);
