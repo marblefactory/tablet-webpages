@@ -73,12 +73,12 @@ function CameraPulse(minimap_loc, max_radius) {
     this.color = 'white';
     this.radius = 0;
     this.max_radius = max_radius;
-    this.max_opacity = 0.2;
+    this.max_opacity = 0.28;
 
     // The minimum and maximum rate at which the radius can increase.
     // Randomness helps make the cameras look less 'samey'.
-    var min_delta_r = 0.4;
-    var max_delta_r = 0.5;
+    var min_delta_r = 0.5;
+    var max_delta_r = 0.55;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
 
