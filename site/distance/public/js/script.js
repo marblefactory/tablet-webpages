@@ -42,6 +42,7 @@ function received_boundaries(dist_bar, boundaries) {
     function poll() {
         get('dist-to-objective', function(response) {
             var distance = JSON.parse(response)['distance'];
+            console.log(distance);
             recieved_objective_distance(dist_bar, distance);
             setTimeout(poll, interval_time);
         });
