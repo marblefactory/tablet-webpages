@@ -64,7 +64,9 @@
          */
         function convert_dist_to_bar_proportion(distance, max_dist) {
             var prop_dist = (max_dist - distance) / max_dist;
+            console.log(`PROP = ${prop_dist}`);
             var clamped = prop_dist.clamp(0.05, 1.0);
+            console.log(`CLAMPED = ${clamped}`);
             return clamped * 100.0; // To turn into percentage (0-100)
         }
 
@@ -80,13 +82,17 @@
             var game_width = boundaries.max_x - boundaries.min_x;
             var game_height = boundaries.max_y - boundaries.min_y;
             var max_dist = Math.hypot(game_width, game_height);
+            console.log(`BOUNDARIES = ${boundaries}`);
+            console.log(`WIDTH = ${game_width}`);
+            console.log(`HEIGHT = ${game_height}`);
+            console.log(`MAX = ${max_dist}`);
 
             var interval_time = 700; // ms, matching with the css
 
             function poll() {
                 get('dist-to-objective', function(response) {
                     var distance = JSON.parse(response)['distance'];
-                    console.log(distance);
+                    console.log(`DIST = ${distance}`);
                     recieved_objective_distance(dist_bar, distance);
                     setTimeout(poll, interval_time);
                 });
@@ -109,7 +115,7 @@
 
         window.onload = function() {
             var dist_bar = document.querySelector('#distance_bar');
-            get('boundaries', boundaries => received_boundaries(dist_bar, boundaries));
+            get('boundaries', boundaries_json => received_boundaries(dist_bar, JSON.parse(boundaries_json)));
         };
 
         //]]>

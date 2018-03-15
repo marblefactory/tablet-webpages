@@ -65,5 +65,5 @@ function recieved_objective_distance(dist_bar, distance) {
 
 window.onload = function() {
     var dist_bar = document.querySelector('#distance_bar');
-    get('boundaries', boundaries => received_boundaries(dist_bar, boundaries));
+    get('boundaries', boundaries_json => received_boundaries(dist_bar, JSON.parse(boundaries_json)));
 };
