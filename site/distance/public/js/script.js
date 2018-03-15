@@ -43,7 +43,7 @@ function received_boundaries(dist_bar, boundaries) {
         get('dist-to-objective', function(response) {
             var distance = JSON.parse(response)['distance'];
             console.log(distance);
-            recieved_objective_distance(dist_bar, distance);
+            recieved_objective_distance(dist_bar, distance, max_dist);
             setTimeout(poll, interval_time);
         });
     }
@@ -58,8 +58,8 @@ function received_boundaries(dist_bar, boundaries) {
  * @param {Element} dist_bar - used to represent the distance to the objective.
  * @param {number} distance - the game distance to the objective.
  */
-function recieved_objective_distance(dist_bar, distance) {
-    var prop = convert_dist_to_bar_proportion(distance, 400);
+function recieved_objective_distance(dist_bar, distance, max_dist) {
+    var prop = convert_dist_to_bar_proportion(distance, max_dist);
     dist_bar.style.width = `${prop}%`;
 }
 
