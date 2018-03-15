@@ -161,6 +161,18 @@ function handle_distance_to_objective(request, response) {
     deliver(response, 'application/json', undefined, JSON.stringify(json));
 }
 
+/**
+ * Receives a request to send the distance from the spy to the next objective.
+ * This is used to indicate how far away the spy is from the objective.
+ */
+function handle_max_distance_to_objective(request, response) {
+    var json = {
+        max_distance: 400
+    }
+
+    deliver(response, 'application/json', undefined, JSON.stringify(json));
+}
+
 // Serve a request by delivering a file.
 function handle(request, response) {
     var url = request.url.toLowerCase();
@@ -176,6 +188,9 @@ function handle(request, response) {
     }
     else if (url == '/dist-to-objective') {
         handle_distance_to_objective(request, response);
+    }
+    else if (url == '/max-objective-dist') {
+        handle_max_distance_to_objective(request, response);
     }
     else {
         if (url.endsWith("/")) url = url + "index.html";
