@@ -22,7 +22,7 @@ function Model() {
     this.game_boundaries = null;
 
     // The direction the spy is looking in.
-    this.spy_dir_deg = null;
+    this.spy_dir_rad = null;
 
     // The positions of objects in the game.
     this.spy_game_loc = null;
@@ -52,28 +52,36 @@ Model.prototype = {
      * interval_time after the last position was received.
      */
     poll_positions: function(interval_time, callback) {
-        var _this = this;
         this._get_boundaries(function() {
-            get('positions', function(response) {
+            poll();
+        });
+
+        var _this = this;
+        function poll() {
+            // A floor number of -1 indicates that we want the server to send
+            // back the floor on which the spy is.
+            var floor_num_obj = {
+                floor_num: -1
+            };
+
+            post_obj('positions', floor_num_obj, function(response) {
                 var locations = JSON.parse(response);
 
-                _this.spy_dir_deg = locations.spy_dir_deg;
+                _this.spy_dir_rad = locations.spy_dir_rad;
                 _this.floor_num = locations.floor_num;
                 _this.spy_game_loc = locations.spy_loc;
                 _this.guard_game_locs = locations.guard_locs;
                 _this.game_cameras = locations.cameras;
 
                 if (!_this._called_onload) {
-                    _this.onload();
-                    _this._called_onload = true;
+                _this.onload();
+                _this._called_onload = true;
                 }
 
                 callback();
 
-                setTimeout(function() {
-                    _this.poll_positions(interval_time, callback);
-                }, interval_time);
+                setTimeout(poll, interval_time);
             });
-        });
+        }
     }
 }

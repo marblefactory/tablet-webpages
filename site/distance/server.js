@@ -72,7 +72,7 @@ function handle_get_spy_position(request, response) {
     for (var i=0; i<Math.floor(Math.random() * 10) + 5; i++) {
         guard_loc = {
             x: Math.random() * 300 + 20,
-            y: Math.random() * 300 + 20
+            y: Math.random() * 300 + 20,
         };
         guard_locs.push(guard_loc);
     }
@@ -94,13 +94,18 @@ function handle_get_spy_position(request, response) {
     // }
 
     var cameras = [
-        { loc: { x: 200, y: 150 }, is_active: false, max_visibility_dist: 80 },
-        { loc: { x: 50,  y: 60 },  is_active: true, max_visibility_dist: 80 },
-        { loc: { x: 260, y: 240 }, is_active: true, max_visibility_dist: 80 },
+        { loc: { x: 200, y: 150 }, is_active: false, max_visibility_dist: 30 },
+        { loc: { x: 50,  y: 60 },  is_active: false, max_visibility_dist: 30 },
+        { loc: { x: 260, y: 240 }, is_active: true, max_visibility_dist: 30 },
+        { loc: { x: 20,   y: 300 },   is_active: false, max_visibility_dist: 30 },
+        { loc: { x: 20,   y: 20 },   is_active: true, max_visibility_dist: 30 },
+        { loc: { x: 20,   y: 350 },   is_active: true, max_visibility_dist: 30 },
+        { loc: { x: 350,  y: 350 },   is_active: true, max_visibility_dist: 30 }
     ];
 
     var locations = {
-        spy_dir_deg: Math.random() * 360, // The angle the spy is facing, measured from horizontal.
+        // spy_dir_rad: Math.random() * 2 * 3.14, // The angle the spy is facing, measured from horizontal.
+        spy_dir_rad: 3.14, // The angle the spy is facing, measured from horizontal.
         spy_loc: spy_loc,
         guard_locs: guard_locs,
         cameras: cameras,
@@ -115,8 +120,8 @@ function handle_get_spy_position(request, response) {
  */
 function handle_get_boundaries(request, response) {
     var boundaries = {
-        min_x: 0,
-        min_y: 0,
+        min_x: 20,
+        min_y: 20,
         max_x: 350,
         max_y: 350
     };
@@ -144,6 +149,30 @@ function handle_posted_camera_chosen(request, response) {
     deliver(response, 'application/json', undefined, JSON.stringify(x));
 }
 
+/**
+ * Receives a request to send the distance from the spy to the next objective.
+ * This is used to indicate how far away the spy is from the objective.
+ */
+function handle_distance_to_objective(request, response) {
+    var json = {
+        distance: Math.random() * 320
+    }
+
+    deliver(response, 'application/json', undefined, JSON.stringify(json));
+}
+
+/**
+ * Receives a request to send the distance from the spy to the next objective.
+ * This is used to indicate how far away the spy is from the objective.
+ */
+function handle_max_distance_to_objective(request, response) {
+    var json = {
+        max_distance: 400
+    }
+
+    deliver(response, 'application/json', undefined, JSON.stringify(json));
+}
+
 // Serve a request by delivering a file.
 function handle(request, response) {
     var url = request.url.toLowerCase();
@@ -156,6 +185,12 @@ function handle(request, response) {
     }
     else if (url == '/camera_chosen') {
         handle_posted_camera_chosen(request, response);
+    }
+    else if (url == '/dist-to-objective') {
+        handle_distance_to_objective(request, response);
+    }
+    else if (url == '/max-objective-dist') {
+        handle_max_distance_to_objective(request, response);
     }
     else {
         if (url.endsWith("/")) url = url + "index.html";
@@ -187,10 +222,22 @@ function findType(url) {
 // Deliver the file that has been read in to the browser.
 function deliver(response, type, err, content) {
     if (err) return fail(response, NotFound, "File not found");
-    var typeHeader = { "Content-Type": type };
-    response.writeHead(OK, typeHeader);
-    response.write(content);
-    response.end();
+
+    if (type === 'image/png') {
+        var textTypeHeader = { "Content-Type": "text/plain" };
+        response.writeHead(OK, textTypeHeader);
+        var base64Encoded = content.toString('base64');
+        response.write(base64Encoded, "utf8");
+        //console.log(base64Encoded);
+        //response.write("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg", "utf8");
+        response.end();
+    }
+    else {
+        var typeHeader = { "Content-Type": type };
+        response.writeHead(OK, typeHeader);
+        response.write(content);
+        response.end();
+    }
 }
 
 // Give a minimal failure response to the browser

@@ -12,10 +12,22 @@ function preload(image_names, callback) {
             return;
         }
 
+        // var image = new Image();
+        // image.onload = () => _preload(images, image_names, complete);
+        // image.onerror = () => console.log(`FAILED LOADING ${name}`);
+        // image.src = name;
+
         var name = image_names.pop();
         var image = new Image();
-        image.onload = () => _preload(images, image_names, complete);
-        image.src = name;
+
+        get(name, receivedBase64Image);
+        function receivedBase64Image(contentBase64) {
+            var src = `data:image/png;base64, ${contentBase64}`;
+            image.src = src;
+
+            _preload(images, image_names, complete);
+        }
+
         images.push(image);
     }
 }

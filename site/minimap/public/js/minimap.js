@@ -73,12 +73,12 @@ function CameraPulse(minimap_loc, max_radius) {
     this.color = 'white';
     this.radius = 0;
     this.max_radius = max_radius;
-    this.max_opacity = 0.2;
+    this.max_opacity = 0.28;
 
     // The minimum and maximum rate at which the radius can increase.
     // Randomness helps make the cameras look less 'samey'.
     var min_delta_r = 0.5;
-    var max_delta_r = 0.7;
+    var max_delta_r = 0.55;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
 
@@ -132,7 +132,7 @@ Minimap.prototype = {
     load_images: function(callback) {
         var image_names = [
             'images/cctv_icon.png',
-            'images/floor_maps/background-grid.png',
+            'images/floor_maps/background.png',
             'images/floor_maps/floor2.png',
             'images/floor_maps/floor1.png',
             'images/floor_maps/floor0.png'
@@ -165,7 +165,7 @@ Minimap.prototype = {
     },
 
     _camera_icon_radius: function() {
-        return Math.min(this.width() * 0.015 , 50);
+        return Math.min(this.width() * 0.011, 50);
     },
 
     /**
@@ -265,7 +265,7 @@ Minimap.prototype = {
         draw_with_translation(this.ctx, dx, dy, draw_rotated_arrow.bind(this))
 
         function draw_rotated_arrow() {
-            draw_with_rotation(this.ctx, this.model.spy_dir_deg, draw_arrow_at_horizontal.bind(this));
+            draw_with_rotation(this.ctx, this.model.spy_dir_rad, draw_arrow_at_horizontal.bind(this));
         }
 
         // Draws an arrow pointing horzontally to the right.
@@ -429,7 +429,7 @@ Minimap.prototype = {
         camera_marker.time_before_pulse -= 1;
 
         // If the camera is active, create a pulse from it.
-        if (camera_marker.is_active && camera_marker.time_before_pulse <= 0) {
+        if (camera_marker.is_active && camera_marker.time_before_pulse < 0) {
             camera_marker.time_before_pulse = camera_marker.start_time_before_pulse;
             var pulse = new CameraPulse(camera_marker.minimap_loc, camera_marker.max_pulse_dist);
             this._pulses.push(pulse);
