@@ -86,7 +86,7 @@ pipe4.scale.x = 0.1;
 pipe4.scale.y = 0.1;
 pipe4.x = app.renderer.view.width * 0.73;
 pipe4.y = app.renderer.view.height * 0.25;
-pipe4.rotation = (Math.PI/2);
+pipe4.rotation = (Math.PI / 2);
 
 pipe4_correct.interactive = true;
 pipe4_correct.anchor.set(0.5);
@@ -94,7 +94,7 @@ pipe4_correct.scale.x = 0.1;
 pipe4_correct.scale.y = 0.1;
 pipe4_correct.x = app.renderer.view.width * 0.73;
 pipe4_correct.y = app.renderer.view.height * 0.25;
-pipe4_correct.rotation = (Math.PI/2);
+pipe4_correct.rotation = (Math.PI / 2);
 pipe4_correct.visible = false;
 
 pipe5.interactive = true;
@@ -186,93 +186,92 @@ app.stage.addChild(pipe8_correct);
 app.stage.addChild(sink);
 app.stage.addChild(sink_correct);
 
-function update_pipe_2(){
-    if (pipe2.visible){
+function update_pipe_2() {
+    if (pipe2.visible) {
         pipe2.visible = false;
         pipe2_correct.visible = true;
-    }
-    else{
+    } else {
         pipe2.visible = true;
         pipe2_correct.visible = false;
     }
     update_pipe_5();
 }
 
-function update_pipe_3(){
-    if (pipe3.visible){
+function update_pipe_3() {
+    if (pipe3.visible) {
         pipe3.visible = false;
         pipe3_correct.visible = true;
-    }
-    else{
+    } else {
         pipe3.visible = true;
         pipe3_correct.visible = false;
     }
     update_pipe_4();
 }
 
-function update_pipe_4(){
+function update_pipe_4() {
     if (Math.round((pipe4.rotation * 360) / (Math.PI * 2) % 360) === 270 && pipe1_correct.visible) {
+        pipe4_correct.rotation = pipe4.rotation;
         pipe4.visible = false;
         pipe4_correct.visible = true;
-    }
-    else {
+    } else {
+        pipe4.rotation = pipe4_correct.rotation;
         pipe4.visible = true;
         pipe4_correct.visible = false;
     }
     update_pipe_7();
 }
 
-function update_pipe_5(){
+function update_pipe_5() {
     if (Math.round((pipe5.rotation * 360) / (Math.PI * 2) % 360) === 90 && pipe1_correct.visible) {
+        pipe5_correct.rotation = pipe5.rotation;
         pipe5.visible = false;
         pipe5_correct.visible = true;
-        
-    }
-    else {
+
+    } else {
+        pipe5.rotation = pipe5_correct.rotation;
         pipe5.visible = true;
         pipe5_correct.visible = false;
     }
     update_pipe_6();
 }
 
-function update_pipe_6(){
-    if (pipe6.visible && pipe5_correct.visible){
+function update_pipe_6() {
+    if (pipe6.visible && pipe5_correct.visible) {
         pipe6.visible = false;
         pipe6_correct.visible = true;
-    }
-    else {
+    } else {
         pipe6.visible = true;
         pipe6_correct.visible = false
     }
     update_pipe_8();
 }
 
-function update_pipe_7(){
-    if (pipe7.visible && pipe4_correct.visible){
+function update_pipe_7() {
+    if (pipe7.visible && pipe4_correct.visible) {
         pipe7.visible = false;
         pipe7_correct.visible = true;
-    }
-    else {
+    } else {
         pipe7.visible = true;
         pipe7_correct.visible = false
     }
     update_pipe_8();
 }
 
-function update_pipe_8(){
-    if (pipe7_correct.visible && pipe6_correct.visible  && (pipe8.rotation % (Math.PI * 2) === 0)) {
+function update_pipe_8() {
+    if (pipe7_correct.visible && pipe6_correct.visible && (pipe8.rotation % (Math.PI * 2) === 0)) {
+        pipe8_correct.rotation = pipe8.rotation;
         pipe8.visible = false;
         pipe8_correct.visible = true;
         update_sink();
-    }
-    else {
+    } else {
+        pipe8.rotation = pipe8_correct.rotation;
         pipe8.visible = true;
         pipe8_correct.visible = false;
     }
 
 }
 
-function update_sink(){
+function update_sink() {
     sink.visible = false;
     sink_correct.visible = true;
     pipe1_correct.interactive = false;
@@ -340,7 +339,7 @@ pipe5_correct.on('pointerdown', () => {
 
 pipe8.on('pointerdown', () => {
     pipe8.rotation += (Math.PI / 2);
-    if ((pipe8.rotation % (Math.PI * 2)) === 0  && pipe6_correct.visible && pipe7_correct.visible){
+    if ((pipe8.rotation % (Math.PI * 2)) === 0 && pipe6_correct.visible && pipe7_correct.visible) {
         pipe8_correct.rotation = pipe8.rotation;
         pipe8_correct.visible = true;
         pipe8.visible = false;

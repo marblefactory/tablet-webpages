@@ -38,7 +38,7 @@ function start() {
     banUpperCase("./public/", "");
     var service = http.createServer(handle);
     service.listen(port, "");
-    var address = "0.0.0.0";
+    var address = "http://localhost";
     if (port != 80) address = address + ":" + port;
     console.log("Server running at", address);
 }
@@ -73,7 +73,7 @@ function handle(request, response) {
         var file = "./public" + url;
         fs.readFile(file, ready);
 
-        function ready(err, content) { deliver(response, type, err, content); }   
+        function ready(err, content) { deliver(response, type, err, content); }
     } else {
         if (url.endsWith("/")) url = url + "index.html";
         if (isBanned(url)) return fail(response, NotFound, "URL has been banned");
