@@ -37,8 +37,8 @@ function start() {
     banned = [];
     banUpperCase("./public/", "");
     var service = http.createServer(handle);
-    service.listen(port, "localhost");
-    var address = "http://localhost";
+    service.listen(port, "");
+    var address = "0.0.0.0";
     if (port != 80) address = address + ":" + port;
     console.log("Server running at", address);
 }
@@ -48,7 +48,7 @@ function checkSite() {
     var path = "./public";
     var ok = fs.existsSync(path);
     if (ok) {
-        path = "./public/index.html";
+        path = "./public/game1.html";
     }
     if (ok) {
         ok = fs.existsSync(path);
@@ -59,84 +59,21 @@ function checkSite() {
     return ok;
 }
 
-var floor_num = 1;
-
-/**
- * Sends the client the position of the spy, guards, cameras, and the floor number.
- */
-function handle_get_spy_position(request, response) {
-    var spy_loc = {
-        x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
-        y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
-    };
-
-    var guard_locs = [
-        { x: 100, y: 100 },
-        { x: 200, y: 100 },
-        { x: 175, y: 175 }
-    ];
-
-    var cameras = [
-        { loc: { x: 200, y: 150 }, is_active: true },
-        { loc: { x: 50, y: 60 }, is_active: true },
-        { loc: { x: 260, y: 240 }, is_active: false },
-    ];
-
-    var locations = {
-        spy_dir_deg: Math.random() * 360, // The angle the spy is facing, measured from horizontal.
-        spy_loc: spy_loc,
-        guard_locs: guard_locs,
-        cameras: cameras,
-        floor_num: (floor_num) % 3
-    }
-
-    deliver(response, 'application/json', undefined, JSON.stringify(locations));
-}
-
-/**
- * Sends the client the boundaries of the game space.
- */
-function handle_get_boundaries(request, response) {
-    var boundaries = {
-        min_x: 0,
-        min_y: 0,
-        max_x: 350,
-        max_y: 350
-    };
-
-    deliver(response, 'application/json', undefined, JSON.stringify(boundaries));
-}
-
-/**
- * Recieves the index of the camera, in the list of cameras sent using
- * `handle_get_spy_position`, that the user selected.
- */
-function handle_posted_camera_chosen(request, response) {
-    //console.log('User selected camera: ' + request.body.camera_index);
-    var body = "";
-    request.on('data', function(chunk) {
-        body += chunk;
-    });
-    request.on('end', function() {
-        var json = JSON.parse(body);
-        console.log(`Replaced camera ${json.replace_index} with ${json.new_camera_index}`);
-    });
-
-    // TODO: Send the response correctly.
-    var x = {};
-    deliver(response, 'application/json', undefined, JSON.stringify(x));
-}
 
 // Serve a request by delivering a file.
 function handle(request, response) {
     var url = request.url.toLowerCase();
 
-    if (url == '/positions') {
-        handle_get_spy_position(request, response);
-    } else if (url == '/boundaries') {
-        handle_get_boundaries(request, response);
-    } else if (url == '/camera_chosen') {
-        handle_posted_camera_chosen(request, response);
+    if (url == '/games') {
+        if (url.endsWith("/")) url = url + "game1.html";
+        if (isBanned(url)) return fail(response, NotFound, "URL has been banned");
+        url = "/game1.html";
+        var type = findType(url);
+        if (type == null) return fail(response, BadType, "File type unsupported");
+        var file = "./public" + url;
+        fs.readFile(file, ready);
+
+        function ready(err, content) { deliver(response, type, err, content); }   
     } else {
         if (url.endsWith("/")) url = url + "index.html";
         if (isBanned(url)) return fail(response, NotFound, "URL has been banned");
