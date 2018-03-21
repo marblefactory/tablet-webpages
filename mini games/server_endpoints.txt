@@ -1,0 +1,14 @@
+Server HTTP POST Request
+URI - "/minigame-start"
+JSON Content - 
+{
+    "start" : true/false
+    "type" : "camera"/"terminal"
+}
+
+Client HTTP POST Request -
+URI - "/camera-result" and "terminal-result" 
+JSON Content -
+{
+    result: true/false
+}
