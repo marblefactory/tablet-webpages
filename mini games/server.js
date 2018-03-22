@@ -75,7 +75,7 @@ function handle(request, response) {
 
         function ready(err, content) { deliver(response, type, err, content); }
     } else {
-        if (url.endsWith("/")) url = url + "index.html";
+        if (url.endsWith("/")) url = url + "combined.html";
         if (isBanned(url)) return fail(response, NotFound, "URL has been banned");
         var type = findType(url);
         if (type == null) return fail(response, BadType, "File type unsupported");

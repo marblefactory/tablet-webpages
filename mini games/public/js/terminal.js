@@ -1,8 +1,10 @@
 "use strict"
 
-
 window.addEventListener("load", function() {
     document.body.style.height = window.innerHeight;
+
+    function poll 
+
 }, false);
 
 PIXI.utils.sayHello();
@@ -34,4 +36,4 @@ center_text.y = app.view.height * 0.5;
 
 app.stage.addChild(center_text);
 
-func
+function poll()
