@@ -3,8 +3,6 @@
 window.addEventListener("load", function() {
     document.body.style.height = window.innerHeight;
 
-    function poll 
-
 }, false);
 
 PIXI.utils.sayHello();

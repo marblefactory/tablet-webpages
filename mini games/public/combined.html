@@ -12,15 +12,40 @@
 <script>
     //<![CDATA[
     
+    class Pipe_const extends PIXI.Sprite{
+        constructor(image, data){
+            super(PIXI.Texture.fromImage(image));
+            this.anchor.set(0.5);
+            this.interactive = false;
+            this.scale.x = data.scale_x;
+            this.scale.y = data.scale_y;
+            this.x = data.width * data.x;
+            this.y = data.height * data.y;
+        }
+    }
+
     class Pipe_interactive extends PIXI.Sprite{
-        constructor(image){
+        constructor(image, location){
             super(PIXI.Texture.fromImage(image));
             this.anchor.set(0.5);
             this.interactive = true;
-            this.scale.x = 0.1;
-            this.scale.y = 0.1;
-            this
+            this.scale.x = 0.05;
+            this.scale.y = 0.05;
+            this.x = location.width * location.x;
+            this.y = location.height * location.y;
         }
+        //function to update pipe
+        update(){
+            this.rotation += (Math.PI/2);
+            if(Math.round((this.rotation * 360) / (Math.PI * 2) % 360) == 180){
+                console.log("gets into the if");
+                this.tint = 0x00ff00;
+            }
+            else {
+                this.tint = 0xFFFFFF;
+            }
+        }
+    
     }
 
     PIXI.utils.sayHello();
@@ -407,14 +432,21 @@
         
         const app = make_game();
 
-        var source = new Pipe_interactive("/images/source.png");
-        
+        var source = new Pipe_const("/images/source.png", {width: app.renderer.view.width, height: app.renderer.view.height, x: 0.5, y: 0.5, scale_x: 0.1, scale_y: 0.1});
+        var pipe1 = new Pipe_interactive("/images/pipe_three.png", {width: app.renderer.view.width, height: app.renderer.view.height, x:0.5, y: 0.75, scale_x: 0.05, scale_y: 0.05});
+        source.tint = 0xFFFFFF;
+
         app.stage.addChild(source);
+        app.stage.addChild(pipe1);
+
+        pipe1.on("pointerdown", () => {
+            pipe1.update();
+        });
         
     }
 
     window.addEventListener("load", function (){
-        make_game1();
+        make_game2();
     }, false);
 
     //]]>
