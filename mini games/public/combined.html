@@ -60,8 +60,20 @@
         check_parents(parent) {
             return parent.correct;
         }
+    }
 
+    function start_loading(app) {
+        var load = PIXI.Sprite.fromImage("/images/load.png");
+        load.interactive = true;
+        load.anchor.set(0.5);
+        load.x = app.renderer.view.width * 0.5;
+        load.y = app.renderer.view.height * 0.5;
 
+        app.stage.addChild(load);
+
+        app.ticker.add((delta) => {
+            load.rotation += 0.05 * delta;
+        });
     }
 
     PIXI.utils.sayHello();
@@ -307,8 +319,8 @@
 
         function check_final() {
             if (final.correct) {
-                console.log("game_won");
-                //make_terminal();
+                console.log("Game Won!")
+                start_loading(app);
             }
         }
     }
@@ -604,10 +616,10 @@
 
         function check_final() {
             if (final.correct) {
-                make_terminal();
+                console.log("Game won!");
+                start_loading(app);
             }
         }
-
     }
 
     function make_game3() {
@@ -988,6 +1000,7 @@
         function check_final() {
             if (final.correct) {
                 console.log("Game Won!")
+                start_loading(app);
             }
         }
     }
