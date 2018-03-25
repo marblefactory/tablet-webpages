@@ -114,7 +114,7 @@
         var source = new Pipe("/images/source.png", {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
-            x: 0.12,
+            x: 0.125,
             y: 0.075,
             scale_x: 0.1,
             scale_y: 0.1,
@@ -160,7 +160,7 @@
         var pipe3 = new Pipe("/images/single_pipe.png", {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
-            x: 0.43,
+            x: 0.44,
             y: 0.2,
             scale_x: 0.1,
             scale_y: 0.75,
@@ -208,7 +208,7 @@
         var pipe6 = new Pipe("/images/single_pipe.png", {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
-            x: 0.43,
+            x: 0.44,
             y: 0.89,
             scale_x: 0.1,
             scale_y: 0.75,
@@ -315,7 +315,7 @@
 
     function make_game2() {
 
-        const app = make_game();
+        var app = make_game();
 
         var source1 = new Pipe("/images/source.png", {
             width: app.renderer.view.width,
@@ -604,15 +604,396 @@
 
         function check_final() {
             if (final.correct) {
-
                 make_terminal();
             }
         }
 
     }
 
+    function make_game3() {
+        var app = make_game();
+
+        var source = new Pipe("/images/source.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.05,
+            y: 0.375,
+            scale_x: 0.1,
+            scale_y: 0.1,
+            start_rotation: (Math.PI * 1.5),
+            correct_rotation: (Math.PI * 1.5),
+            tint: 0x00FF00,
+            correct: true,
+            interactive: false
+        });
+
+        var pipe1 = new Pipe("/images/pipe_three.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.12,
+            y: 0.375,
+            scale_x: 0.05,
+            scale_y: 0.05,
+            start_rotation: 0,
+            correct_rotation: (Math.PI * 1.5),
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: true
+        });
+
+        pipe1.add_parent_pipe(source);
+
+        var straight_pipe1 = new Pipe("/images/single_pipe.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.145,
+            y: 0.215,
+            scale_x: 0.1,
+            scale_y: 0.155,
+            start_rotation: 0,
+            correct_rotation: 0,
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: false
+        });
+
+        straight_pipe1.add_parent_pipe(pipe1);
+
+        var pipe2 = new Pipe("/images/pipe_left.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.17,
+            y: 0.075,
+            scale_x: 0.05,
+            scale_y: 0.05,
+            start_rotation: 0,
+            correct_rotation: (Math.PI),
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: true
+        });
+
+        pipe2.add_parent_pipe(straight_pipe1);
+
+        var straight_pipe2 = new Pipe("/images/single_pipe.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.145,
+            y: 0.485,
+            scale_x: 0.1,
+            scale_y: 0.05,
+            start_rotation: 0,
+            correct_rotation: 0,
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: false
+        });
+
+        straight_pipe2.add_parent_pipe(pipe1);
+
+        var pipe3 = new Pipe("/images/pipe_three.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.17,
+            y: 0.595,
+            scale_x: 0.05,
+            scale_y: 0.05,
+            start_rotation: (Math.PI),
+            correct_rotation: (Math.PI * 0.5),
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: true
+        });
+
+        pipe3.add_parent_pipe(straight_pipe2);
+
+        var straight_pipe3 = new Pipe("/images/single_pipe.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.335,
+            y: 0.035,
+            scale_x: 0.1,
+            scale_y: 0.37,
+            start_rotation: (Math.PI * 0.5),
+            correct_rotation: (Math.PI * 0.5),
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: false
+        });
+
+        straight_pipe3.add_parent_pipe(pipe2);
+
+        var pipe4 = new Pipe("/images/pipe_three.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.5,
+            y: 0.075,
+            scale_x: 0.05,
+            scale_y: 0.05,
+            start_rotation: 0,
+            correct_rotation: (Math.PI),
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: true
+        });
+
+        pipe4.add_parent_pipe(straight_pipe3);
+
+        var straight_pipe4 = new Pipe("/images/single_pipe.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.145,
+            y: 0.705,
+            scale_x: 0.1,
+            scale_y: 0.05,
+            start_rotation: 0,
+            correct_rotation: 0,
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: false
+        });
+
+        straight_pipe4.add_parent_pipe(pipe3);
+
+        var pipe5 = new Pipe("/images/pipe_right.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.17,
+            y: 0.8,
+            scale_x: 0.05,
+            scale_y: 0.05,
+            start_rotation: (Math.PI),
+            correct_rotation: 0,
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: true
+        });
+
+        pipe5.add_parent_pipe(straight_pipe4);
+
+        var straight_pipe5 = new Pipe("/images/single_pipe.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.32,
+            y: 0.84,
+            scale_x: 0.1,
+            scale_y: 0.35,
+            start_rotation: (Math.PI * 0.5),
+            correct_rotation: (Math.PI * 0.5),
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: false
+        });
+
+        straight_pipe5.add_parent_pipe(pipe5);
+
+        var pipe6 = new Pipe("/images/pipe_left.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.475,
+            y: 0.8,
+            scale_x: 0.05,
+            scale_y: 0.05,
+            start_rotation: (Math.PI * 0.5),
+            correct_rotation: 0,
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: true
+        });
+
+        pipe6.add_parent_pipe(straight_pipe5);
+
+        var straight_pipe6 = new Pipe("/images/single_pipe.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.5,
+            y: 0.44,
+            scale_x: 0.1,
+            scale_y: 0.57,
+            start_rotation: 0,
+            correct_rotation: 0,
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: false
+        });
+
+        pipe4.add_parent_pipe(straight_pipe6);
+        straight_pipe6.add_parent_pipe(pipe6);
+
+        var straight_pipe7 = new Pipe("/images/single_pipe.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.645,
+            y: 0.035,
+            scale_x: 0.1,
+            scale_y: 0.3,
+            start_rotation: (Math.PI * 0.5),
+            correct_rotation: (Math.PI * 0.5),
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: false
+        });
+
+        straight_pipe7.add_parent_pipe(pipe4);
+
+        var pipe7 = new Pipe("/images/pipe_left.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.78,
+            y: 0.075,
+            scale_x: 0.05,
+            scale_y: 0.05,
+            start_rotation: 0,
+            correct_rotation: (Math.PI) * 1.5,
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: true
+        });
+
+        pipe7.add_parent_pipe(straight_pipe7);
+
+        var straight_pipe8 = new Pipe("/images/single_pipe.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.485,
+            y: 0.595,
+            scale_x: 0.1,
+            scale_y: 0.82,
+            start_rotation: (Math.PI * 0.5),
+            correct_rotation: (Math.PI * 0.5),
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: false
+        });
+
+        straight_pipe8.add_parent_pipe(pipe3);
+
+        var pipe8 = new Pipe("/images/pipe_three.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.805,
+            y: 0.555,
+            scale_x: 0.05,
+            scale_y: 0.05,
+            start_rotation: (Math.PI * 1.5),
+            correct_rotation: 0,
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: true
+        });
+
+        pipe8.add_parent_pipe(straight_pipe8);
+
+        var straight_pipe9 = new Pipe("/images/single_pipe.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.805,
+            y: 0.315,
+            scale_x: 0.1,
+            scale_y: 0.335,
+            start_rotation: 0,
+            correct_rotation: 0,
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: false
+        });
+
+        pipe8.add_parent_pipe(straight_pipe9);
+        straight_pipe9.add_parent_pipe(pipe7);
+
+        var final = new Pipe("/images/sink.png", {
+            width: app.renderer.view.width,
+            height: app.renderer.view.height,
+            x: 0.89,
+            y: 0.595,
+            scale_x: 0.1,
+            scale_y: 0.1,
+            start_rotation: (Math.PI * 0.5),
+            correct_rotation: (Math.PI * 0.5),
+            tint: 0xFFFFFF,
+            correct: false,
+            interactive: false
+        });
+
+        final.add_parent_pipe(pipe8);
+
+        app.stage.addChild(source);
+        app.stage.addChild(pipe1);
+        app.stage.addChild(straight_pipe1);
+        app.stage.addChild(pipe2);
+        app.stage.addChild(straight_pipe2);
+        app.stage.addChild(pipe3);
+        app.stage.addChild(straight_pipe3);
+        app.stage.addChild(pipe4);
+        app.stage.addChild(straight_pipe4);
+        app.stage.addChild(pipe5);
+        app.stage.addChild(straight_pipe5);
+        app.stage.addChild(pipe6);
+        app.stage.addChild(straight_pipe6);
+        app.stage.addChild(straight_pipe7);
+        app.stage.addChild(pipe7);
+        app.stage.addChild(straight_pipe8);
+        app.stage.addChild(pipe8);
+        app.stage.addChild(straight_pipe9);
+        app.stage.addChild(final);
+
+        pipe1.on("pointerdown", () => {
+            pipe1.rotate();
+            pipe1.update();
+            check_final();
+        });
+
+        pipe2.on("pointerdown", () => {
+            pipe2.rotate();
+            pipe2.update();
+            check_final();
+        });
+
+        pipe3.on("pointerdown", () => {
+            pipe3.rotate();
+            pipe3.update();
+            check_final();
+        });
+
+        pipe4.on("pointerdown", () => {
+            pipe4.rotate();
+            pipe4.update();
+            check_final();
+        });
+
+        pipe5.on("pointerdown", () => {
+            pipe5.rotate();
+            pipe5.update();
+            check_final();
+        });
+
+        pipe6.on("pointerdown", () => {
+            pipe6.rotate();
+            pipe6.update();
+            check_final();
+        });
+
+        pipe7.on("pointerdown", () => {
+            pipe7.rotate();
+            pipe7.update();
+            check_final();
+        });
+
+        pipe8.on("pointerdown", () => {
+            pipe8.rotate();
+            pipe8.update();
+            check_final();
+        });
+
+        function check_final() {
+            if (final.correct) {
+                console.log("Game Won!")
+            }
+        }
+    }
+
     window.addEventListener("load", function() {
-        make_game1();
+        make_game3();
     }, false);
 
     //]]>
