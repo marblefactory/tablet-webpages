@@ -12,6 +12,31 @@
 <script>
     //<![CDATA[
 
+    var mini_game_num = 1;
+
+    //makes get request from server
+    function get(url_postfix, callback){
+        var get_request = new XMLHttpRequest();
+        url = window.location.origin + '/' + url_postfix;
+        get_resquest.open("GET", url, true);
+
+        if (get_request.readyState == 4 && get_request.status == 200){
+            callback(get_request.responseText);
+        }
+
+        get_request.send(null);
+        
+    }
+
+    function post_obj(url_postfix, obj){
+        var post_request = new XMLHttpRequest();
+        url = winodw.location.origin + '/' + url_postfix;
+        
+        post_request.open("POST", url, true);
+        post_request.setRequestHeader("Content-Type", 'application/json');
+        post_request.send(JSON.stringify(obj));
+    }
+
     class Pipe extends PIXI.Sprite {
         constructor(image, data) {
                 super(PIXI.Texture.fromImage(image));
@@ -62,20 +87,6 @@
         }
     }
 
-    function start_loading(app) {
-        var load = PIXI.Sprite.fromImage("/images/load.png");
-        load.interactive = true;
-        load.anchor.set(0.5);
-        load.x = app.renderer.view.width * 0.5;
-        load.y = app.renderer.view.height * 0.5;
-
-        app.stage.addChild(load);
-
-        app.ticker.add((delta) => {
-            load.rotation += 0.05 * delta;
-        });
-    }
-
     PIXI.utils.sayHello();
 
     function make_terminal() {
@@ -105,6 +116,36 @@
         center_text.y = app.view.height * 0.5;
 
         app.stage.addChild(center_text);
+        
+        //polls game to check if it should start minigame
+        function poll(){
+            
+            get('minigame-start', function(response) {
+                var result = JSON.parse(response);
+                //if response gives true then make correct game
+                if(result.start){
+                    app.destroy();
+                    //loop through games 1 to 3
+                    if (mini_game_num === 1){
+                        make_game1();
+                        mini_game_num = 2;
+                    }
+                    if (mini_game_num === 2){
+                        make_game2();
+                        mini_game_num = 3;
+                    }
+                    if (mini_game_num === 3){
+                        make_game3();
+                        mini_game_num = 1;
+                    }
+                }
+                //poll gain if false
+                else{
+                    setTimeout(poll, 800);
+                }
+            });
+        }
+
     }
 
     function make_game() {
@@ -118,6 +159,37 @@
         app.stage.addChild(background);
 
         return app;
+    }
+
+    function check_final(final, app) {
+        if (final.correct) {
+            console.log("Game Won!")
+            start_loading(app);
+            var obj = {
+                result: true
+            }
+            post_obj("terminal-result", obj);
+            window.setTimeout(go_terminal, 5000, app);
+        }
+    }
+
+    function start_loading(app) {
+        var load = PIXI.Sprite.fromImage("/images/load.png");
+        load.interactive = true;
+        load.anchor.set(0.5);
+        load.x = app.renderer.view.width * 0.5;
+        load.y = app.renderer.view.height * 0.5;
+
+        app.stage.addChild(load);
+
+        app.ticker.add((delta) => {
+            load.rotation += 0.05 * delta;
+        });
+    }
+
+    function go_terminal(app) {
+        app.destroy(true);
+        make_terminal();
     }
 
     function make_game1() {
@@ -296,33 +368,27 @@
         pipe1.on("pointerdown", () => {
             pipe1.rotate();
             pipe1.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe4.on("pointerdown", () => {
             pipe4.rotate();
             pipe4.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe5.on("pointerdown", () => {
             pipe5.rotate();
             pipe5.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe8.on("pointerdown", () => {
             pipe8.rotate();
             pipe8.update();
-            check_final();
+            check_final(final, app);
         });
 
-        function check_final() {
-            if (final.correct) {
-                console.log("Game Won!")
-                start_loading(app);
-            }
-        }
     }
 
     function make_game2() {
@@ -587,39 +653,39 @@
         pipe1.on("pointerdown", () => {
             pipe1.rotate();
             pipe1.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe2.on("pointerdown", () => {
             pipe2.rotate();
             pipe2.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe3.on("pointerdown", () => {
             pipe3.rotate();
             pipe3.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe4.on("pointerdown", () => {
             pipe4.rotate();
             pipe4.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe5.on("pointerdown", () => {
             pipe5.rotate();
             pipe5.update();
-            check_final();
+            check_final(final, app);
         });
 
-        function check_final() {
-            if (final.correct) {
-                console.log("Game won!");
-                start_loading(app);
-            }
-        }
+        // function check_final() {
+        //     if (final.correct) {
+        //         console.log("Game won!");
+        //         start_loading(app);
+        //     }
+        // }
     }
 
     function make_game3() {
@@ -952,62 +1018,58 @@
         pipe1.on("pointerdown", () => {
             pipe1.rotate();
             pipe1.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe2.on("pointerdown", () => {
             pipe2.rotate();
             pipe2.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe3.on("pointerdown", () => {
             pipe3.rotate();
             pipe3.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe4.on("pointerdown", () => {
             pipe4.rotate();
             pipe4.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe5.on("pointerdown", () => {
             pipe5.rotate();
             pipe5.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe6.on("pointerdown", () => {
             pipe6.rotate();
             pipe6.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe7.on("pointerdown", () => {
             pipe7.rotate();
             pipe7.update();
-            check_final();
+            check_final(final, app);
         });
 
         pipe8.on("pointerdown", () => {
             pipe8.rotate();
             pipe8.update();
-            check_final();
+            check_final(final, app);
         });
 
-        function check_final() {
-            if (final.correct) {
-                console.log("Game Won!")
-                start_loading(app);
-            }
-        }
     }
 
     window.addEventListener("load", function() {
-        make_game3();
+        make_terminal();
     }, false);
+
+    
 
     //]]>
 </script>
