@@ -119,8 +119,8 @@ function Minimap(canvas, model) {
     this._pulses = [];
 
     // Called when a camera icon is pressed. The index of the camera is given
-    // to the callback.
-    this.on_camera_pressed = function(index) {};
+    // to the callback. Returns the index of the feed that was replaced.
+    this.feed_index_on_camera_pressed = function(index) {return -1};
 
     this.floor_maps = [];
     this.grid_background = null;
@@ -228,7 +228,8 @@ Minimap.prototype = {
         // Check which camera was pressed, if any.
         for (var i=0; i<this.camera_markers.length; i++) {
             if (this._is_inside_box(press_loc, this.camera_markers[i].minimap_loc, this._camera_icon_radius())) {
-                this.on_camera_pressed(this.camera_markers[i].game_id);
+                var feed_index = this.feed_index_on_camera_pressed(this.camera_markers[i].game_id);
+                break;
             }
         }
     },
@@ -316,6 +317,12 @@ Minimap.prototype = {
      */
     _draw_camera_marker: function(marker) {
         var icon_radius = this._camera_icon_radius();
+        var camera_color = marker.feed_index == null ? 'white' : this.model.camera_colors[marker.feed_index];
+
+        // Draw the background for the icon. Because the center of the camera
+        // icon is transparent, this color will show through behind.
+        fill_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, camera_color);
+
         this.ctx.drawImage(this.cctv_icon,
                            marker.minimap_loc.x - icon_radius,
                            marker.minimap_loc.y - icon_radius,
@@ -323,9 +330,8 @@ Minimap.prototype = {
                            icon_radius * 2);
 
         // Stroke around the camera with its feed color, or white.
-        var stroke_color = marker.feed_index == null ? 'white' : this.model.camera_colors[marker.feed_index];
         var stroke_width = marker.feed_index == null ? 1 : 3;
-        stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, stroke_width, stroke_color);
+        stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, stroke_width, camera_color);
     },
 
     /**
