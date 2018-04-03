@@ -119,8 +119,8 @@ function Minimap(canvas, model) {
     this._pulses = [];
 
     // Called when a camera icon is pressed. The index of the camera is given
-    // to the callback. Returns the index of the feed that was replaced.
-    this.feed_index_on_camera_pressed = function(index) {return -1};
+    // to the callback.
+    this.on_camera_pressed = function(index) {};
 
     this.floor_maps = [];
     this.grid_background = null;
@@ -228,8 +228,7 @@ Minimap.prototype = {
         // Check which camera was pressed, if any.
         for (var i=0; i<this.camera_markers.length; i++) {
             if (this._is_inside_box(press_loc, this.camera_markers[i].minimap_loc, this._camera_icon_radius())) {
-                var feed_index = this.feed_index_on_camera_pressed(this.camera_markers[i].game_id);
-                break;
+                this.on_camera_pressed(this.camera_markers[i].game_id);
             }
         }
     },

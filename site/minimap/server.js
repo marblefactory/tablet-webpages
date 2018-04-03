@@ -58,6 +58,16 @@ function checkSite() {
 
 var floor_num = 1;
 
+var cameras = [
+    { loc: { x: 200, y: 150 }, feed_index: null, max_visibility_dist: 30, id: 10 },
+    { loc: { x: 50,  y: 60 },  feed_index: null, max_visibility_dist: 30, id: 11 },
+    { loc: { x: 260, y: 240 }, feed_index: 0, max_visibility_dist: 30, id: 12 },
+    { loc: { x: 20,   y: 300 },   feed_index: null, max_visibility_dist: 30, id: 13 },
+    { loc: { x: 20,   y: 20 },   feed_index: 1, max_visibility_dist: 30, id: 14 },
+    { loc: { x: 20,   y: 350 },   feed_index: 2, max_visibility_dist: 30, id: 15 },
+    { loc: { x: 350,  y: 350 },   feed_index: 3, max_visibility_dist: 30, id: 16 }
+];
+
 /**
  * Sends the client the position of the spy, guards, cameras, and the floor number.
  */
@@ -88,16 +98,6 @@ function handle_get_spy_position(request, response) {
     //     };
     //     cameras.push(camera);
     // }
-
-    var cameras = [
-        { loc: { x: 200, y: 150 }, feed_index: null, max_visibility_dist: 30, id: 10 },
-        { loc: { x: 50,  y: 60 },  feed_index: null, max_visibility_dist: 30, id: 11 },
-        { loc: { x: 260, y: 240 }, feed_index: 0, max_visibility_dist: 30, id: 12 },
-        { loc: { x: 20,   y: 300 },   feed_index: null, max_visibility_dist: 30, id: 13 },
-        { loc: { x: 20,   y: 20 },   feed_index: 1, max_visibility_dist: 30, id: 14 },
-        { loc: { x: 20,   y: 350 },   feed_index: 2, max_visibility_dist: 30, id: 15 },
-        { loc: { x: 350,  y: 350 },   feed_index: 3, max_visibility_dist: 30, id: 16 }
-    ];
 
     var locations = {
         // spy_dir_rad: Math.random() * 2 * 3.14, // The angle the spy is facing, measured from horizontal.
@@ -137,7 +137,12 @@ function handle_posted_camera_chosen(request, response) {
     });
     request.on('end', function () {
         var json = JSON.parse(body);
-        console.log(`Replaced camera ${json.replace_index} with ${json.new_camera_index}`);
+        console.log(`Replaced feed ${json.replace_feed_index} with game camera ${json.new_camera_game_id}`);
+
+        // Update the selected cameras.
+        // console.log(cameras);
+        // cameras[json.new_camera_index].feed_index = cameras[json.replace_index].feed_index;
+        // cameras[json.replace_index].feed_index = null;
     });
 
     // TODO: Send the response correctly.
