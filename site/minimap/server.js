@@ -77,14 +77,26 @@ function handle_get_spy_position(request, response) {
         guard_locs.push(guard_loc);
     }
 
+    // var cameras = [];
+    //
+    // for (var i=0; i<Math.floor(Math.random() * 20) + 2; i++) {
+    //     camera = {
+    //         loc: { x: Math.random() * 300 + 20, y: Math.random() * 300 + 20 },
+    //         feed_index: i <= 3 ? i : null,
+    //         max_visibility_dist: 30,
+    //         id: i + 10
+    //     };
+    //     cameras.push(camera);
+    // }
+
     var cameras = [
-        { loc: { x: 200, y: 150 }, feed_index: null, max_visibility_dist: 30 },
-        { loc: { x: 50,  y: 60 },  feed_index: null, max_visibility_dist: 30 },
-        { loc: { x: 260, y: 240 }, feed_index: 0, max_visibility_dist: 30 },
-        { loc: { x: 20,   y: 300 },   feed_index: null, max_visibility_dist: 30 },
-        { loc: { x: 20,   y: 20 },   feed_index: 1, max_visibility_dist: 30 },
-        { loc: { x: 20,   y: 350 },   feed_index: 2, max_visibility_dist: 30 },
-        { loc: { x: 350,  y: 350 },   feed_index: 3, max_visibility_dist: 30 }
+        { loc: { x: 200, y: 150 }, feed_index: null, max_visibility_dist: 30, id: 10 },
+        { loc: { x: 50,  y: 60 },  feed_index: null, max_visibility_dist: 30, id: 11 },
+        { loc: { x: 260, y: 240 }, feed_index: 0, max_visibility_dist: 30, id: 12 },
+        { loc: { x: 20,   y: 300 },   feed_index: null, max_visibility_dist: 30, id: 13 },
+        { loc: { x: 20,   y: 20 },   feed_index: 1, max_visibility_dist: 30, id: 14 },
+        { loc: { x: 20,   y: 350 },   feed_index: 2, max_visibility_dist: 30, id: 15 },
+        { loc: { x: 350,  y: 350 },   feed_index: 3, max_visibility_dist: 30, id: 16 }
     ];
 
     var locations = {

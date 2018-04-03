@@ -7,11 +7,13 @@
  *                                       which guards can be automatically detected.
  * @param {number} feed_index - the index 0-4 corresponding to the feed of the
  *                              camera. Or, null if the camera is not active.
+ * @param {number} id - the id in the game of the camera.
  */
-function Camera(game_loc, is_active, max_visibility_dist, feed_index) {
+function Camera(game_loc, max_visibility_dist, feed_index, id) {
     this.game_loc = game_loc;
     this.max_visibility_dist = max_visibility_dist;
     this.feed_index = feed_index;
+    this.id = id;
 }
 
 /**

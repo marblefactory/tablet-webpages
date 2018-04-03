@@ -56,7 +56,7 @@ function GuardMarker(minimap_loc, color, radius) {
 
 // Represents a camera marker on the minimap, which is used to display a
 // camera icon and plusing sphere to show with cameras are active.
-function CameraMarker(minimap_loc, feed_index, max_pulse_dist) {
+function CameraMarker(minimap_loc, feed_index, max_pulse_dist, game_id) {
     this.minimap_loc = minimap_loc;
     this.feed_index = feed_index;
     // The maximum time before a new pulse is made.
@@ -66,6 +66,8 @@ function CameraMarker(minimap_loc, feed_index, max_pulse_dist) {
     this.time_before_pulse = 0;
     // The maximum distance on the minimap which pulses can travel.
     this.max_pulse_dist = max_pulse_dist;
+    // The id of the camera in the game.
+    this.game_id = game_id;
 }
 
 // Represents a radar pulse from a camera.
@@ -226,7 +228,7 @@ Minimap.prototype = {
         // Check which camera was pressed, if any.
         for (var i=0; i<this.camera_markers.length; i++) {
             if (this._is_inside_box(press_loc, this.camera_markers[i].minimap_loc, this._camera_icon_radius())) {
-                this.on_camera_pressed(i);
+                this.on_camera_pressed(this.camera_markers[i].game_id);
             }
         }
     },
@@ -535,6 +537,7 @@ Minimap.prototype = {
             marker.minimap_loc = this._convert_to_minimap_point(game_camera.loc);
             marker.feed_index = game_camera.feed_index;
             marker.max_pulse_dist = this._convert_game_dist_to_minimap(game_camera.max_visibility_dist);
+            marker.game_id = game_camera.id;
         }
     },
 
