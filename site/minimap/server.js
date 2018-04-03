@@ -139,10 +139,18 @@ function handle_posted_camera_chosen(request, response) {
         var json = JSON.parse(body);
         console.log(`Replaced feed ${json.replace_feed_index} with game camera ${json.new_camera_game_id}`);
 
-        // Update the selected cameras.
-        // console.log(cameras);
-        // cameras[json.new_camera_index].feed_index = cameras[json.replace_index].feed_index;
-        // cameras[json.replace_index].feed_index = null;
+        // Find the index of the camera to be updated.
+        var new_camera_idx = cameras.findIndex(cam => cam.id == json.new_camera_game_id);
+        var old_camera_idx = cameras.findIndex(cam => cam.feed_index == json.replace_feed_index);
+
+        // If there isn't a camera already with that feed, simply set the
+        // feed of the new camera.
+        if (old_camera_idx == -1) {
+            cameras[new_camera_idx].feed_index = json.replace_feed_index;
+        } else {
+            cameras[new_camera_idx].feed_index = cameras[old_camera_idx].feed_index;
+            cameras[old_camera_idx].feed_index = null;
+        }
     });
 
     // TODO: Send the response correctly.
