@@ -1,7 +1,11 @@
 
-function CameraSelectorView() {
+/**
+ * @param {[string]} camera_feed_colors - the colors associated with each of the 4 feeds.
+ */
+function CameraSelectorView(camera_feed_colors) {
     this._background = document.querySelector("#camera_select_background");
-    this._setup_background();``
+    this._camera_feed_colors = camera_feed_colors;
+    this._setup_background();
     this._setup_foreground();
 
     // Called when a camera feed is pressed. The index of the feed is supplied.
@@ -43,6 +47,12 @@ CameraSelectorView.prototype = {
             feed_label.className = 'feed_label';
             feed_label.innerHTML = `feed 0${i}`;
             feed_div.append(feed_label);
+
+            // Line showing the color associated with the camera.
+            var color_div = document.createElement('div');
+            color_div.className = 'camera_color_line';
+            color_div.style.backgroundColor = this._camera_feed_colors[i];
+            feed_div.append(color_div);
 
             // Add touch events for pressing
             add_press_event_listener(camera_static_div, pressed);

@@ -5,7 +5,8 @@ window.onload = function() {
     var new_camera_index = -1;
 
     // Setup the camera selector view, used to replace a camera feed.
-    var camera_selector = new CameraSelectorView();
+    var camera_colors = ["red", "green", "blue", "orange"];
+    var camera_selector = new CameraSelectorView(camera_colors);
     camera_selector.hide();
 
     camera_selector.on_feed_pressed = function(i) {
@@ -21,7 +22,7 @@ window.onload = function() {
     };
 
     // Setup the model for the minimap.
-    var model = new Model();
+    var model = new Model(camera_colors);
 
     // Setup the minimap.
     var canvas = document.getElementById('minimap');

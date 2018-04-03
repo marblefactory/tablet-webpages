@@ -3,17 +3,21 @@
 // camera feed.
 /**
  * @param {Point} game_loc - the location of the camera in the game.
- * @param {boolean} is_active - whether the feed of the camera is being viewed.
  * @param {number} max_visibility_dist - the maximum distance from the camera
  *                                       which guards can be automatically detected.
+ * @param {number} feed_index - the index 0-4 corresponding to the feed of the
+ *                              camera. Or, null if the camera is not active.
  */
-function Camera(game_loc, is_active, max_visibility_dist) {
+function Camera(game_loc, is_active, max_visibility_dist, feed_index) {
     this.game_loc = game_loc;
-    this.is_active = is_active;
     this.max_visibility_dist = max_visibility_dist;
+    this.feed_index = feed_index;
 }
 
-function Model() {
+/**
+ * @param {[string]} camera_feed_colors - the colors associated with each of the 4 feeds.
+ */
+function Model(camera_colors) {
     this.floor_num = 0;
     this.num_floors = 3;
     this.floor_names = ['Basement', 'Floor 1', 'Roof'];
@@ -28,6 +32,10 @@ function Model() {
     this.spy_game_loc = null;
     this.guard_game_locs = null;
     this.game_cameras = null;
+
+    // The color associated with each camera. This is used to make it easier
+    // to tell which camera corresponds to which feed.
+    this.camera_colors = camera_colors;
 
     // Called once the positions of objects have been retreived the first time.
     this.onload = function() {};
@@ -74,8 +82,8 @@ Model.prototype = {
                 _this.game_cameras = locations.cameras;
 
                 if (!_this._called_onload) {
-                _this.onload();
-                _this._called_onload = true;
+                    _this.onload();
+                    _this._called_onload = true;
                 }
 
                 callback();

@@ -56,9 +56,9 @@ function GuardMarker(minimap_loc, color, radius) {
 
 // Represents a camera marker on the minimap, which is used to display a
 // camera icon and plusing sphere to show with cameras are active.
-function CameraMarker(minimap_loc, is_active, max_pulse_dist) {
+function CameraMarker(minimap_loc, feed_index, max_pulse_dist) {
     this.minimap_loc = minimap_loc;
-    this.is_active = is_active;
+    this.feed_index = feed_index;
     // The maximum time before a new pulse is made.
     this.start_time_before_pulse = 250;
     // The time remaining before a pulse is made. A pulse is made immediately
@@ -320,8 +320,10 @@ Minimap.prototype = {
                            icon_radius * 2,
                            icon_radius * 2);
 
-        // A white stroke around the icon.
-        stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, 1, 'white');
+        // Stroke around the camera with its feed color, or white.
+        var stroke_color = marker.feed_index == null ? 'white' : this.model.camera_colors[marker.feed_index];
+        var stroke_width = marker.feed_index == null ? 1 : 3;
+        stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, stroke_width, stroke_color);
     },
 
     /**
@@ -429,7 +431,7 @@ Minimap.prototype = {
         camera_marker.time_before_pulse -= 1;
 
         // If the camera is active, create a pulse from it.
-        if (camera_marker.is_active && camera_marker.time_before_pulse < 0) {
+        if (camera_marker.feed_index != null && camera_marker.time_before_pulse < 0) {
             camera_marker.time_before_pulse = camera_marker.start_time_before_pulse;
             var pulse = new CameraPulse(camera_marker.minimap_loc, camera_marker.max_pulse_dist);
             this._pulses.push(pulse);
@@ -531,7 +533,7 @@ Minimap.prototype = {
             var game_camera = game_cameras[i];
 
             marker.minimap_loc = this._convert_to_minimap_point(game_camera.loc);
-            marker.is_active = game_camera.is_active;
+            marker.feed_index = game_camera.feed_index;
             marker.max_pulse_dist = this._convert_game_dist_to_minimap(game_camera.max_visibility_dist);
         }
     },

@@ -82,6 +82,14 @@ h1 {
     opacity: 0.65;
 }
 
+.camera_color_line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+}
+
 .feed_label {
     margin: 0;
     padding: 0;
