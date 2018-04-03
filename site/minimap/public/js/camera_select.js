@@ -25,7 +25,7 @@ CameraSelectorView.prototype = {
             "https://media.giphy.com/media/M6hgceLnI2uJi/giphy.gif",
             "https://media.giphy.com/media/Yqn9tE2E00k4U/giphy.gif",
             "https://media.giphy.com/media/XuBNdP9Pb7W9i/giphy.gif",
-            "https://media.giphy.com/media/ECeEafzJSLDoc/giphy.gif"
+            "https://media.giphy.com/media/OVlFjmEDhx9rG/giphy.gif"
         ]
 
         for (var i=0; i<static_images.length; i++) {

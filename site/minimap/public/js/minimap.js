@@ -329,8 +329,7 @@ Minimap.prototype = {
                            icon_radius * 2);
 
         // Stroke around the camera with its feed color, or white.
-        var stroke_width = marker.feed_index == null ? 1 : 3;
-        stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, stroke_width, camera_color);
+        stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, 1, camera_color);
     },
 
     /**
