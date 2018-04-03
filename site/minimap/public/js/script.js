@@ -39,7 +39,7 @@ window.onload = function() {
         //     minimap.refresh_positons();
         // });
 
-        model.poll_positions(800, function() {
+        model.poll_positions(1600, function() {
             minimap.refresh_positons();
         });
     }

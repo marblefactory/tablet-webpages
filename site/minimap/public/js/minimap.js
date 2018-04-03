@@ -51,6 +51,7 @@ function GuardMarker(minimap_loc, color, radius) {
     this.radius = radius;
     this.opacity = 1.0;
     this.delta_opacity = -0.003;
+    this.min_opacity = 0.2;
 }
 
 // Represents a camera marker on the minimap, which is used to display a
@@ -304,10 +305,6 @@ Minimap.prototype = {
      * @param {GuardMarker} marker - the marker to draw.
      */
     _draw_guard_marker: function(marker) {
-        if (marker.opacity <= 0) {
-            return;
-        }
-
         draw_with_alpha(this.ctx, marker.opacity, () => this._draw_marker(marker));
     },
 
@@ -384,7 +381,10 @@ Minimap.prototype = {
 
         for (var i=0; i<this.guard_markers.length; i++) {
             var marker = this.guard_markers[i];
-            marker.opacity += marker.delta_opacity;
+
+            if (marker.opacity > marker.min_opacity) {
+                marker.opacity += marker.delta_opacity;
+            }
 
             // Check whether a pulse is touching the marker.
             for (var j=0; j<this._pulses.length; j++) {
