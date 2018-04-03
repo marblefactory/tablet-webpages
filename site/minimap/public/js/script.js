@@ -1,18 +1,4 @@
 
-function update_camera_feed_indices(new_camera_game_id, replace_feed_index, cameras) {
-    var new_camera_idx = cameras.findIndex(cam => cam.id == new_camera_game_id);
-    var old_camera_idx = cameras.findIndex(cam => cam.feed_index == replace_feed_index);
-
-    // If there isn't a camera already with that feed, simply set the
-    // feed of the new camera.
-    if (old_camera_idx == -1) {
-        cameras[new_camera_idx].feed_index = replace_feed_index;
-    } else {
-        cameras[new_camera_idx].feed_index = cameras[old_camera_idx].feed_index;
-        cameras[old_camera_idx].feed_index = null;
-    }
-}
-
 window.onload = function() {
     // Setup the model for the minimap.
     var camera_colors = ["red", "green", "blue", "orange"];
@@ -39,7 +25,7 @@ window.onload = function() {
         // the indices so the camera colors are updated sooner than when
         // the next poll occurs.
         post_obj('camera_chosen', obj, function() {
-            update_camera_feed_indices(new_camera_game_id, i, model.game_cameras);
+            model.update_camera_feed_indices(new_camera_game_id, i);
             minimap.refresh_positons();
         });
     };

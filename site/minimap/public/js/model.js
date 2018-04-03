@@ -93,5 +93,23 @@ Model.prototype = {
                 setTimeout(poll, interval_time);
             });
         }
+    },
+
+    /**
+     * Updates the feed indices of the new game and camera which previously
+     * had a feed_index of `replace_feed_index`.
+     */
+    update_camera_feed_indices: function(new_camera_game_id, replace_feed_index) {
+        var new_camera_idx = this.game_cameras.findIndex(cam => cam.id == new_camera_game_id);
+        var old_camera_idx = this.game_cameras.findIndex(cam => cam.feed_index == replace_feed_index);
+
+        // If there isn't a camera already with that feed, simply set the
+        // feed of the new camera.
+        if (old_camera_idx == -1) {
+            this.game_cameras[new_camera_idx].feed_index = replace_feed_index;
+        } else {
+            this.game_cameras[new_camera_idx].feed_index = this.game_cameras[old_camera_idx].feed_index;
+            this.game_cameras[old_camera_idx].feed_index = null;
+        }
     }
 }
