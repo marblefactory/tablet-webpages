@@ -32,7 +32,7 @@ function Model(camera_colors) {
 
     // The positions of objects in the game.
     this.spy_game_loc = null;
-    this.guard_game_locs = null;
+    this.game_guards = null;
     this.game_cameras = null;
 
     // The color associated with each camera. This is used to make it easier
@@ -80,7 +80,7 @@ Model.prototype = {
                 _this.spy_dir_rad = locations.spy_dir_rad;
                 _this.floor_num = locations.floor_num;
                 _this.spy_game_loc = locations.spy_loc;
-                _this.guard_game_locs = locations.guard_locs;
+                _this.game_guards = locations.guards;
                 _this.game_cameras = locations.cameras;
 
                 if (!_this._called_onload) {

@@ -49,9 +49,12 @@ function GuardMarker(minimap_loc, color, radius) {
     this.minimap_loc = minimap_loc;
     this.color = color;
     this.radius = radius;
-    this.opacity = 1.0;
-    this.delta_opacity = -0.003;
+    this.opacity = 0.0;
+    this.delta_opacity = -0.002;
     this.min_opacity = 0.2;
+    // Set to false when a new marker is created. Therefore letting this
+    // marker fade away and be deleted.
+    this.can_update_opacity = true;
 }
 
 // Represents a camera marker on the minimap, which is used to display a
@@ -305,6 +308,9 @@ Minimap.prototype = {
      * @param {GuardMarker} marker - the marker to draw.
      */
     _draw_guard_marker: function(marker) {
+        if (marker.opacity <= 0) {
+            return;
+        }
         draw_with_alpha(this.ctx, marker.opacity, () => this._draw_marker(marker));
     },
 
@@ -376,7 +382,8 @@ Minimap.prototype = {
 
     /**
      * Updates the guard markers - if a camera pulse hits them then their
-     * opacity returns to full, like a radar marker.
+     * opacity returns to full, like a radar marker. If their opacity is too
+     * low, then the marker is removed.
      */
     _update_guard_markers: function() {
         // Returns whether the point (x, y) lies within the defined ring.
@@ -385,25 +392,31 @@ Minimap.prototype = {
             return r_inner <= dist && dist <= r_outer;
         }
 
-        for (var i=0; i<this.guard_markers.length; i++) {
+        for (var i=this.guard_markers.length-1; i >= 0; i--) {
             var marker = this.guard_markers[i];
 
-            if (marker.opacity > marker.min_opacity) {
+            if (marker.opacity > 0) {
                 marker.opacity += marker.delta_opacity;
             }
+            else if (marker.opacity <= 0 && !marker.can_update_opacity) {
+                // Remove the marker if the opacity is too low.
+                this.guard_markers.splice(i, 1);
+            }
 
-            // Check whether a pulse is touching the marker.
-            for (var j=0; j<this._pulses.length; j++) {
-                var pulse = this._pulses[j];
+            if (marker.can_update_opacity) {
+                // Check whether a pulse is touching the marker.
+                for (var j=0; j<this._pulses.length; j++) {
+                    var pulse = this._pulses[j];
 
-                // The offset to the radius of the pulse, creating a ring in
-                // which to check whether the marker lies.
-                var offset = marker.radius;
-                var r_outer = pulse.radius + offset;
-                var r_inner = pulse.radius - offset;
+                    // The offset to the radius of the pulse, creating a ring in
+                    // which to check whether the marker lies.
+                    var offset = marker.radius;
+                    var r_outer = pulse.radius + offset;
+                    var r_inner = pulse.radius - offset;
 
-                if (is_inside_ring(pulse.minimap_loc, r_outer, r_inner, marker.minimap_loc)) {
-                    marker.opacity = 1.0;
+                    if (is_inside_ring(pulse.minimap_loc, r_outer, r_inner, marker.minimap_loc)) {
+                        marker.opacity = 1.0;
+                    }
                 }
             }
         }
@@ -483,29 +496,17 @@ Minimap.prototype = {
      * Refreshers the markers for the location of the guards on the map.
      */
     _refresh_guard_locs: function() {
-        // var guard_locs_2d = this.model.guard_game_locs.map(this._convert_to_minimap_point.bind(this));
-        // this.guard_markers = guard_locs_2d.map(loc => new GuardMarker(loc, 'red', this._marker_radius()));
-
-        var guard_game_locs = this.model.guard_game_locs;
-
-        // Add or remove guard markers so the number of guard_locs matches the
-        // guard markers.
-        if (this.guard_markers.length > guard_game_locs.length) {
-            this.guard_markers = this.guard_markers.slice(0, guard_game_locs.length);
-        }
-        else {
-            var num_to_add = guard_game_locs.length - this.guard_markers.length;
-            for (var i=0; i<num_to_add; i++) {
-                // This position will be filled in after.
-                var marker = new GuardMarker(new Point(0, 0), 'red', this._marker_radius());
-                this.guard_markers.push(marker);
-            }
+        // Tell the old markers not to be given any more opacity, therefore
+        // letting them fade away.
+        for (var i=0; i<this.guard_markers.length; i++) {
+            this.guard_markers[i].can_update_opacity = false;
         }
 
-        // Update camera markers from the game data.
-        for (var i=0; i<guard_game_locs.length; i++) {
-            var marker = this.guard_markers[i];
-            marker.minimap_loc = this._convert_to_minimap_point(guard_game_locs[i]);
+        // Add the new markers.
+        for (var i=0; i<this.model.game_guards.length; i++) {
+            var minimap_loc = this._convert_to_minimap_point(this.model.game_guards[i].loc);
+            var marker = new GuardMarker(minimap_loc, 'red', this._marker_radius());
+            this.guard_markers.push(marker);
         }
     },
 
@@ -549,8 +550,8 @@ Minimap.prototype = {
     refresh_positons: function() {
         this.floor_label_elem.innerHTML = this.model.floor_names[this.model.floor_num];
 
-        this._refresh_spy_loc(this.model.spy_game_loc);
-        this._refresh_guard_locs(this.model.guard_game_locs);
-        this._refresh_camera_locs(this.model.camera_game_locs);
+        this._refresh_spy_loc();
+        this._refresh_guard_locs();
+        this._refresh_camera_locs();
     }
 };
