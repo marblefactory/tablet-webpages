@@ -550,5 +550,6 @@ Minimap.prototype = {
         this._refresh_spy_loc();
         this._refresh_guard_locs();
         this._refresh_camera_locs();
+        this._draw();
     }
 };

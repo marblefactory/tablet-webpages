@@ -57,5 +57,14 @@ window.onload = function() {
     // Display the pressed floor.
     floor_selector.did_select_floor = function(floor_index) {
         model.selected_floor_index = floor_index;
+
+        // Get the positions of all the objects on the requested floor.
+        var floor_num_obj = {
+            floor_num: floor_index
+        };
+        post_obj('floor_selected', floor_num_obj, function(response) {
+            model.update_from_game_response(response);
+            minimap.refresh_positons();
+        });
     }
 }

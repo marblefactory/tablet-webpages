@@ -79,23 +79,29 @@ Model.prototype = {
             };
 
             post_obj('positions', floor_num_obj, function(response) {
-                var locations = JSON.parse(response);
-
-                _this.spy_dir_rad = locations.spy_dir_rad;
-                _this.spy_floor_index = locations.floor_num;
-                _this.spy_game_loc = locations.spy_loc;
-                _this.game_guards_locs = locations.guards_locs;
-                _this.game_cameras = locations.cameras;
-
-                if (!_this._called_onload) {
-                    _this.onload();
-                    _this._called_onload = true;
-                }
-
+                _this.update_from_game_response(response);
                 callback();
 
                 setTimeout(poll, interval_time);
             });
+        }
+    },
+
+    /**
+     * Updates the state of the model from a response from the game.
+     */
+    update_from_game_response(response) {
+        var locations = JSON.parse(response);
+
+        this.spy_dir_rad = locations.spy_dir_rad;
+        this.spy_floor_index = locations.floor_num;
+        this.spy_game_loc = locations.spy_loc;
+        this.game_guards_locs = locations.guards_locs;
+        this.game_cameras = locations.cameras;
+
+        if (!this._called_onload) {
+            this.onload();
+            this._called_onload = true;
         }
     },
 
