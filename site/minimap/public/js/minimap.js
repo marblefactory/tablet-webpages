@@ -508,8 +508,6 @@ Minimap.prototype = {
             var marker = new GuardMarker(minimap_loc, 'red', this._marker_radius());
             this.guard_markers.push(marker);
         }
-
-        console.log(this.guard_markers.length);
     },
 
     /**
