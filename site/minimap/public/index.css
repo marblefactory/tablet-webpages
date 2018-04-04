@@ -6,15 +6,13 @@ html, body {
 }
 
 h1 {
-    user-select: none;
-}
-
-#floor {
-    position: absolute;
     font-family: 'Roboto Mono', monospace;
     font-weight: bold;
     color: white;
-    margin: 30px;
+}
+
+ul {
+    list-style-type: none;
 }
 
 @keyframes fadeInScale {
@@ -48,7 +46,6 @@ h1 {
 
 .modal_background {
     display: none;
-    display: block;
     position: fixed;
     z-index: 1;
     left: 0;
@@ -116,10 +113,12 @@ h1 {
     position: absolute;
     top: 0;
     left: 0;
+    z-index: -2;
 }
 
 #minimap {
     position: absolute;
     top: 0;
     left: 0;
+    z-index: -1;
 }

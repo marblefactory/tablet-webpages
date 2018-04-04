@@ -100,7 +100,6 @@ function CameraPulse(minimap_loc, max_radius) {
 function Minimap(canvas, model) {
     this.model = model;
     this.ctx = canvas.getContext('2d');
-    this.floor_label_elem = document.querySelector('#floor');
 
     // Make the canvas fullscreen.
     this.ctx.canvas.width = window.innerWidth;
@@ -548,8 +547,6 @@ Minimap.prototype = {
      * Refreshes the minimap with the position of the spy, guards, and cameras.
      */
     refresh_positons: function() {
-        this.floor_label_elem.innerHTML = this.model.floor_names[this.model.floor_num];
-
         this._refresh_spy_loc();
         this._refresh_guard_locs();
         this._refresh_camera_locs();

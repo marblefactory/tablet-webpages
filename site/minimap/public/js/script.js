@@ -1,14 +1,20 @@
 
 window.onload = function() {
-    // Setup the model for the minimap.
-    var camera_colors = ["red", "green", "blue", "orange"];
-    var model = new Model(camera_colors);
-    var canvas = document.getElementById('minimap');
-    var minimap = new Minimap(canvas, model);
-
     // Used to store the pressed camera index. This is then combined with the
     // feed pressed to tell which camera view to replace and the new camera view.
     var new_camera_game_id = -1;
+    // The index of the floor to display, or -1 to follow the spy between floors.
+    var floor_index = -1;
+
+    // Setup the model for the minimap.
+    var camera_colors = ["red", "green", "blue", "orange"];
+    var model = new Model(camera_colors);
+
+    var canvas = document.getElementById('minimap');
+    var minimap = new Minimap(canvas, model);
+
+    var floor_list = document.querySelector('#floor_list');
+    var floor_selector = new FloorSelector(floor_list, model);
 
     // Setup the camera selector view, used to replace a camera feed.
     var camera_selector = new CameraSelectorView(camera_colors);
@@ -35,13 +41,9 @@ window.onload = function() {
 
     function minimap_loaded() {
         model.onload = function() {
+            floor_selector.setup_floor_list();
             minimap.run_loop();
         };
-
-        // Start the model getting the positions.
-        // model.poll_positions(800, function() {
-        //     minimap.refresh_positons();
-        // });
 
         model.poll_positions(1600, function() {
             minimap.refresh_positons();
@@ -52,5 +54,10 @@ window.onload = function() {
     minimap.on_camera_pressed = function(camera_game_id) {
         camera_selector.show();
         new_camera_game_id = camera_game_id;
+    }
+
+    // Display the pressed floor.
+    floor_selector.did_select_floor = function(floor_index) {
+        console.log(floor_index);
     }
 }

@@ -3,8 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <link rel="stylesheet" href="index.css"/>
-        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700" rel="stylesheet"/>
-        <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet"/>
+        <!-- <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet"/> -->
 
         <script src="js/touch.js"></script>
         <script src="js/server.js"></script>
@@ -13,11 +13,11 @@
         <script src="js/canvas.js"></script>
         <script src="js/preloader.js"></script>
         <script src="js/minimap.js"></script>
+        <script src="js/floor_selector.js"></script>
         <script src="js/script.js"></script>
     </head>
     <body>
-        <!-- Used as the background for the minimap -->
-        <div id="background"></div>
+        <!-- Minimap Background -->
         <svg id="grid" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
@@ -33,10 +33,10 @@
             <rect width="100%" height="100%" fill="url(#smallGrid)" />
         </svg>
 
-        <!-- Minimap -->
-        <h1 id="floor">Floor</h1>
         <canvas id="minimap"></canvas>
+        <ul id="floor_list"></ul>
 
+        <!-- Camera Selector -->
         <div id="camera_select_background" class="modal_background">
             <div id="camera_select_foreground" class="modal_foreground">
                 <div id="camera_select_title">Choose a feed to replace</div>

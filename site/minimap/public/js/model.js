@@ -32,7 +32,7 @@ function Model(camera_colors) {
 
     // The positions of objects in the game.
     this.spy_game_loc = null;
-    this.game_guards = null;
+    this.game_guards_locs = null;
     this.game_cameras = null;
 
     // The color associated with each camera. This is used to make it easier
