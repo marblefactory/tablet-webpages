@@ -217,7 +217,7 @@ function findType(url) {
 function deliver(response, type, err, content) {
     if (err) return fail(response, NotFound, "File not found");
 
-    if (type === 'image/png') {
+    if (type === 'image/png' || type === 'image/svg+xml') {
         var textTypeHeader = { "Content-Type": "text/plain" };
         response.writeHead(OK, textTypeHeader);
         var base64Encoded = content.toString('base64');

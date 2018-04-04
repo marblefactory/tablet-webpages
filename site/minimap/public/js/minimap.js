@@ -234,9 +234,11 @@ Minimap.prototype = {
     },
 
     /**
-     * Fills the background with a background color.
+     * Fills the background with a grid image.
      */
     _draw_background_grid: function() {
+        //this.ctx.fillStyle = 'rgb(31, 97, 150)';
+        //this.ctx.fillRect(0, 0, this.width(), this.height());
         this.ctx.drawImage(this.grid_background, 0, 0, this.width(), this.height());
     },
 
