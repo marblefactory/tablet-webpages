@@ -77,17 +77,14 @@ function handle_get_spy_position(request, response) {
         y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
     };
 
-    var guards = [];
+    var guards_locs = [];
 
     for (var i=0; i<Math.floor(Math.random() * 100) + 30; i++) {
-        guard = {
-            loc: {
-                x: Math.random() * 300 + 20,
-                y: Math.random() * 300 + 20
-            },
-            id: i
+        guard_loc = {
+            x: Math.random() * 300 + 20,
+            y: Math.random() * 300 + 20
         };
-        guards.push(guard);
+        guards_locs.push(guard_loc);
     }
 
     // var cameras = [];
@@ -106,7 +103,7 @@ function handle_get_spy_position(request, response) {
         // spy_dir_rad: Math.random() * 2 * 3.14, // The angle the spy is facing, measured from horizontal.
         spy_dir_rad: 3.14, // The angle the spy is facing, measured from horizontal.
         spy_loc: spy_loc,
-        guards: guards,
+        guards_locs: guards_locs,
         cameras: cameras,
         floor_num: (floor_num) % 3
     }

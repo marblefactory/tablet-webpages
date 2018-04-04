@@ -80,7 +80,7 @@ Model.prototype = {
                 _this.spy_dir_rad = locations.spy_dir_rad;
                 _this.floor_num = locations.floor_num;
                 _this.spy_game_loc = locations.spy_loc;
-                _this.game_guards = locations.guards;
+                _this.game_guards_locs = locations.guards_locs;
                 _this.game_cameras = locations.cameras;
 
                 if (!_this._called_onload) {

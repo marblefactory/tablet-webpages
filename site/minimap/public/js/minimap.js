@@ -503,11 +503,13 @@ Minimap.prototype = {
         }
 
         // Add the new markers.
-        for (var i=0; i<this.model.game_guards.length; i++) {
-            var minimap_loc = this._convert_to_minimap_point(this.model.game_guards[i].loc);
+        for (var i=0; i<this.model.game_guards_locs.length; i++) {
+            var minimap_loc = this._convert_to_minimap_point(this.model.game_guards_locs[i]);
             var marker = new GuardMarker(minimap_loc, 'red', this._marker_radius());
             this.guard_markers.push(marker);
         }
+
+        console.log(this.guard_markers.length);
     },
 
     /**
