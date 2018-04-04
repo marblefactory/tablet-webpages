@@ -111,3 +111,15 @@ h1 {
     margin-top: 6px;
     color: #ccc;
 }
+
+#grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#minimap {
+    position: absolute;
+    top: 0;
+    left: 0;
+}

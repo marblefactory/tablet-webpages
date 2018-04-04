@@ -135,7 +135,6 @@ Minimap.prototype = {
     load_images: function(callback) {
         var image_names = [
             'images/cctv_icon.png',
-            'images/floor_maps/background.png',
             'images/floor_maps/floor2.png',
             'images/floor_maps/floor1.png',
             'images/floor_maps/floor0.png'
@@ -145,7 +144,6 @@ Minimap.prototype = {
 
         function complete(images) {
             this.cctv_icon = images.pop();
-            this.grid_background = images.pop();
             this.floor_maps = images.map(img => new FloorMap(img, this.width(), this.height()));
             callback();
         }
@@ -237,9 +235,7 @@ Minimap.prototype = {
      * Fills the background with a grid image.
      */
     _draw_background_grid: function() {
-        //this.ctx.fillStyle = 'rgb(31, 97, 150)';
-        //this.ctx.fillRect(0, 0, this.width(), this.height());
-        this.ctx.drawImage(this.grid_background, 0, 0, this.width(), this.height());
+        this.ctx.clearRect(0, 0, this.width(), this.height());
     },
 
     /**
