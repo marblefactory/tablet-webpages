@@ -160,7 +160,7 @@ Minimap.prototype = {
     },
 
     current_floormap: function() {
-        return this.floor_maps[this.model.floor_num];
+        return this.floor_maps[this.model.view_floor_index()];
     },
 
     _marker_radius: function() {
@@ -358,7 +358,7 @@ Minimap.prototype = {
      */
     _draw: function() {
         this._draw_background_grid();
-        this._draw_background_image(this.model.floor_num);
+        this._draw_background_image(this.model.view_floor_index());
 
         // Draw and update the camera radar pulses.
         for (var i=0; i<this._pulses.length; i++) {

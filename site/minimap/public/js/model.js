@@ -20,7 +20,11 @@ function Camera(game_loc, max_visibility_dist, feed_index, id) {
  * @param {[string]} camera_feed_colors - the colors associated with each of the 4 feeds.
  */
 function Model(camera_colors) {
-    this.floor_num = 0;
+    // The index of the floor the spy is on.
+    this.spy_floor_index = -1;
+    // The index of the floor selected to view, or -1 if the minimap should
+    // follow the spy as they move between floors.
+    this.selected_floor_index = -1;
     this.num_floors = 3;
     this.floor_names = ['Basement', 'Floor 1', 'Roof'];
     // The boundaries of the 3d game. The locations of objects cannot go
@@ -71,14 +75,14 @@ Model.prototype = {
             // A floor number of -1 indicates that we want the server to send
             // back the floor on which the spy is.
             var floor_num_obj = {
-                floor_num: -1
+                floor_num: this.view_floor_index
             };
 
             post_obj('positions', floor_num_obj, function(response) {
                 var locations = JSON.parse(response);
 
                 _this.spy_dir_rad = locations.spy_dir_rad;
-                _this.floor_num = locations.floor_num;
+                _this.spy_floor_index = locations.floor_num;
                 _this.spy_game_loc = locations.spy_loc;
                 _this.game_guards_locs = locations.guards_locs;
                 _this.game_cameras = locations.cameras;
@@ -111,5 +115,16 @@ Model.prototype = {
             this.game_cameras[new_camera_idx].feed_index = this.game_cameras[old_camera_idx].feed_index;
             this.game_cameras[old_camera_idx].feed_index = null;
         }
+    },
+
+    /**
+     * @return the index of the floor to display. Either the selected floor
+     *         index, or the index of the floor the spy is on if following the spy.
+     */
+    view_floor_index: function() {
+        if (this.selected_floor_index == -1) {
+            return this.spy_floor_index;
+        }
+        return this.selected_floor_index;
     }
 }

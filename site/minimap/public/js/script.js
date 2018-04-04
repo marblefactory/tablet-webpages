@@ -3,8 +3,6 @@ window.onload = function() {
     // Used to store the pressed camera index. This is then combined with the
     // feed pressed to tell which camera view to replace and the new camera view.
     var new_camera_game_id = -1;
-    // The index of the floor to display, or -1 to follow the spy between floors.
-    var floor_index = -1;
 
     // Setup the model for the minimap.
     var camera_colors = ["red", "green", "blue", "orange"];
@@ -58,6 +56,6 @@ window.onload = function() {
 
     // Display the pressed floor.
     floor_selector.did_select_floor = function(floor_index) {
-        console.log(floor_index);
+        model.selected_floor_index = floor_index;
     }
 }
