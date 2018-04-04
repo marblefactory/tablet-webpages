@@ -16,8 +16,9 @@ FloorSelector.prototype = {
      * Sets the HTLM for the list of floors.
      */
     setup_floor_list: function() {
+        // Iterate backwards so the higher floors are at the top of the screen.
         // Let is used because of the scope problem with using var.
-        for (let i=0; i<this.model.floor_names.length; i++) {
+        for (let i=this.model.floor_names.length-1; i>=0; i--) {
             var list_item = document.createElement('li');
             var floor_button = document.createElement('button');
             var text = document.createTextNode(this.model.floor_names[i]);

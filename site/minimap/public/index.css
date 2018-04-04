@@ -113,12 +113,15 @@ ul {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: -2;
+    z-index: -1;
 }
 
 #minimap {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: -1;
+}
+
+#floor_list {
+    position: absolute;
 }

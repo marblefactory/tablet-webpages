@@ -56,7 +56,8 @@ function checkSite() {
     return ok;
 }
 
-var floor_num = 1;
+var spy_floor_num = 1; // Index of the floor the spy is on.
+var selected_floor_num = -1; // -1 indicates to follow the spy.
 
 var cameras = [
     { loc: { x: 200, y: 150 }, feed_index: null, max_visibility_dist: 30, id: 10 },
@@ -71,7 +72,7 @@ var cameras = [
 /**
  * Sends the client the position of the spy, guards, cameras, and the floor number.
  */
-function handle_get_spy_position(request, response) {
+function handle_get_spy_position(response) {
     var spy_loc = {
         x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
         y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
@@ -87,25 +88,14 @@ function handle_get_spy_position(request, response) {
         guards_locs.push(guard_loc);
     }
 
-    // var cameras = [];
-    //
-    // for (var i=0; i<Math.floor(Math.random() * 20) + 2; i++) {
-    //     camera = {
-    //         loc: { x: Math.random() * 300 + 20, y: Math.random() * 300 + 20 },
-    //         feed_index: i <= 3 ? i : null,
-    //         max_visibility_dist: 30,
-    //         id: i + 10
-    //     };
-    //     cameras.push(camera);
-    // }
+    var view_floor_num = selected_floor_num == -1 ? spy_floor_num : selected_floor_num;
 
     var locations = {
-        // spy_dir_rad: Math.random() * 2 * 3.14, // The angle the spy is facing, measured from horizontal.
         spy_dir_rad: 3.14, // The angle the spy is facing, measured from horizontal.
         spy_loc: spy_loc,
         guards_locs: guards_locs,
         cameras: cameras,
-        floor_num: (floor_num) % 3
+        floor_num: view_floor_num
     }
 
     deliver(response, 'application/json', undefined, JSON.stringify(locations));
@@ -175,7 +165,7 @@ function handle(request, response) {
     var url = request.url.toLowerCase();
 
     if (url == '/positions') {
-        handle_get_spy_position(request, response);
+        handle_get_spy_position(response);
     }
     else if (url == '/boundaries') {
         handle_get_boundaries(request, response);
