@@ -262,10 +262,18 @@ Minimap.prototype = {
      * @param {SpyMarker} marker - the marker to draw.
      */
     _draw_spy_marker: function(marker) {
+        // If the spy is not on the same floor, draw with reduced alpha to
+        // be able to tell where the spy is at all times.
+        var alpha = this.model.spy.floor_index === this.model.view_floor_index() ? 1.0 : 0.25;
+
         // Draw an indicator of the direction the spy is facing.
         var dx = marker.minimap_loc.x;
         var dy = marker.minimap_loc.y;
-        draw_with_translation(this.ctx, dx, dy, draw_rotated_arrow.bind(this))
+        draw_with_alpha(this.ctx, alpha, draw_translated_arrow.bind(this));
+
+        function draw_translated_arrow() {
+            draw_with_translation(this.ctx, dx, dy, draw_rotated_arrow.bind(this))
+        }
 
         function draw_rotated_arrow() {
             draw_with_rotation(this.ctx, this.model.spy.dir_rad, draw_arrow_at_horizontal.bind(this));
@@ -488,7 +496,7 @@ Minimap.prototype = {
      */
     _refresh_spy_loc: function() {
         var minimap_loc = this._convert_to_minimap_point(this.model.spy.game_loc);
-        this.spy_marker = new SpyMarker(minimap_loc, 'black', this._marker_radius() * 1.5);
+        this.spy_marker = new SpyMarker(minimap_loc, 'black', this._marker_radius() * 1.8);
     },
 
     /**
