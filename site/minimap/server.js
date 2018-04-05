@@ -56,7 +56,7 @@ function checkSite() {
     return ok;
 }
 
-var spy_floor_num = 1; // Index of the floor the spy is on.
+var g_spy_floor_index = 1; // Index of the floor the spy is on.
 var g_selected_floor_num = -1; // -1 indicates to follow the spy.
 
 var cameras = [
@@ -73,9 +73,13 @@ var cameras = [
  * Sends the client the position of the spy, guards, cameras, and the floor number.
  */
 function handle_get_spy_position(response) {
-    var spy_loc = {
-        x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
-        y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
+    var spy = {
+        dir_rad: Math.random() * 3.14 * 2,
+        loc: {
+            x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
+            y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
+        },
+        floor_index: g_spy_floor_index
     };
 
     var guards_locs = [];
@@ -88,14 +92,10 @@ function handle_get_spy_position(response) {
         guards_locs.push(guard_loc);
     }
 
-    var view_floor_num = g_selected_floor_num == -1 ? spy_floor_num : g_selected_floor_num;
-
     var locations = {
-        spy_dir_rad: 3.14, // The angle the spy is facing, measured from horizontal.
-        spy_loc: spy_loc,
+        spy: spy,
         guards_locs: guards_locs,
-        cameras: cameras,
-        floor_num: view_floor_num
+        cameras: cameras
     }
 
     deliver(response, 'application/json', undefined, JSON.stringify(locations));

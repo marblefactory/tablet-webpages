@@ -268,7 +268,7 @@ Minimap.prototype = {
         draw_with_translation(this.ctx, dx, dy, draw_rotated_arrow.bind(this))
 
         function draw_rotated_arrow() {
-            draw_with_rotation(this.ctx, this.model.spy_dir_rad, draw_arrow_at_horizontal.bind(this));
+            draw_with_rotation(this.ctx, this.model.spy.dir_rad, draw_arrow_at_horizontal.bind(this));
         }
 
         // Draws an arrow pointing horzontally to the right.
@@ -487,7 +487,7 @@ Minimap.prototype = {
      * Refreshers the marker for the location of the spy on the map.
      */
     _refresh_spy_loc: function() {
-        var minimap_loc = this._convert_to_minimap_point(this.model.spy_game_loc);
+        var minimap_loc = this._convert_to_minimap_point(this.model.spy.game_loc);
         this.spy_marker = new SpyMarker(minimap_loc, 'black', this._marker_radius() * 1.5);
     },
 

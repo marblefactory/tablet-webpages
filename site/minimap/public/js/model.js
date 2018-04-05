@@ -1,6 +1,4 @@
 
-// The location of a camera in the game, and whether the user is viewing the
-// camera feed.
 /**
  * @param {Point} game_loc - the location of the camera in the game.
  * @param {number} max_visibility_dist - the maximum distance from the camera
@@ -17,11 +15,31 @@ function Camera(game_loc, max_visibility_dist, feed_index, id) {
 }
 
 /**
+ * @param {number} dir_rad - the angle in radian, that the spy is facing.
+ * @param {Point} game_loc - the location of the spy in the game.
+ * @param {number} floor_index - the index of the floor the is on.
+ */
+function Spy(dir_rad, game_loc, floor_index) {
+    this.dir_rad = dir_rad;
+    this.game_loc = game_loc;
+    this.floor_index = floor_index;
+}
+
+/**
+ * Parses a Spy from a json object.
+ */
+Spy.from_json = function(json) {
+    var dir_rad = checkJsonHas(json, 'dir_rad', 'Spy');
+    var game_loc = checkJsonHas(json, 'loc', 'Spy');
+    var floor_index = checkJsonHas(json, 'floor_index', 'Spy');
+
+    return new Spy(dir_rad, game_loc, floor_index);
+}
+
+/**
  * @param {[string]} camera_feed_colors - the colors associated with each of the 4 feeds.
  */
 function Model(camera_colors) {
-    // The index of the floor the spy is on.
-    this.spy_floor_index = -1;
     // The index of the floor selected to view, or -1 if the minimap should
     // follow the spy as they move between floors.
     this.selected_floor_index = -1;
@@ -31,11 +49,7 @@ function Model(camera_colors) {
     // outside these boundaries.
     this.game_boundaries = null;
 
-    // The direction the spy is looking in.
-    this.spy_dir_rad = null;
-
-    // The positions of objects in the game.
-    this.spy_game_loc = null;
+    this.spy = null;
     this.game_guards_locs = null;
     this.game_cameras = null;
 
@@ -75,7 +89,7 @@ Model.prototype = {
             // A floor number of -1 indicates that we want the server to send
             // back the floor on which the spy is.
             var floor_num_obj = {
-                floor_num: this.view_floor_index
+                floor_num: this.selected_floor_index
             };
 
             post_obj('positions', floor_num_obj, function(response) {
@@ -93,9 +107,7 @@ Model.prototype = {
     update_from_game_response(response) {
         var locations = JSON.parse(response);
 
-        this.spy_dir_rad = locations.spy_dir_rad;
-        this.spy_floor_index = locations.floor_num;
-        this.spy_game_loc = locations.spy_loc;
+        this.spy = Spy.from_json(locations.spy);
         this.game_guards_locs = locations.guards_locs;
         this.game_cameras = locations.cameras;
 
@@ -130,7 +142,7 @@ Model.prototype = {
      */
     view_floor_index: function() {
         if (this.selected_floor_index == -1) {
-            return this.spy_floor_index;
+            return this.spy.floor_index;
         }
         return this.selected_floor_index;
     }
