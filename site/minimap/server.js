@@ -79,7 +79,7 @@ function handle_get_spy_position(response) {
             x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
             y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
         },
-        floor_index: g_spy_floor_index
+        floor_index: (g_spy_floor_index++ % 3)
     };
 
     var guards_locs = [];

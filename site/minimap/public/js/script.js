@@ -50,6 +50,9 @@ window.onload = function() {
         };
 
         model.poll_positions(1600, function() {
+            // Update the selected floor in case the spy is being automatically
+            // followed and changes floor.
+            floor_selector.update_selected_floor();
             minimap.refresh_positons();
         });
     }
@@ -62,7 +65,7 @@ window.onload = function() {
 
     // Display the pressed floor.
     floor_selector.did_select_floor = function(floor_index) {
-        model.selected_floor_index = floor_index;
+        model.set_selected_floor(floor_index);
         floor_selector.update_selected_floor();
 
         // Get the positions of all the objects on the requested floor.

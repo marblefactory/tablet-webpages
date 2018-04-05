@@ -137,20 +137,22 @@ ul {
 }
 
 #floor_list li {
-    padding-top: 6px;
+    padding-top: 12px;
 }
 
 .floor_select_button {
     border: none;
     outline: none;
     display: inline-block;
+    padding: 4px 12px;
+    width: 100%;
 
     background-color: #FFF4;
 
-    color: white;
+    color: #FFFC;
     font-family: 'Roboto Mono', monospace;
     font-weight: bold;
-    font-size: 120%;
+    font-size: 130%;
 
     transition-duration: 0.1s;
 }
