@@ -179,6 +179,11 @@
     }
 
     function start_loading(app) {
+        app.stage.interactiveChildren = false;
+        var blur_filter = new PIXI.filters.BlurFilter();
+        blur_filter.blurX = 2;
+        app.stage.children[0].filters = [blur_filter];
+
         var load = PIXI.Sprite.fromImage("/images/load.png");
         load.interactive = true;
         load.anchor.set(0.5);
