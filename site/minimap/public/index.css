@@ -10,10 +10,6 @@ html, body {
     overflow: hidden;
 }
 
-ul {
-    list-style-type: none;
-}
-
 @keyframes fadeInScale {
     0% { opacity: 0; }
     100% { opacity: 1; }
@@ -131,21 +127,31 @@ ul {
  ** Floor Selection
  */
 
+ul {
+    list-style-type: none;
+    display: table;
+    height: 1px; /* Any small height will work */
+    border-collapse: separate;
+    border-spacing: 12px;
+}
+
 #floor_list {
     position: absolute;
     padding-top: 10px;
+    width: 17vw;
 }
 
 #floor_list li {
     padding-top: 12px;
+    width: 100%;
+    display: table-row;
 }
 
 .floor_select_button {
     border: none;
     outline: none;
-    display: inline-block;
-    padding: 4px 12px;
-    width: 100%;
+    padding: 10px 8px;
+    width: 85%; /* other 20% comes from spy indicator */
 
     background-color: #FFF4;
 
@@ -154,7 +160,7 @@ ul {
     font-weight: bold;
     font-size: 130%;
 
-    transition-duration: 0.1s;
+    transition-duration: 0.15s;
 }
 
 .floor_select_button:active {
@@ -166,4 +172,27 @@ ul {
 .current_floor_select_button {
     background-color: white;
     color: black;
+}
+
+/*
+ ** Used to tell the player which floor the spy is on. This is not necessarily
+ ** the same a the floor being viewed.
+ */
+.spy_floor_indicator {
+    float: left;
+    width: 14%; /* other 80% comes from floor select button */
+    margin-right: 1%;
+    height: 100%;
+
+    background-color: #0002;
+}
+
+.spy_floor_indicator.inactive {
+    background-color: #0002;
+    transition-duration: 0.15s;
+}
+
+.spy_floor_indicator.active {
+    background-color: black;
+    transition-duration: 0.15s;
 }

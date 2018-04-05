@@ -53,6 +53,7 @@ window.onload = function() {
             // Update the selected floor in case the spy is being automatically
             // followed and changes floor.
             floor_selector.update_selected_floor();
+            floor_selector.update_spy_floor_marker();
             minimap.refresh_positons();
         });
     }
