@@ -18,20 +18,26 @@ window.onload = function() {
     var camera_selector = new CameraSelectorView(camera_colors);
     camera_selector.hide();
 
-    camera_selector.on_feed_pressed = function(i) {
-        // Which camera to replace with the new feed.
-        var obj = {
-            replace_feed_index: i,
-            new_camera_game_id: new_camera_game_id
-        };
+    camera_selector.on_feed_pressed = function(feed_index) {
+        var new_camera = model.game_cameras.find(cam => cam.id == new_camera_game_id);
 
-        // Once we know the camera feeds have been updated correctly, update
-        // the indices so the camera colors are updated sooner than when
-        // the next poll occurs.
-        post_obj('camera_chosen', obj, function() {
-            model.update_camera_feed_indices(new_camera_game_id, i);
-            minimap.refresh_positons();
-        });
+        // Check that the feed of the new camera is not the same feed it is
+        // replacing, i.e. has no effect.
+        if (new_camera !== undefined && feed_index !== new_camera.feed_index) {
+            // Which camera to replace with the new feed.
+            var obj = {
+                replace_feed_index: feed_index,
+                new_camera_game_id: new_camera_game_id
+            };
+
+            // Once we know the camera feeds have been updated correctly, update
+            // the indices so the camera colors are updated sooner than when
+            // the next poll occurs.
+            post_obj('camera_chosen', obj, function() {
+                model.update_camera_feed_indices(new_camera_game_id, feed_index);
+                minimap.refresh_positons();
+            });
+        }
     };
 
     // Load the minimap and model.

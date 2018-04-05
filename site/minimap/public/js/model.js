@@ -117,7 +117,8 @@ Model.prototype = {
         // feed of the new camera.
         if (old_camera_idx == -1) {
             this.game_cameras[new_camera_idx].feed_index = replace_feed_index;
-        } else {
+        }
+        else {
             this.game_cameras[new_camera_idx].feed_index = this.game_cameras[old_camera_idx].feed_index;
             this.game_cameras[old_camera_idx].feed_index = null;
         }
