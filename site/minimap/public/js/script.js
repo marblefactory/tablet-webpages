@@ -63,6 +63,7 @@ window.onload = function() {
     // Display the pressed floor.
     floor_selector.did_select_floor = function(floor_index) {
         model.selected_floor_index = floor_index;
+        floor_selector.update_selected_floor();
 
         // Get the positions of all the objects on the requested floor.
         var floor_num_obj = {
