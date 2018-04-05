@@ -13,6 +13,7 @@
     //<![CDATA[
 
     var mini_game_num = 1;
+    var count;
 
     //makes get request from server
     function get(url_postfix, callback) {
@@ -149,6 +150,7 @@
     }
 
     function make_game() {
+        count = 1;
         var app = new PIXI.Application({
             height: 800 * 0.95,
             width: 1280 * 0.95,
@@ -161,7 +163,20 @@
         background.x = app.view.width * 0.5;
         background.y = app.view.height * 0.5;
 
+        var displacementTexture = PIXI.Sprite.fromImage("/images/filter.png");
+        var displacementFilter = new PIXI.filters.DisplacementFilter(displacementTexture);
+
+
+
+        background.filters = [displacementFilter];
+
         app.stage.addChild(background);
+
+        app.ticker.add(function(delta) {
+            app.stage.children[0].filters[0].scale = Math.sin(delta);
+            //app.stage.children[0].filters[0].scale.y = Math.sin(delta);
+            app.renderer.render(app.stage);
+        });
 
         return app;
     }
@@ -1076,7 +1091,7 @@
     }
 
     window.addEventListener("load", function() {
-        make_game3();
+        make_game1();
     }, false);
 
 
@@ -1090,4 +1105,4 @@
 
 </body>
 
-</html>
+</html>#
