@@ -168,7 +168,7 @@ Minimap.prototype = {
     },
 
     _camera_icon_radius: function() {
-        return Math.min(this.width() * 0.011, 50);
+        return Math.min(this.width() * 0.012, 50);
     },
 
     /**
@@ -268,7 +268,7 @@ Minimap.prototype = {
         draw_with_translation(this.ctx, dx, dy, draw_rotated_arrow.bind(this))
 
         function draw_rotated_arrow() {
-            draw_with_rotation(this.ctx, this.model.spy_dir_rad, draw_arrow_at_horizontal.bind(this));
+            draw_with_rotation(this.ctx, this.model.spy.dir_rad, draw_arrow_at_horizontal.bind(this));
         }
 
         // Draws an arrow pointing horzontally to the right.
@@ -354,7 +354,7 @@ Minimap.prototype = {
     },
 
     /**
-     * Draws the markers and background.
+     * Draws the markers, pulses, and background.
      */
     _draw: function() {
         this._draw_background_grid();
@@ -487,7 +487,7 @@ Minimap.prototype = {
      * Refreshers the marker for the location of the spy on the map.
      */
     _refresh_spy_loc: function() {
-        var minimap_loc = this._convert_to_minimap_point(this.model.spy_game_loc);
+        var minimap_loc = this._convert_to_minimap_point(this.model.spy.game_loc);
         this.spy_marker = new SpyMarker(minimap_loc, 'black', this._marker_radius() * 1.5);
     },
 
@@ -550,5 +550,18 @@ Minimap.prototype = {
         this._refresh_spy_loc();
         this._refresh_guard_locs();
         this._refresh_camera_locs();
+        this._draw();
+    },
+
+    /**
+     * Clears all the guard markers, camera markers, and camera pulses.
+     * Useful for when the current floor is changed to stop anything being
+     * drawn off the floor map.
+     */
+    clear_markers: function() {
+        this.guard_markers = [];
+        this.camera_markers = [];
+        this._pulses = [];
+        this._draw();
     }
 };

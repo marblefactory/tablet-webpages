@@ -18,20 +18,26 @@ window.onload = function() {
     var camera_selector = new CameraSelectorView(camera_colors);
     camera_selector.hide();
 
-    camera_selector.on_feed_pressed = function(i) {
-        // Which camera to replace with the new feed.
-        var obj = {
-            replace_feed_index: i,
-            new_camera_game_id: new_camera_game_id
-        };
+    camera_selector.on_feed_pressed = function(feed_index) {
+        var new_camera = model.game_cameras.find(cam => cam.id == new_camera_game_id);
 
-        // Once we know the camera feeds have been updated correctly, update
-        // the indices so the camera colors are updated sooner than when
-        // the next poll occurs.
-        post_obj('camera_chosen', obj, function() {
-            model.update_camera_feed_indices(new_camera_game_id, i);
-            minimap.refresh_positons();
-        });
+        // Check that the feed of the new camera is not the same feed it is
+        // replacing, i.e. has no effect.
+        if (new_camera !== undefined && feed_index !== new_camera.feed_index) {
+            // Which camera to replace with the new feed.
+            var obj = {
+                replace_feed_index: feed_index,
+                new_camera_game_id: new_camera_game_id
+            };
+
+            // Once we know the camera feeds have been updated correctly, update
+            // the indices so the camera colors are updated sooner than when
+            // the next poll occurs.
+            post_obj('camera_chosen', obj, function() {
+                model.update_camera_feed_indices(new_camera_game_id, feed_index);
+                minimap.refresh_positons();
+            });
+        }
     };
 
     // Load the minimap and model.
@@ -44,6 +50,9 @@ window.onload = function() {
         };
 
         model.poll_positions(1600, function() {
+            // Update the selected floor in case the spy is being automatically
+            // followed and changes floor.
+            floor_selector.update_selected_floor();
             minimap.refresh_positons();
         });
     }
@@ -56,6 +65,17 @@ window.onload = function() {
 
     // Display the pressed floor.
     floor_selector.did_select_floor = function(floor_index) {
-        model.selected_floor_index = floor_index;
+        model.set_selected_floor(floor_index);
+        floor_selector.update_selected_floor();
+
+        // Get the positions of all the objects on the requested floor.
+        var floor_num_obj = {
+            floor_num: floor_index
+        };
+        post_obj('floor_selected', floor_num_obj, function(response) {
+            minimap.clear_markers();
+            model.update_from_game_response(response);
+            minimap.refresh_positons();
+        });
     }
 }

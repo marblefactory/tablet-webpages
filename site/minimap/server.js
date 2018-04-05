@@ -56,8 +56,8 @@ function checkSite() {
     return ok;
 }
 
-var spy_floor_num = 1; // Index of the floor the spy is on.
-var selected_floor_num = -1; // -1 indicates to follow the spy.
+var g_spy_floor_index = 1; // Index of the floor the spy is on.
+var g_selected_floor_num = -1; // -1 indicates to follow the spy.
 
 var cameras = [
     { loc: { x: 200, y: 150 }, feed_index: null, max_visibility_dist: 30, id: 10 },
@@ -73,9 +73,13 @@ var cameras = [
  * Sends the client the position of the spy, guards, cameras, and the floor number.
  */
 function handle_get_spy_position(response) {
-    var spy_loc = {
-        x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
-        y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
+    var spy = {
+        dir_rad: Math.random() * 3.14 * 2,
+        loc: {
+            x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
+            y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
+        },
+        floor_index: (g_spy_floor_index++ % 3)
     };
 
     var guards_locs = [];
@@ -88,14 +92,10 @@ function handle_get_spy_position(response) {
         guards_locs.push(guard_loc);
     }
 
-    var view_floor_num = selected_floor_num == -1 ? spy_floor_num : selected_floor_num;
-
     var locations = {
-        spy_dir_rad: 3.14, // The angle the spy is facing, measured from horizontal.
-        spy_loc: spy_loc,
+        spy: spy,
         guards_locs: guards_locs,
-        cameras: cameras,
-        floor_num: view_floor_num
+        cameras: cameras
     }
 
     deliver(response, 'application/json', undefined, JSON.stringify(locations));
@@ -120,7 +120,6 @@ function handle_get_boundaries(request, response) {
  * `handle_get_spy_position`, that the user selected.
  */
 function handle_posted_camera_chosen(request, response) {
-    //console.log('User selected camera: ' + request.body.camera_index);
     var body = "";
     request.on('data', function (chunk) {
         body += chunk;
@@ -160,6 +159,24 @@ function handle_distance_to_objective(request, response) {
     deliver(response, 'application/json', undefined, JSON.stringify(json));
 }
 
+/**
+ * Receives a request to update the selected floor, and sends back the positions
+ * of the game objects in the same format as the '/positions' handler.
+ */
+function handle_floor_selected(request, response) {
+    var body = "";
+    request.on('data', function (chunk) {
+        body += chunk;
+    });
+    request.on('end', function () {
+        var json = JSON.parse(body);
+
+        // Update the global selected floor.
+        g_selected_floor_num = json.floor_num;
+        handle_get_spy_position(response);
+    });
+}
+
 // Serve a request by delivering a file.
 function handle(request, response) {
     var url = request.url.toLowerCase();
@@ -175,6 +192,9 @@ function handle(request, response) {
     }
     else if (url == '/dist_to_objective') {
         handle_distance_to_objective(request, response);
+    }
+    else if (url == '/floor_selected') {
+        handle_floor_selected(request, response);
     }
     else {
         if (url.endsWith("/")) url = url + "index.html";

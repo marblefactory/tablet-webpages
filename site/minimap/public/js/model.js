@@ -1,6 +1,4 @@
 
-// The location of a camera in the game, and whether the user is viewing the
-// camera feed.
 /**
  * @param {Point} game_loc - the location of the camera in the game.
  * @param {number} max_visibility_dist - the maximum distance from the camera
@@ -17,25 +15,41 @@ function Camera(game_loc, max_visibility_dist, feed_index, id) {
 }
 
 /**
+ * @param {number} dir_rad - the angle in radian, that the spy is facing.
+ * @param {Point} game_loc - the location of the spy in the game.
+ * @param {number} floor_index - the index of the floor the is on.
+ */
+function Spy(dir_rad, game_loc, floor_index) {
+    this.dir_rad = dir_rad;
+    this.game_loc = game_loc;
+    this.floor_index = floor_index;
+}
+
+/**
+ * Parses a Spy from a json object.
+ */
+Spy.from_json = function(json) {
+    var dir_rad = checkJsonHas(json, 'dir_rad', 'Spy');
+    var game_loc = checkJsonHas(json, 'loc', 'Spy');
+    var floor_index = checkJsonHas(json, 'floor_index', 'Spy');
+
+    return new Spy(dir_rad, game_loc, floor_index);
+}
+
+/**
  * @param {[string]} camera_feed_colors - the colors associated with each of the 4 feeds.
  */
 function Model(camera_colors) {
-    // The index of the floor the spy is on.
-    this.spy_floor_index = -1;
     // The index of the floor selected to view, or -1 if the minimap should
     // follow the spy as they move between floors.
-    this.selected_floor_index = -1;
+    this._set_selected_floor = -1;
     this.num_floors = 3;
     this.floor_names = ['Basement', 'Floor 1', 'Roof'];
     // The boundaries of the 3d game. The locations of objects cannot go
     // outside these boundaries.
     this.game_boundaries = null;
 
-    // The direction the spy is looking in.
-    this.spy_dir_rad = null;
-
-    // The positions of objects in the game.
-    this.spy_game_loc = null;
+    this.spy = null;
     this.game_guards_locs = null;
     this.game_cameras = null;
 
@@ -75,27 +89,31 @@ Model.prototype = {
             // A floor number of -1 indicates that we want the server to send
             // back the floor on which the spy is.
             var floor_num_obj = {
-                floor_num: this.view_floor_index
+                floor_num: this._set_selected_floor
             };
 
             post_obj('positions', floor_num_obj, function(response) {
-                var locations = JSON.parse(response);
-
-                _this.spy_dir_rad = locations.spy_dir_rad;
-                _this.spy_floor_index = locations.floor_num;
-                _this.spy_game_loc = locations.spy_loc;
-                _this.game_guards_locs = locations.guards_locs;
-                _this.game_cameras = locations.cameras;
-
-                if (!_this._called_onload) {
-                    _this.onload();
-                    _this._called_onload = true;
-                }
-
+                _this.update_from_game_response(response);
                 callback();
 
                 setTimeout(poll, interval_time);
             });
+        }
+    },
+
+    /**
+     * Updates the state of the model from a response from the game.
+     */
+    update_from_game_response(response) {
+        var locations = JSON.parse(response);
+
+        this.spy = Spy.from_json(locations.spy);
+        this.game_guards_locs = locations.guards_locs;
+        this.game_cameras = locations.cameras;
+
+        if (!this._called_onload) {
+            this.onload();
+            this._called_onload = true;
         }
     },
 
@@ -111,7 +129,8 @@ Model.prototype = {
         // feed of the new camera.
         if (old_camera_idx == -1) {
             this.game_cameras[new_camera_idx].feed_index = replace_feed_index;
-        } else {
+        }
+        else {
             this.game_cameras[new_camera_idx].feed_index = this.game_cameras[old_camera_idx].feed_index;
             this.game_cameras[old_camera_idx].feed_index = null;
         }
@@ -122,9 +141,23 @@ Model.prototype = {
      *         index, or the index of the floor the spy is on if following the spy.
      */
     view_floor_index: function() {
-        if (this.selected_floor_index == -1) {
-            return this.spy_floor_index;
+        if (this._set_selected_floor == -1) {
+            return this.spy.floor_index;
         }
-        return this.selected_floor_index;
+        return this._set_selected_floor;
+    },
+
+    /**
+     * Sets the selected floor index to either be the index of the selected
+     * floor, or the to automatically follow the spy if the floor with the
+     * spy on is selected.
+     */
+    set_selected_floor: function(floor_index) {
+        if (floor_index == this.spy.floor_index) {
+            this._set_selected_floor = -1;
+        }
+        else {
+            this._set_selected_floor = floor_index;
+        }
     }
 }
