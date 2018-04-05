@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <title>Mini Game</title>
     <link rel="stylesheet" type="text/css" href="style/styles.css" />
-    <script src="js/pixi.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.7.3/pixi.js"></script>
 </head>
 
 <script>
@@ -15,23 +15,23 @@
     var mini_game_num = 1;
 
     //makes get request from server
-    function get(url_postfix, callback){
+    function get(url_postfix, callback) {
         var get_request = new XMLHttpRequest();
         url = window.location.origin + '/' + url_postfix;
         get_resquest.open("GET", url, true);
 
-        if (get_request.readyState == 4 && get_request.status == 200){
+        if (get_request.readyState == 4 && get_request.status == 200) {
             callback(get_request.responseText);
         }
 
         get_request.send(null);
-        
+
     }
 
-    function post_obj(url_postfix, obj){
+    function post_obj(url_postfix, obj) {
         var post_request = new XMLHttpRequest();
-        url = winodw.location.origin + '/' + url_postfix;
-        
+        url = window.location.origin + '/' + url_postfix;
+
         post_request.open("POST", url, true);
         post_request.setRequestHeader("Content-Type", 'application/json');
         post_request.send(JSON.stringify(obj));
@@ -116,31 +116,31 @@
         center_text.y = app.view.height * 0.5;
 
         app.stage.addChild(center_text);
-        
+
         //polls game to check if it should start minigame
-        function poll(){
-            
+        function poll() {
+
             get('minigame-start', function(response) {
                 var result = JSON.parse(response);
                 //if response gives true then make correct game
-                if(result.start){
+                if (result.start) {
                     app.destroy();
                     //loop through games 1 to 3
-                    if (mini_game_num === 1){
+                    if (mini_game_num === 1) {
                         make_game1();
                         mini_game_num = 2;
                     }
-                    if (mini_game_num === 2){
+                    if (mini_game_num === 2) {
                         make_game2();
                         mini_game_num = 3;
                     }
-                    if (mini_game_num === 3){
+                    if (mini_game_num === 3) {
                         make_game3();
                         mini_game_num = 1;
                     }
                 }
                 //poll gain if false
-                else{
+                else {
                     setTimeout(poll, 800);
                 }
             });
@@ -155,7 +155,12 @@
             backgroundColor: 0x9D9D9D
         });
         document.getElementById("display").appendChild(app.view);
-        const background = PIXI.Sprite.fromImage("/images/background_texture.png");
+        const background = PIXI.Sprite.fromImage("/images/background_image.png");
+
+        background.anchor.set(0.5);
+        background.x = app.view.width * 0.5;
+        background.y = app.view.height * 0.5;
+
         app.stage.addChild(background);
 
         return app;
@@ -1066,10 +1071,10 @@
     }
 
     window.addEventListener("load", function() {
-        make_terminal();
+        make_game3();
     }, false);
 
-    
+
 
     //]]>
 </script>
