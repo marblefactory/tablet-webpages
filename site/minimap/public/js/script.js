@@ -63,6 +63,7 @@ window.onload = function() {
             floor_num: floor_index
         };
         post_obj('floor_selected', floor_num_obj, function(response) {
+            minimap.clear_markers();
             model.update_from_game_response(response);
             minimap.refresh_positons();
         });

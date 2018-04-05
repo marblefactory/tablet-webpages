@@ -354,7 +354,7 @@ Minimap.prototype = {
     },
 
     /**
-     * Draws the markers and background.
+     * Draws the markers, pulses, and background.
      */
     _draw: function() {
         this._draw_background_grid();
@@ -550,6 +550,18 @@ Minimap.prototype = {
         this._refresh_spy_loc();
         this._refresh_guard_locs();
         this._refresh_camera_locs();
+        this._draw();
+    },
+
+    /**
+     * Clears all the guard markers, camera markers, and camera pulses.
+     * Useful for when the current floor is changed to stop anything being
+     * drawn off the floor map.
+     */
+    clear_markers: function() {
+        this.guard_markers = [];
+        this.camera_markers = [];
+        this._pulses = [];
         this._draw();
     }
 };
