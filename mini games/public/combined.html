@@ -53,6 +53,7 @@
                 this.parents = [];
                 this.tint = data.tint;
                 this.correct = data.correct;
+                this.pulse = data.pulse;
             }
             //function to update pipe
         rotate() {
@@ -64,7 +65,6 @@
             if (this.rotation == this.correct_rotation && this.parents.every(this.check_parents)) {
                 this.correct = true;
                 this.tint = 0x00FF00;
-
             } else {
                 this.correct = false;
                 this.tint = 0xFFFFFF;
@@ -163,20 +163,12 @@
         background.x = app.view.width * 0.5;
         background.y = app.view.height * 0.5;
 
-        var displacementTexture = PIXI.Sprite.fromImage("/images/filter.png");
-        var displacementFilter = new PIXI.filters.DisplacementFilter(displacementTexture);
+        var displacement_map = new PIXI.Sprite.fromImage("/images/filter.png");
+        var glitch_filter = new PIXI.filters.DisplacementFilter(displacement_map);
 
-
-
-        background.filters = [displacementFilter];
+        background.filters = [glitch_filter];
 
         app.stage.addChild(background);
-
-        app.ticker.add(function(delta) {
-            app.stage.children[0].filters[0].scale = Math.sin(delta);
-            //app.stage.children[0].filters[0].scale.y = Math.sin(delta);
-            app.renderer.render(app.stage);
-        });
 
         return app;
     }
@@ -231,7 +223,8 @@
             correct_rotation: 0,
             tint: 0x00FF00,
             correct: true,
-            interactive: false
+            interactive: false,
+            pulse: false
         });
 
         var pipe1 = new Pipe("/images/pipe_three.png", {
@@ -245,7 +238,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe1.add_parent_pipe(source);
@@ -261,7 +255,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         pipe2.add_parent_pipe(pipe1);
@@ -277,7 +272,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         pipe3.add_parent_pipe(pipe1);
@@ -293,7 +289,8 @@
             correct_rotation: (Math.PI * 1.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe4.add_parent_pipe(pipe3);
@@ -309,7 +306,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe5.add_parent_pipe(pipe2);
@@ -325,7 +323,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         pipe6.add_parent_pipe(pipe5);
@@ -341,7 +340,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         pipe7.add_parent_pipe(pipe4);
@@ -357,7 +357,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe8.add_parent_pipe(pipe6);
@@ -374,7 +375,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: false
         });
 
         final.add_parent_pipe(pipe8);
@@ -389,6 +391,24 @@
         app.stage.addChild(pipe7);
         app.stage.addChild(pipe8);
         app.stage.addChild(final);
+
+        var count = 0;
+        app.ticker.add(() => {
+            for (var i = 1; i < app.stage.children.length; i++) {
+                if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 40) {
+                    app.stage.children[i].tint = 0x00FF00;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 30) {
+                    app.stage.children[i].tint = 0x80FF80;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 20) {
+                    app.stage.children[i].tint = 0xFFFFFF;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 10) {
+                    app.stage.children[i].tint = 0x80FF80;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct) {
+                    app.stage.children[i].tint = 0x00FF00;
+                }
+            }
+            count += 1;
+        });
 
         pipe1.on("pointerdown", () => {
             pipe1.rotate();
@@ -431,7 +451,8 @@
             correct_rotation: (Math.PI * 1.5),
             tint: 0x00FF00,
             correct: true,
-            interactive: false
+            interactive: false,
+            pulse: false
         });
 
         var pipe1 = new Pipe("/images/pipe_three.png", {
@@ -445,7 +466,8 @@
             correct_rotation: (Math.PI * 1.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe1.add_parent_pipe(source1);
@@ -461,7 +483,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe1.add_parent_pipe(pipe1);
@@ -477,7 +500,8 @@
             correct_rotation: Math.PI,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe2.add_parent_pipe(straight_pipe1);
@@ -493,7 +517,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe2.add_parent_pipe(pipe1);
@@ -509,7 +534,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe3.add_parent_pipe(straight_pipe2);
@@ -525,7 +551,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe3.add_parent_pipe(pipe2);
@@ -541,7 +568,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: false
         });
 
         sink1.add_parent_pipe(straight_pipe3);
@@ -557,7 +585,8 @@
             correct_rotation: (Math.PI * 1.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: false
         });
 
         source2.add_parent_pipe(sink1);
@@ -573,7 +602,8 @@
             correct_rotation: (Math.PI),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe4.add_parent_pipe(source2);
@@ -589,7 +619,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe4.add_parent_pipe(pipe3);
@@ -605,7 +636,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe5.add_parent_pipe(straight_pipe4);
@@ -621,7 +653,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe5.add_parent_pipe(pipe5);
@@ -638,7 +671,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe6.add_parent_pipe(pipe4);
@@ -654,7 +688,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: false
         });
 
         final.add_parent_pipe(straight_pipe6);
@@ -674,6 +709,24 @@
         app.stage.addChild(straight_pipe5);
         app.stage.addChild(straight_pipe6);
         app.stage.addChild(final);
+
+        var count = 0;
+        app.ticker.add(() => {
+            for (var i = 1; i < app.stage.children.length; i++) {
+                if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 40) {
+                    app.stage.children[i].tint = 0x00FF00;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 30) {
+                    app.stage.children[i].tint = 0x80FF80;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 20) {
+                    app.stage.children[i].tint = 0xFFFFFF;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 10) {
+                    app.stage.children[i].tint = 0x80FF80;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct) {
+                    app.stage.children[i].tint = 0x00FF00;
+                }
+            }
+            count += 1;
+        });
 
         pipe1.on("pointerdown", () => {
             pipe1.rotate();
@@ -704,13 +757,6 @@
             pipe5.update();
             check_final(final, app);
         });
-
-        // function check_final() {
-        //     if (final.correct) {
-        //         console.log("Game won!");
-        //         start_loading(app);
-        //     }
-        // }
     }
 
     function make_game3() {
@@ -727,7 +773,8 @@
             correct_rotation: (Math.PI * 1.5),
             tint: 0x00FF00,
             correct: true,
-            interactive: false
+            interactive: false,
+            pulse: false
         });
 
         var pipe1 = new Pipe("/images/pipe_three.png", {
@@ -741,7 +788,8 @@
             correct_rotation: (Math.PI * 1.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe1.add_parent_pipe(source);
@@ -757,7 +805,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe1.add_parent_pipe(pipe1);
@@ -773,7 +822,8 @@
             correct_rotation: (Math.PI),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe2.add_parent_pipe(straight_pipe1);
@@ -789,7 +839,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe2.add_parent_pipe(pipe1);
@@ -805,7 +856,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe3.add_parent_pipe(straight_pipe2);
@@ -821,7 +873,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe3.add_parent_pipe(pipe2);
@@ -837,7 +890,8 @@
             correct_rotation: (Math.PI),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe4.add_parent_pipe(straight_pipe3);
@@ -853,7 +907,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe4.add_parent_pipe(pipe3);
@@ -869,7 +924,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe5.add_parent_pipe(straight_pipe4);
@@ -885,7 +941,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe5.add_parent_pipe(pipe5);
@@ -901,7 +958,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe6.add_parent_pipe(straight_pipe5);
@@ -917,7 +975,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         pipe4.add_parent_pipe(straight_pipe6);
@@ -934,7 +993,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe7.add_parent_pipe(pipe4);
@@ -950,7 +1010,8 @@
             correct_rotation: (Math.PI) * 1.5,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe7.add_parent_pipe(straight_pipe7);
@@ -966,7 +1027,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         straight_pipe8.add_parent_pipe(pipe3);
@@ -982,7 +1044,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: true
+            interactive: true,
+            pulse: false
         });
 
         pipe8.add_parent_pipe(straight_pipe8);
@@ -998,7 +1061,8 @@
             correct_rotation: 0,
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: true
         });
 
         pipe8.add_parent_pipe(straight_pipe9);
@@ -1015,7 +1079,8 @@
             correct_rotation: (Math.PI * 0.5),
             tint: 0xFFFFFF,
             correct: false,
-            interactive: false
+            interactive: false,
+            pulse: false
         });
 
         final.add_parent_pipe(pipe8);
@@ -1039,6 +1104,24 @@
         app.stage.addChild(pipe8);
         app.stage.addChild(straight_pipe9);
         app.stage.addChild(final);
+
+        var count = 0;
+        app.ticker.add(() => {
+            for (var i = 1; i < app.stage.children.length; i++) {
+                if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 40) {
+                    app.stage.children[i].tint = 0x00FF00;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 30) {
+                    app.stage.children[i].tint = 0x80FF80;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 20) {
+                    app.stage.children[i].tint = 0xFFFFFF;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct && (count % 50) > 10) {
+                    app.stage.children[i].tint = 0x80FF80;
+                } else if (app.stage.children[i].pulse && app.stage.children[i].correct) {
+                    app.stage.children[i].tint = 0x00FF00;
+                }
+            }
+            count += 1;
+        });
 
         pipe1.on("pointerdown", () => {
             pipe1.rotate();
@@ -1091,10 +1174,8 @@
     }
 
     window.addEventListener("load", function() {
-        make_game1();
+        make_game3();
     }, false);
-
-
 
     //]]>
 </script>
@@ -1105,4 +1186,4 @@
 
 </body>
 
-</html>#
+</html>
