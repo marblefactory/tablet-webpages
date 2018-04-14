@@ -127,7 +127,7 @@ function TargetMarker() {
     // The maximum percentage of the radius of the marker to offset the marker
     // by. Therefore randomising the position of the marker and making it
     // harder to find the target.
-    this.jitter_radius_multiplier = 0.8;
+    this.jitter_radius_multiplier = 0.6;
 
     this.anim_duration_ms = 200;
     // The time that the animation started. Used to tell how far along the
@@ -154,7 +154,7 @@ TargetMarker.prototype = {
 
         // Add a random x and y to the position, which decreases as the spy
         // gets closer to the target.
-        var jitter_radius = new_radius * 0.8;
+        var jitter_radius = new_radius * this.jitter_radius_multiplier;
         var jittered_loc = this._rand_point_in_radius(jitter_radius);
 
         this.old_state = this.new_state;
