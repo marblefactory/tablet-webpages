@@ -11,6 +11,15 @@ function Point(x, y) {
         var dy = this.y - point.y;
         return Math.sqrt(dx * dx + dy * dy);
     }
+
+    /**
+     * Linearly interpolates between this point and the end point.
+     */
+    this.lerped = function(end, t) {
+        var x = lerp(this.x, end.x, t);
+        var y = lerp(this.y, end.y, t);
+        return new Point(x, y);
+    }
 }
 
 function Boundaries(min_x, min_y, max_x, max_y) {
@@ -105,6 +114,11 @@ function TargetMarkerState(minimap_loc, radius) {
 function TargetMarker() {
     this.new_state = null;
     this.old_state = null;
+
+    this.anim_duration_ms = 200;
+    // The time that the animation started. Used to tell how far along the
+    // animation should be.
+    this.anim_start = null;
 }
 
 TargetMarker.prototype = {
@@ -117,6 +131,31 @@ TargetMarker.prototype = {
 
         this.old_state = this.new_state;
         this.new_state = new TargetMarkerState(minimap_loc, new_radius);
+
+        this.anim_start = Date.now();
+    },
+
+    /**
+     * @return {TargetMarkerState} the state interpolated between the old and
+     *         new states to animate from one state to the other over time.
+     */
+    lerped_state: function() {
+        if (this.old_state === null) {
+            return this.new_state;
+        }
+
+        // The proportion of the animation should be completed.
+        var curr_time = Date.now();
+        var t = (curr_time - this.anim_start) / this.anim_duration_ms;
+
+        if (t >= 1.0) {
+            return this.new_state;
+        }
+
+        var loc = this.old_state.minimap_loc.lerped(this.new_state.minimap_loc, t);
+        var radius = lerp(this.old_state.radius, this.new_state.radius, t);
+
+        return new TargetMarkerState(loc, radius);
     }
 };
 
@@ -406,8 +445,9 @@ Minimap.prototype = {
 
         // Draw a blurred circle to indicate the area the target is in.
         function blurred_circle() {
-            var pos = marker.new_state.minimap_loc;
-            var radius = marker.new_state.radius;
+            var state = marker.lerped_state();
+            var pos = state.minimap_loc;
+            var radius = state.radius;
 
             //var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 60);
             var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
