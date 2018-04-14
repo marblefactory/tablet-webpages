@@ -20,6 +20,14 @@ function Point(x, y) {
         var y = lerp(this.y, end.y, t);
         return new Point(x, y);
     }
+
+    /**
+     * @return {Point} the result of adding the component of this point and the
+     *                 other point.
+     */
+    this.added = function(other) {
+        return new Point(this.x + other.x, this.y + other.y);
+    }
 }
 
 function Boundaries(min_x, min_y, max_x, max_y) {
@@ -115,6 +123,11 @@ function TargetMarker() {
     this.new_state = null;
     this.old_state = null;
 
+    // The maximum percentage of the radius of the marker to offset the marker
+    // by. Therefore randomising the position of the marker and making it
+    // harder to find the target.
+    this.jitter_radius_multiplier = 0.8;
+
     this.anim_duration_ms = 200;
     // The time that the animation started. Used to tell how far along the
     // animation should be.
@@ -123,14 +136,28 @@ function TargetMarker() {
 
 TargetMarker.prototype = {
     /**
+     * @return {Point} a random point in a circle with origin (0,0) and radius r.
+     */
+    _rand_point_in_radius: function(r) {
+        var x = Math.random() * r * 2 - r;
+        var y = Math.random() * r * 2 - r;
+        return new Point(x, y);
+    },
+
+    /**
      * Updates the new and old states based on the new position of the spy,
      * and target.
      */
     update: function(minimap_loc, spy_dist, max_dist, min_radius, max_radius) {
         var new_radius = spy_dist / max_dist * (max_radius - min_radius) + min_radius;
 
+        // Add a random x and y to the position, which decreases as the spy
+        // gets closer to the target.
+        var jitter_radius = new_radius * 0.8;
+        var jittered_loc = this._rand_point_in_radius(jitter_radius);
+
         this.old_state = this.new_state;
-        this.new_state = new TargetMarkerState(minimap_loc, new_radius);
+        this.new_state = new TargetMarkerState(jittered_loc.added(minimap_loc), new_radius);
 
         this.anim_start = Date.now();
     },
