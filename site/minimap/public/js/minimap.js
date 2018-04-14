@@ -93,6 +93,12 @@ function CameraPulse(minimap_loc, max_radius) {
     };
 }
 
+// Represents a target location marker. The radius of the marker decreases as
+// the spy gets closer to the target.
+function TargetMarker(minimap_loc) {
+    this.minimap_loc = minimap_loc;
+}
+
 /**
  * @param {Canvas} canvas - used to draw the minimap.
  * @param {Boundaries} model - used to get information about what to display.
@@ -108,6 +114,7 @@ function Minimap(canvas, model) {
     this.spy_marker = null;
     this.guard_markers = [];
     this.camera_markers = [];
+    this.target_marker = null;
 
     // These variables are used for converting to minimap coordinates because
     // the floor map may not fit the screen exactly.
@@ -362,6 +369,32 @@ Minimap.prototype = {
     },
 
     /**
+     * Draws a target marker, but doesn't update its radius.
+     * @param {TargetMarker} marker - the marker to draw.
+     */
+    _draw_target_marker: function(marker) {
+        var _this = this;
+
+        // Draw a blurred circle to indicate the area the target is in.
+        function blurred_circle() {
+            var pos = marker.minimap_loc;
+            var radius = 150;
+
+            //var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 60);
+            console.log(pos);
+            var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
+            radgrad.addColorStop(0.0, 'rgba(255,0,0,1)');
+            radgrad.addColorStop(0.8, 'rgba(228,0,0,1)');
+            radgrad.addColorStop(1.0, 'rgba(228,0,0,0)');
+
+            _this.ctx.fillStyle = radgrad;
+            _this.ctx.fillRect(pos.x-radius, pos.y-radius, radius*2, radius*2);
+        }
+
+        draw_with_alpha(this.ctx, 0.5, blurred_circle);
+    },
+
+    /**
      * Draws the markers, pulses, and background.
      */
     _draw: function() {
@@ -372,6 +405,9 @@ Minimap.prototype = {
         for (var i=0; i<this._pulses.length; i++) {
             this._draw_pulse(this._pulses[i]);
         }
+
+        // Draw the area the target is in.
+        this._draw_target_marker(this.target_marker);
 
         // Draw the camera positions.
         for (var i=0; i<this.camera_markers.length; i++) {
@@ -552,12 +588,21 @@ Minimap.prototype = {
     },
 
     /**
+     * Refreshes the position of the target.
+     */
+    _refresh_target: function() {
+        var minimap_loc = this._convert_to_minimap_point(this.model.game_target_loc);
+        this.target_marker = new TargetMarker(minimap_loc);
+    },
+
+    /**
      * Refreshes the minimap with the position of the spy, guards, and cameras.
      */
     refresh_positons: function() {
         this._refresh_spy_loc();
         this._refresh_guard_locs();
         this._refresh_camera_locs();
+        this._refresh_target();
         this._draw();
     },
 

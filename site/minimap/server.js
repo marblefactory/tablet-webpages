@@ -66,7 +66,8 @@ var cameras = [
     { loc: { x: 20,   y: 300 },   feed_index: null, max_visibility_dist: 30, id: 13 },
     { loc: { x: 20,   y: 20 },   feed_index: 1, max_visibility_dist: 30, id: 14 },
     { loc: { x: 20,   y: 350 },   feed_index: 2, max_visibility_dist: 30, id: 15 },
-    { loc: { x: 350,  y: 350 },   feed_index: 3, max_visibility_dist: 30, id: 16 }
+    { loc: { x: 350,  y: 350 },   feed_index: 3, max_visibility_dist: 30, id: 16 },
+    { loc: { x: 150,  y: 275 },   feed_index: null, max_visibility_dist: 30, id: 17 },
 ];
 
 /**
@@ -79,7 +80,7 @@ function handle_get_spy_position(response) {
             x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
             y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
         },
-        floor_index: (g_spy_floor_index++ % 3)
+        floor_index: 1//(g_spy_floor_index++ % 3)
     };
 
     var guards_locs = [];
@@ -151,18 +152,6 @@ function handle_posted_camera_chosen(request, response) {
     // TODO: Send the response correctly.
     var x = {};
     deliver(response, 'application/json', undefined, JSON.stringify(x));
-}
-
-/**
- * Receives a request to send the distance from the spy to the next objective.
- * This is used to indicate how far away the spy is from the objective.
- */
-function handle_distance_to_objective(request, response) {
-    var json = {
-        distance: Math.random() * 320
-    }
-
-    deliver(response, 'application/json', undefined, JSON.stringify(json));
 }
 
 /**
