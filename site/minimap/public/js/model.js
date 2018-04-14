@@ -53,6 +53,8 @@ function Model(camera_colors) {
     this.game_guards_locs = null;
     this.game_cameras = null;
 
+    this.game_target_loc = null;
+
     // The color associated with each camera. This is used to make it easier
     // to tell which camera corresponds to which feed.
     this.camera_colors = camera_colors;
@@ -110,6 +112,7 @@ Model.prototype = {
         this.spy = Spy.from_json(locations.spy);
         this.game_guards_locs = locations.guards_locs;
         this.game_cameras = locations.cameras;
+        this.game_target_loc = locations.target_loc;
 
         if (!this._called_onload) {
             this.onload();

@@ -92,10 +92,16 @@ function handle_get_spy_position(response) {
         guards_locs.push(guard_loc);
     }
 
+    var target_loc = {
+        x: 150,
+        y: 250
+    }
+
     var locations = {
         spy: spy,
         guards_locs: guards_locs,
-        cameras: cameras
+        cameras: cameras,
+        target_loc: target_loc
     }
 
     deliver(response, 'application/json', undefined, JSON.stringify(locations));
@@ -232,8 +238,6 @@ function deliver(response, type, err, content) {
         response.writeHead(OK, textTypeHeader);
         var base64Encoded = content.toString('base64');
         response.write(base64Encoded, "utf8");
-        //console.log(base64Encoded);
-        //response.write("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg", "utf8");
         response.end();
     }
     else {
