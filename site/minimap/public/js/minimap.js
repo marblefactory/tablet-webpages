@@ -93,19 +93,30 @@ function CameraPulse(minimap_loc, max_radius) {
     };
 }
 
-// Represents a target location marker. The radius of the marker decreases as
-// the spy gets closer to the target.
-function TargetMarker(minimap_loc) {
+// Represents a target marker. The radius of the marker decreases as the spy
+// gets closer to the target.
+function TargetMarkerState(minimap_loc, radius) {
     this.minimap_loc = minimap_loc;
+    this.radius = radius;
+}
+
+// Represents the states of the target marker. These are required for
+// animations from the old to new state, e.g. shrinking radius.
+function TargetMarker() {
+    this.new_state = null;
+    this.old_state = null;
 }
 
 TargetMarker.prototype = {
     /**
-     * @return the radius of the marker, based on the distance from the spy to
-     *         the target, and the maximum distance the spy can be from the target.
+     * Updates the new and old states based on the new position of the spy,
+     * and target.
      */
-    radius: function(spy_dist, max_dist, min_radius, max_radius) {
-        return spy_dist / max_dist * (max_radius - min_radius) + min_radius;
+    update: function(minimap_loc, spy_dist, max_dist, min_radius, max_radius) {
+        var new_radius = spy_dist / max_dist * (max_radius - min_radius) + min_radius;
+
+        this.old_state = this.new_state;
+        this.new_state = new TargetMarkerState(minimap_loc, new_radius);
     }
 };
 
@@ -124,7 +135,7 @@ function Minimap(canvas, model) {
     this.spy_marker = null;
     this.guard_markers = [];
     this.camera_markers = [];
-    this.target_marker = null;
+    this.target_marker = new TargetMarker();
 
     // These variables are used for converting to minimap coordinates because
     // the floor map may not fit the screen exactly.
@@ -395,21 +406,14 @@ Minimap.prototype = {
 
         // Draw a blurred circle to indicate the area the target is in.
         function blurred_circle() {
-            var pos = marker.minimap_loc;
-
-            var min_radius = _this._target_marker_min_radius();
-            var max_radius = _this._target_marker_max_radius();
-
-            var spy_dist = _this.spy_marker.minimap_loc.dist_to(_this.target_marker.minimap_loc);
-            var max_dist = Math.hypot(_this.width(), _this.height());
-
-            var radius = _this.target_marker.radius(spy_dist, max_dist, min_radius, max_radius);
+            var pos = marker.new_state.minimap_loc;
+            var radius = marker.new_state.radius;
 
             //var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 60);
             var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
-            radgrad.addColorStop(0.0, '#FF0F');
+            radgrad.addColorStop(0.00, '#FF0F');
             radgrad.addColorStop(0.85, '#FF0B');
-            radgrad.addColorStop(1.0, '#FF00');
+            radgrad.addColorStop(1.00, '#FF00');
 
             _this.ctx.fillStyle = radgrad;
             _this.ctx.fillRect(pos.x-radius, pos.y-radius, radius*2, radius*2);
@@ -616,7 +620,14 @@ Minimap.prototype = {
      */
     _refresh_target: function() {
         var minimap_loc = this._convert_to_minimap_point(this.model.game_target_loc);
-        this.target_marker = new TargetMarker(minimap_loc);
+
+        var min_radius = this._target_marker_min_radius();
+        var max_radius = this._target_marker_max_radius();
+
+        var spy_dist = this.spy_marker.minimap_loc.dist_to(minimap_loc);
+        var max_dist = Math.hypot(this.width(), this.height());
+
+        this.target_marker.update(minimap_loc, spy_dist, max_dist, min_radius, max_radius);
     },
 
     /**

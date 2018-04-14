@@ -160,7 +160,7 @@ ul {
     font-weight: bold;
     font-size: 130%;
 
-    transition-duration: 0.15s;
+    transition-duration: 0.1s;
 }
 
 .floor_select_button:active {
@@ -189,10 +189,10 @@ ul {
 
 .spy_floor_indicator.inactive {
     background-color: #0002;
-    transition-duration: 0.15s;
+    transition-duration: 0.1s;
 }
 
 .spy_floor_indicator.active {
     background-color: black;
-    transition-duration: 0.15s;
+    transition-duration: 0.1s;
 }
