@@ -1,4 +1,11 @@
 
+function Boundaries(min_x, min_y, max_x, max_y) {
+    this.min_x = min_x;
+    this.min_y = min_y;
+    this.max_x = max_x;
+    this.max_y = max_y;
+}
+
 /**
  * @param {Point} game_loc - the location of the camera in the game.
  * @param {number} max_visibility_dist - the maximum distance from the camera
@@ -180,5 +187,15 @@ Model.prototype = {
         else {
             this._set_selected_floor = floor_index;
         }
+    },
+
+    /**
+     * @return {number} the maximum distance two objects can be apart from each other.
+     */
+    max_dist: function() {
+        var game_width = this.game_boundaries.max_x - this.game_boundaries.min_x;
+        var game_height = this.game_boundaries.max_y - this.game_boundaries.min_y;
+
+        return Math.hypot(game_width, game_height);
     }
 }

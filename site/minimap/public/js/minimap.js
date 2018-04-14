@@ -30,13 +30,6 @@ function Point(x, y) {
     }
 }
 
-function Boundaries(min_x, min_y, max_x, max_y) {
-    this.min_x = min_x;
-    this.min_y = min_y;
-    this.max_x = max_x;
-    this.max_y = max_y;
-}
-
 /**
  * @param {Image} image - the blueprint of the floor plan.
  * @param {number} screen_width - the width of the screen, used to calculate
@@ -268,11 +261,11 @@ Minimap.prototype = {
     },
 
     _target_marker_min_radius: function() {
-        return Math.min(this.width() * 0.012, 50);
+        return Math.min(this.current_floormap().render_width * 0.012, 50);
     },
 
     _target_marker_max_radius: function() {
-        return this.width() * 0.7;
+        return this.current_floormap().render_width * 1.0;
     },
 
     /**
@@ -280,9 +273,9 @@ Minimap.prototype = {
      * in the minimap.
      */
     _convert_game_dist_to_minimap: function(game_dist) {
-        var game_w = (this.model.game_boundaries.max_x - this.model.game_boundaries.min_x);
-        var width_mult = this.current_floormap().render_width / game_w;
-        return width_mult * game_dist;
+        var floormap = this.current_floormap();
+        var render_max_dist = Math.hypot(floormap.render_width, floormap.render_height);
+        return game_dist * render_max_dist / this.model.max_dist();
     },
 
     /**
@@ -695,10 +688,10 @@ Minimap.prototype = {
         var max_radius = this._target_marker_max_radius();
 
         var spy_dist = this.spy_marker.minimap_loc.dist_to(minimap_loc);
-        var max_dist = Math.hypot(this.width(), this.height());
+        var max_minimap_dist = this._convert_game_dist_to_minimap(this.model.max_dist());
 
         this.target_marker.update(minimap_loc, this.model.game_target.floor_index,
-                                  spy_dist, max_dist, min_radius, max_radius);
+                                  spy_dist, max_minimap_dist, min_radius, max_radius);
     },
 
     /**
