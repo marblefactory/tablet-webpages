@@ -58,6 +58,7 @@ function checkSite() {
 
 var g_spy_floor_index = 1; // Index of the floor the spy is on.
 var g_selected_floor_num = -1; // -1 indicates to follow the spy.
+var g_spy_loc = { x: 0, y: 0 }; // The location of the spy.
 
 var cameras = [
     { loc: { x: 200, y: 150 }, feed_index: null, max_visibility_dist: 30, id: 10 },
@@ -93,17 +94,20 @@ function handle_get_spy_position(response) {
         guards_locs.push(guard_loc);
     }
 
-    var target_loc = {
-        x: 150,
-        y: 250
-    }
+    var target = {
+        floor_index: 0,
+        loc: {
+            x: 150,
+            y: 250
+        }
+    };
 
     var locations = {
         spy: spy,
         guards_locs: guards_locs,
         cameras: cameras,
-        target_loc: target_loc
-    }
+        target: target
+    };
 
     deliver(response, 'application/json', undefined, JSON.stringify(locations));
 }

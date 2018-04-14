@@ -112,9 +112,10 @@ function CameraPulse(minimap_loc, max_radius) {
 
 // Represents a target marker. The radius of the marker decreases as the spy
 // gets closer to the target.
-function TargetMarkerState(minimap_loc, radius) {
+function TargetMarkerState(minimap_loc, radius, floor_index) {
     this.minimap_loc = minimap_loc;
     this.radius = radius;
+    this.floor_index = floor_index;
 }
 
 // Represents the states of the target marker. These are required for
@@ -148,7 +149,7 @@ TargetMarker.prototype = {
      * Updates the new and old states based on the new position of the spy,
      * and target.
      */
-    update: function(minimap_loc, spy_dist, max_dist, min_radius, max_radius) {
+    update: function(minimap_loc, floor_index, spy_dist, max_dist, min_radius, max_radius) {
         var new_radius = spy_dist / max_dist * (max_radius - min_radius) + min_radius;
 
         // Add a random x and y to the position, which decreases as the spy
@@ -157,7 +158,7 @@ TargetMarker.prototype = {
         var jittered_loc = this._rand_point_in_radius(jitter_radius);
 
         this.old_state = this.new_state;
-        this.new_state = new TargetMarkerState(jittered_loc.added(minimap_loc), new_radius);
+        this.new_state = new TargetMarkerState(jittered_loc.added(minimap_loc), new_radius, floor_index);
 
         this.anim_start = Date.now();
     },
@@ -173,7 +174,8 @@ TargetMarker.prototype = {
 
         // The proportion of the animation should be completed.
         var curr_time = Date.now();
-        var t = (curr_time - this.anim_start) / this.anim_duration_ms;
+        var tt = (curr_time - this.anim_start) / this.anim_duration_ms;
+        var t = tt * tt;
 
         if (t >= 1.0) {
             return this.new_state;
@@ -182,7 +184,7 @@ TargetMarker.prototype = {
         var loc = this.old_state.minimap_loc.lerped(this.new_state.minimap_loc, t);
         var radius = lerp(this.old_state.radius, this.new_state.radius, t);
 
-        return new TargetMarkerState(loc, radius);
+        return new TargetMarkerState(loc, radius, this.new_state.floor_index);
     }
 };
 
@@ -469,10 +471,10 @@ Minimap.prototype = {
      */
     _draw_target_marker: function(marker) {
         var _this = this;
+        var state = marker.lerped_state();
 
         // Draw a blurred circle to indicate the area the target is in.
         function blurred_circle() {
-            var state = marker.lerped_state();
             var pos = state.minimap_loc;
             var radius = state.radius;
 
@@ -486,7 +488,8 @@ Minimap.prototype = {
             _this.ctx.fillRect(pos.x-radius, pos.y-radius, radius*2, radius*2);
         }
 
-        draw_with_alpha(this.ctx, 0.5, blurred_circle);
+        var alpha = this.model.view_floor_index() == state.floor_index ? 0.5 : 0.15;
+        draw_with_alpha(this.ctx, alpha, blurred_circle);
     },
 
     /**
@@ -686,7 +689,7 @@ Minimap.prototype = {
      * Refreshes the position of the target.
      */
     _refresh_target: function() {
-        var minimap_loc = this._convert_to_minimap_point(this.model.game_target_loc);
+        var minimap_loc = this._convert_to_minimap_point(this.model.game_target.game_loc);
 
         var min_radius = this._target_marker_min_radius();
         var max_radius = this._target_marker_max_radius();
@@ -694,7 +697,8 @@ Minimap.prototype = {
         var spy_dist = this.spy_marker.minimap_loc.dist_to(minimap_loc);
         var max_dist = Math.hypot(this.width(), this.height());
 
-        this.target_marker.update(minimap_loc, spy_dist, max_dist, min_radius, max_radius);
+        this.target_marker.update(minimap_loc, this.model.game_target.floor_index,
+                                  spy_dist, max_dist, min_radius, max_radius);
     },
 
     /**
