@@ -99,6 +99,16 @@ function TargetMarker(minimap_loc) {
     this.minimap_loc = minimap_loc;
 }
 
+TargetMarker.prototype = {
+    /**
+     * @return the radius of the marker, based on the distance from the spy to
+     *         the target, and the maximum distance the spy can be from the target.
+     */
+    radius: function(spy_dist, max_dist, min_radius, max_radius) {
+        return spy_dist / max_dist * (max_radius - min_radius) + min_radius;
+    }
+};
+
 /**
  * @param {Canvas} canvas - used to draw the minimap.
  * @param {Boundaries} model - used to get information about what to display.
@@ -176,6 +186,14 @@ Minimap.prototype = {
 
     _camera_icon_radius: function() {
         return Math.min(this.width() * 0.012, 50);
+    },
+
+    _target_marker_min_radius: function() {
+        return Math.min(this.width() * 0.012, 50);
+    },
+
+    _target_marker_max_radius: function() {
+        return this.width() * 0.7;
     },
 
     /**
@@ -378,14 +396,20 @@ Minimap.prototype = {
         // Draw a blurred circle to indicate the area the target is in.
         function blurred_circle() {
             var pos = marker.minimap_loc;
-            var radius = 150;
+
+            var min_radius = _this._target_marker_min_radius();
+            var max_radius = _this._target_marker_max_radius();
+
+            var spy_dist = _this.spy_marker.minimap_loc.dist_to(_this.target_marker.minimap_loc);
+            var max_dist = Math.hypot(_this.width(), _this.height());
+
+            var radius = _this.target_marker.radius(spy_dist, max_dist, min_radius, max_radius);
 
             //var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 60);
-            console.log(pos);
             var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
-            radgrad.addColorStop(0.0, 'rgba(255,0,0,1)');
-            radgrad.addColorStop(0.8, 'rgba(228,0,0,1)');
-            radgrad.addColorStop(1.0, 'rgba(228,0,0,0)');
+            radgrad.addColorStop(0.0, '#FF0F');
+            radgrad.addColorStop(0.85, '#FF0B');
+            radgrad.addColorStop(1.0, '#FF00');
 
             _this.ctx.fillStyle = radgrad;
             _this.ctx.fillRect(pos.x-radius, pos.y-radius, radius*2, radius*2);
