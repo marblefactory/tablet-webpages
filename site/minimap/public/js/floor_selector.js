@@ -18,28 +18,36 @@ FloorSelector.prototype = {
     setup_floor_list: function() {
         this.floor_list.innerHTML = "";
 
-        // Iterate backwards so the higher floors are at the top of the screen.
-        // Let is used because of the scope problem with using var.
-        for (let i=this.model.floor_names.length-1; i>=0; i--) {
-            var list_item = document.createElement('li');
-            var spy_indicator = document.createElement('div');
-            var floor_button = document.createElement('button');
-            var text = document.createTextNode(this.model.floor_names[i]);
+        get("images/spy_floor_marker.png", receivedBase64Image.bind(this));
 
-            var _this = this;
-            floor_button.addEventListener('click', e => _this.did_select_floor(i));
-            floor_button.data_floor_index = i;
+        function receivedBase64Image(contentBase64) {
+            var src = `data:image/png;base64, ${contentBase64}`;
 
-            spy_indicator.className = 'spy_floor_indicator';
-            spy_indicator.data_floor_index = i;
+            // Iterate backwards so the higher floors are at the top of the screen.
+            // Let is used because of the scope problem with using var.
+            for (let i=this.model.floor_names.length-1; i>=0; i--) {
+                var list_item = document.createElement('li');
+                var spy_indicator = document.createElement('img');
+                var floor_button = document.createElement('button');
+                var text = document.createTextNode(this.model.floor_names[i]);
 
-            floor_button.append(text);
-            list_item.append(spy_indicator);
-            list_item.append(floor_button);
-            this.floor_list.append(list_item);
+                var _this = this;
+                floor_button.addEventListener('click', e => _this.did_select_floor(i));
+                floor_button.data_floor_index = i;
+
+                spy_indicator.className = 'spy_floor_indicator';
+                spy_indicator.data_floor_index = i;
+                spy_indicator.src = src;
+
+                floor_button.append(text);
+                list_item.append(spy_indicator);
+                list_item.append(floor_button);
+                this.floor_list.append(list_item);
+            }
+
+            this.update_selected_floor();
+            this.update_spy_floor_marker();
         }
-
-        this.update_selected_floor();
     },
 
     /**
@@ -65,8 +73,12 @@ FloorSelector.prototype = {
             var floor_indicator = spy_floor_indicators[i];
             // Class to indicate whether the spy is on this floor.
             var activeClassName = this.model.spy.floor_index == floor_indicator.data_floor_index ? 'active' : 'inactive';
-
             floor_indicator.className = `spy_floor_indicator ${activeClassName}`;
         }
+    },
+
+    update: function() {
+        this.update_selected_floor();
+        this.update_spy_floor_marker();
     }
 };

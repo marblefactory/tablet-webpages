@@ -11,13 +11,23 @@ function Point(x, y) {
         var dy = this.y - point.y;
         return Math.sqrt(dx * dx + dy * dy);
     }
-}
 
-function Boundaries(min_x, min_y, max_x, max_y) {
-    this.min_x = min_x;
-    this.min_y = min_y;
-    this.max_x = max_x;
-    this.max_y = max_y;
+    /**
+     * Linearly interpolates between this point and the end point.
+     */
+    this.lerped = function(end, t) {
+        var x = lerp(this.x, end.x, t);
+        var y = lerp(this.y, end.y, t);
+        return new Point(x, y);
+    }
+
+    /**
+     * @return {Point} the result of adding the component of this point and the
+     *                 other point.
+     */
+    this.added = function(other) {
+        return new Point(this.x + other.x, this.y + other.y);
+    }
 }
 
 /**
@@ -74,7 +84,7 @@ function CameraMarker(minimap_loc, feed_index, max_pulse_dist, game_id) {
 }
 
 // Represents a radar pulse from a camera.
-function CameraPulse(minimap_loc, max_radius) {
+function CameraPulse(minimap_loc, max_radius, screen_max_dist) {
     this.minimap_loc = minimap_loc;
     this.color = 'white';
     this.radius = 0;
@@ -83,8 +93,8 @@ function CameraPulse(minimap_loc, max_radius) {
 
     // The minimum and maximum rate at which the radius can increase.
     // Randomness helps make the cameras look less 'samey'.
-    var min_delta_r = 0.5;
-    var max_delta_r = 0.55;
+    var min_delta_r = screen_max_dist * 0.00032;
+    var max_delta_r = screen_max_dist * 0.00035;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
 
@@ -92,6 +102,84 @@ function CameraPulse(minimap_loc, max_radius) {
         this.radius += this.delta_radius;
     };
 }
+
+// Represents a target marker. The radius of the marker decreases as the spy
+// gets closer to the target.
+function TargetMarkerState(minimap_loc, radius, floor_index) {
+    this.minimap_loc = minimap_loc;
+    this.radius = radius;
+    this.floor_index = floor_index;
+}
+
+// Represents the states of the target marker. These are required for
+// animations from the old to new state, e.g. shrinking radius.
+function TargetMarker() {
+    this.new_state = null;
+    this.old_state = null;
+
+    // The maximum percentage of the radius of the marker to offset the marker
+    // by. Therefore randomising the position of the marker and making it
+    // harder to find the target.
+    this.jitter_radius_multiplier = 0.6;
+
+    this.anim_duration_ms = 200;
+    // The time that the animation started. Used to tell how far along the
+    // animation should be.
+    this.anim_start = null;
+}
+
+TargetMarker.prototype = {
+    /**
+     * @return {Point} a random point in a circle with origin (0,0) and radius r.
+     */
+    _rand_point_in_radius: function(r) {
+        var x = Math.random() * r * 2 - r;
+        var y = Math.random() * r * 2 - r;
+        return new Point(x, y);
+    },
+
+    /**
+     * Updates the new and old states based on the new position of the spy,
+     * and target.
+     */
+    update: function(minimap_loc, floor_index, spy_dist, max_dist, min_radius, max_radius) {
+        var new_radius = spy_dist / max_dist * (max_radius - min_radius) + min_radius;
+
+        // Add a random x and y to the position, which decreases as the spy
+        // gets closer to the target.
+        var jitter_radius = new_radius * this.jitter_radius_multiplier;
+        var jittered_loc = this._rand_point_in_radius(jitter_radius);
+
+        this.old_state = this.new_state;
+        this.new_state = new TargetMarkerState(jittered_loc.added(minimap_loc), new_radius, floor_index);
+
+        this.anim_start = Date.now();
+    },
+
+    /**
+     * @return {TargetMarkerState} the state interpolated between the old and
+     *         new states to animate from one state to the other over time.
+     */
+    lerped_state: function() {
+        if (this.old_state === null) {
+            return this.new_state;
+        }
+
+        // The proportion of the animation should be completed.
+        var curr_time = Date.now();
+        var tt = (curr_time - this.anim_start) / this.anim_duration_ms;
+        var t = tt * tt;
+
+        if (t >= 1.0) {
+            return this.new_state;
+        }
+
+        var loc = this.old_state.minimap_loc.lerped(this.new_state.minimap_loc, t);
+        var radius = lerp(this.old_state.radius, this.new_state.radius, t);
+
+        return new TargetMarkerState(loc, radius, this.new_state.floor_index);
+    }
+};
 
 /**
  * @param {Canvas} canvas - used to draw the minimap.
@@ -108,6 +196,7 @@ function Minimap(canvas, model) {
     this.spy_marker = null;
     this.guard_markers = [];
     this.camera_markers = [];
+    this.target_marker = new TargetMarker();
 
     // These variables are used for converting to minimap coordinates because
     // the floor map may not fit the screen exactly.
@@ -159,16 +248,33 @@ Minimap.prototype = {
         return this.ctx.canvas.height;
     },
 
+    max_render_dist: function() {
+        var floormap = this.current_floormap();
+        return Math.hypot(floormap.render_width, floormap.render_height);
+    },
+
     current_floormap: function() {
         return this.floor_maps[this.model.view_floor_index()];
     },
 
-    _marker_radius: function() {
+    _guard_marker_radius: function() {
         return Math.min(this.width() * 0.008, 50);
     },
 
+    _spy_marker_radius: function() {
+        return Math.min(this.width() * 0.0155, 50);
+    },
+
     _camera_icon_radius: function() {
-        return Math.min(this.width() * 0.012, 50);
+        return Math.min(this.width() * 0.0125, 50);
+    },
+
+    _target_marker_min_radius: function() {
+        return Math.min(this.current_floormap().render_width * 0.012, 50);
+    },
+
+    _target_marker_max_radius: function() {
+        return this.current_floormap().render_width * 1.0;
     },
 
     /**
@@ -176,9 +282,7 @@ Minimap.prototype = {
      * in the minimap.
      */
     _convert_game_dist_to_minimap: function(game_dist) {
-        var game_w = (this.model.game_boundaries.max_x - this.model.game_boundaries.min_x);
-        var width_mult = this.current_floormap().render_width / game_w;
-        return width_mult * game_dist;
+        return game_dist * this.max_render_dist() / this.model.max_dist();
     },
 
     /**
@@ -362,6 +466,33 @@ Minimap.prototype = {
     },
 
     /**
+     * Draws a target marker, but doesn't update its radius.
+     * @param {TargetMarker} marker - the marker to draw.
+     */
+    _draw_target_marker: function(marker) {
+        var _this = this;
+        var state = marker.lerped_state();
+
+        // Draw a blurred circle to indicate the area the target is in.
+        function blurred_circle() {
+            var pos = state.minimap_loc;
+            var radius = state.radius;
+
+            //var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 60);
+            var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
+            radgrad.addColorStop(0.00, '#FF0F');
+            radgrad.addColorStop(0.85, '#FF0B');
+            radgrad.addColorStop(1.00, '#FF00');
+
+            _this.ctx.fillStyle = radgrad;
+            _this.ctx.fillRect(pos.x-radius, pos.y-radius, radius*2, radius*2);
+        }
+
+        var alpha = this.model.view_floor_index() == state.floor_index ? 0.5 : 0.15;
+        draw_with_alpha(this.ctx, alpha, blurred_circle);
+    },
+
+    /**
      * Draws the markers, pulses, and background.
      */
     _draw: function() {
@@ -372,6 +503,9 @@ Minimap.prototype = {
         for (var i=0; i<this._pulses.length; i++) {
             this._draw_pulse(this._pulses[i]);
         }
+
+        // Draw the area the target is in.
+        this._draw_target_marker(this.target_marker);
 
         // Draw the camera positions.
         for (var i=0; i<this.camera_markers.length; i++) {
@@ -457,7 +591,7 @@ Minimap.prototype = {
         // If the camera is active, create a pulse from it.
         if (camera_marker.feed_index != null && camera_marker.time_before_pulse < 0) {
             camera_marker.time_before_pulse = camera_marker.start_time_before_pulse;
-            var pulse = new CameraPulse(camera_marker.minimap_loc, camera_marker.max_pulse_dist);
+            var pulse = new CameraPulse(camera_marker.minimap_loc, camera_marker.max_pulse_dist, this.max_render_dist());
             this._pulses.push(pulse);
         }
     },
@@ -496,7 +630,7 @@ Minimap.prototype = {
      */
     _refresh_spy_loc: function() {
         var minimap_loc = this._convert_to_minimap_point(this.model.spy.game_loc);
-        this.spy_marker = new SpyMarker(minimap_loc, 'black', this._marker_radius() * 1.8);
+        this.spy_marker = new SpyMarker(minimap_loc, 'black', this._spy_marker_radius());
     },
 
     /**
@@ -512,7 +646,7 @@ Minimap.prototype = {
         // Add the new markers.
         for (var i=0; i<this.model.game_guards_locs.length; i++) {
             var minimap_loc = this._convert_to_minimap_point(this.model.game_guards_locs[i]);
-            var marker = new GuardMarker(minimap_loc, 'red', this._marker_radius());
+            var marker = new GuardMarker(minimap_loc, 'red', this._guard_marker_radius());
             this.guard_markers.push(marker);
         }
     },
@@ -552,12 +686,29 @@ Minimap.prototype = {
     },
 
     /**
+     * Refreshes the position of the target.
+     */
+    _refresh_target: function() {
+        var minimap_loc = this._convert_to_minimap_point(this.model.game_target.game_loc);
+
+        var min_radius = this._target_marker_min_radius();
+        var max_radius = this._target_marker_max_radius();
+
+        var spy_dist = this.spy_marker.minimap_loc.dist_to(minimap_loc);
+        var max_minimap_dist = this._convert_game_dist_to_minimap(this.model.max_dist());
+
+        this.target_marker.update(minimap_loc, this.model.game_target.floor_index,
+                                  spy_dist, max_minimap_dist, min_radius, max_radius);
+    },
+
+    /**
      * Refreshes the minimap with the position of the spy, guards, and cameras.
      */
     refresh_positons: function() {
         this._refresh_spy_loc();
         this._refresh_guard_locs();
         this._refresh_camera_locs();
+        this._refresh_target();
         this._draw();
     },
 

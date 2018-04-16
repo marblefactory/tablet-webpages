@@ -1,4 +1,11 @@
 
+function Boundaries(min_x, min_y, max_x, max_y) {
+    this.min_x = min_x;
+    this.min_y = min_y;
+    this.max_x = max_x;
+    this.max_y = max_y;
+}
+
 /**
  * @param {Point} game_loc - the location of the camera in the game.
  * @param {number} max_visibility_dist - the maximum distance from the camera
@@ -37,6 +44,24 @@ Spy.from_json = function(json) {
 }
 
 /**
+ * Represents a target that the spy is trying to reach.
+ */
+function Target(game_loc, floor_index) {
+    this.game_loc = game_loc;
+    this.floor_index = floor_index;
+}
+
+/**
+ * Parses a Target from a json object.
+ */
+Target.from_json = function(json) {
+    var game_loc = checkJsonHas(json, 'loc', 'Target');
+    var floor_index = checkJsonHas(json, 'floor_index', 'Target');
+
+    return new Target(game_loc, floor_index);
+}
+
+/**
  * @param {[string]} camera_feed_colors - the colors associated with each of the 4 feeds.
  */
 function Model(camera_colors) {
@@ -52,6 +77,8 @@ function Model(camera_colors) {
     this.spy = null;
     this.game_guards_locs = null;
     this.game_cameras = null;
+
+    this.game_target = null;
 
     // The color associated with each camera. This is used to make it easier
     // to tell which camera corresponds to which feed.
@@ -110,6 +137,7 @@ Model.prototype = {
         this.spy = Spy.from_json(locations.spy);
         this.game_guards_locs = locations.guards_locs;
         this.game_cameras = locations.cameras;
+        this.game_target = Target.from_json(locations.target);
 
         if (!this._called_onload) {
             this.onload();
@@ -159,5 +187,15 @@ Model.prototype = {
         else {
             this._set_selected_floor = floor_index;
         }
+    },
+
+    /**
+     * @return {number} the maximum distance two objects can be apart from each other.
+     */
+    max_dist: function() {
+        var game_width = this.game_boundaries.max_x - this.game_boundaries.min_x;
+        var game_height = this.game_boundaries.max_y - this.game_boundaries.min_y;
+
+        return Math.hypot(game_width, game_height);
     }
 }

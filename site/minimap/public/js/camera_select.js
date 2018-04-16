@@ -22,10 +22,10 @@ CameraSelectorView.prototype = {
 
         // Add images for the 4 feeds to select.
         var static_images = [
+            "https://media.giphy.com/media/OVlFjmEDhx9rG/giphy.gif",
             "https://media.giphy.com/media/M6hgceLnI2uJi/giphy.gif",
             "https://media.giphy.com/media/Yqn9tE2E00k4U/giphy.gif",
-            "https://media.giphy.com/media/XuBNdP9Pb7W9i/giphy.gif",
-            "https://media.giphy.com/media/OVlFjmEDhx9rG/giphy.gif"
+            "https://media.giphy.com/media/XuBNdP9Pb7W9i/giphy.gif"
         ]
 
         for (var i=0; i<static_images.length; i++) {
