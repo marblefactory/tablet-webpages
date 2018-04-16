@@ -95,7 +95,7 @@ function handle_get_spy_position(response) {
     }
 
     var target = {
-        floor_index: 0,
+        floor_index: 1,
         loc: {
             x: 150,
             y: 250
