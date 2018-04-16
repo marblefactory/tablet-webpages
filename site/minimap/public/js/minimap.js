@@ -252,12 +252,16 @@ Minimap.prototype = {
         return this.floor_maps[this.model.view_floor_index()];
     },
 
-    _marker_radius: function() {
+    _guard_marker_radius: function() {
         return Math.min(this.width() * 0.008, 50);
     },
 
+    _spy_marker_radius: function() {
+        return Math.min(this.width() * 0.0155, 50);
+    },
+
     _camera_icon_radius: function() {
-        return Math.min(this.width() * 0.012, 50);
+        return Math.min(this.width() * 0.0135, 50);
     },
 
     _target_marker_min_radius: function() {
@@ -623,7 +627,7 @@ Minimap.prototype = {
      */
     _refresh_spy_loc: function() {
         var minimap_loc = this._convert_to_minimap_point(this.model.spy.game_loc);
-        this.spy_marker = new SpyMarker(minimap_loc, 'black', this._marker_radius() * 1.8);
+        this.spy_marker = new SpyMarker(minimap_loc, 'black', this._spy_marker_radius());
     },
 
     /**
@@ -639,7 +643,7 @@ Minimap.prototype = {
         // Add the new markers.
         for (var i=0; i<this.model.game_guards_locs.length; i++) {
             var minimap_loc = this._convert_to_minimap_point(this.model.game_guards_locs[i]);
-            var marker = new GuardMarker(minimap_loc, 'red', this._marker_radius());
+            var marker = new GuardMarker(minimap_loc, 'red', this._guard_marker_radius());
             this.guard_markers.push(marker);
         }
     },

@@ -60,16 +60,18 @@ var g_spy_floor_index = 1; // Index of the floor the spy is on.
 var g_selected_floor_num = -1; // -1 indicates to follow the spy.
 var g_spy_loc = { x: 0, y: 0 }; // The location of the spy.
 
-var cameras = [
-    { loc: { x: 200, y: 150 }, feed_index: null, max_visibility_dist: 30, id: 10 },
-    { loc: { x: 50,  y: 60 },  feed_index: null, max_visibility_dist: 30, id: 11 },
-    { loc: { x: 260, y: 240 }, feed_index: 0, max_visibility_dist: 30, id: 12 },
-    { loc: { x: 20,   y: 300 },   feed_index: null, max_visibility_dist: 30, id: 13 },
-    { loc: { x: 20,   y: 20 },   feed_index: 1, max_visibility_dist: 30, id: 14 },
-    { loc: { x: 20,   y: 350 },   feed_index: 2, max_visibility_dist: 30, id: 15 },
-    { loc: { x: 350,  y: 350 },   feed_index: 3, max_visibility_dist: 30, id: 16 },
-    { loc: { x: 150,  y: 275 },   feed_index: null, max_visibility_dist: 30, id: 17 },
-];
+// var cameras = [
+//     { loc: { x: 200, y: 150 }, feed_index: null, max_visibility_dist: 30, id: 10 },
+//     { loc: { x: 50,  y: 60 },  feed_index: null, max_visibility_dist: 30, id: 11 },
+//     { loc: { x: 260, y: 240 }, feed_index: 0, max_visibility_dist: 30, id: 12 },
+//     { loc: { x: 20,   y: 300 },   feed_index: null, max_visibility_dist: 30, id: 13 },
+//     { loc: { x: 20,   y: 20 },   feed_index: 1, max_visibility_dist: 30, id: 14 },
+//     { loc: { x: 20,   y: 350 },   feed_index: 2, max_visibility_dist: 30, id: 15 },
+//     { loc: { x: 350,  y: 350 },   feed_index: 3, max_visibility_dist: 30, id: 16 },
+//     { loc: { x: 150,  y: 275 },   feed_index: null, max_visibility_dist: 30, id: 17 },
+// ];
+
+var g_cameras = [];
 
 /**
  * Sends the client the position of the spy, guards, cameras, and the floor number.
@@ -102,10 +104,26 @@ function handle_get_spy_position(response) {
         }
     };
 
+    if (g_cameras.length == 0) {
+        for (var i=0; i<14; i++) {
+            var camera = {
+                feed_index: null,
+                max_visibility_dist: 50,
+                loc: {
+                    x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
+                    y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
+                },
+                id: i
+            };
+
+            g_cameras.push(camera);
+        }
+    }
+
     var locations = {
         spy: spy,
         guards_locs: guards_locs,
-        cameras: cameras,
+        cameras: g_cameras,
         target: target
     };
 
@@ -140,16 +158,16 @@ function handle_posted_camera_chosen(request, response) {
         console.log(`Replaced feed ${json.replace_feed_index} with game camera ${json.new_camera_game_id}`);
 
         // Find the index of the camera to be updated.
-        var new_camera_idx = cameras.findIndex(cam => cam.id == json.new_camera_game_id);
-        var old_camera_idx = cameras.findIndex(cam => cam.feed_index == json.replace_feed_index);
+        var new_camera_idx = g_cameras.findIndex(cam => cam.id == json.new_camera_game_id);
+        var old_camera_idx = g_cameras.findIndex(cam => cam.feed_index == json.replace_feed_index);
 
         // If there isn't a camera already with that feed, simply set the
         // feed of the new camera.
         if (old_camera_idx == -1) {
-            cameras[new_camera_idx].feed_index = json.replace_feed_index;
+            g_cameras[new_camera_idx].feed_index = json.replace_feed_index;
         } else {
-            cameras[new_camera_idx].feed_index = cameras[old_camera_idx].feed_index;
-            cameras[old_camera_idx].feed_index = null;
+            g_cameras[new_camera_idx].feed_index = g_cameras[old_camera_idx].feed_index;
+            g_cameras[old_camera_idx].feed_index = null;
         }
     });
 
