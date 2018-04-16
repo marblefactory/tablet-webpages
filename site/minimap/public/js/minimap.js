@@ -93,8 +93,8 @@ function CameraPulse(minimap_loc, max_radius, screen_max_dist) {
 
     // The minimum and maximum rate at which the radius can increase.
     // Randomness helps make the cameras look less 'samey'.
-    var min_delta_r = screen_max_dist * 0.0005;//0.5;
-    var max_delta_r = screen_max_dist * 0.00055;//0.55;
+    var min_delta_r = screen_max_dist * 0.00032;//0.5;
+    var max_delta_r = screen_max_dist * 0.00035;//0.55;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
 
