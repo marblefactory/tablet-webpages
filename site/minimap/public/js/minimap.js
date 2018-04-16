@@ -84,7 +84,7 @@ function CameraMarker(minimap_loc, feed_index, max_pulse_dist, game_id) {
 }
 
 // Represents a radar pulse from a camera.
-function CameraPulse(minimap_loc, max_radius) {
+function CameraPulse(minimap_loc, max_radius, screen_max_dist) {
     this.minimap_loc = minimap_loc;
     this.color = 'white';
     this.radius = 0;
@@ -93,8 +93,8 @@ function CameraPulse(minimap_loc, max_radius) {
 
     // The minimum and maximum rate at which the radius can increase.
     // Randomness helps make the cameras look less 'samey'.
-    var min_delta_r = 0.5;
-    var max_delta_r = 0.55;
+    var min_delta_r = screen_max_dist * 0.0005;//0.5;
+    var max_delta_r = screen_max_dist * 0.00055;//0.55;
 
     this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
 
@@ -248,6 +248,11 @@ Minimap.prototype = {
         return this.ctx.canvas.height;
     },
 
+    max_render_dist: function() {
+        var floormap = this.current_floormap();
+        return Math.hypot(floormap.render_width, floormap.render_height);
+    },
+
     current_floormap: function() {
         return this.floor_maps[this.model.view_floor_index()];
     },
@@ -277,9 +282,7 @@ Minimap.prototype = {
      * in the minimap.
      */
     _convert_game_dist_to_minimap: function(game_dist) {
-        var floormap = this.current_floormap();
-        var render_max_dist = Math.hypot(floormap.render_width, floormap.render_height);
-        return game_dist * render_max_dist / this.model.max_dist();
+        return game_dist * this.max_render_dist() / this.model.max_dist();
     },
 
     /**
@@ -588,7 +591,7 @@ Minimap.prototype = {
         // If the camera is active, create a pulse from it.
         if (camera_marker.feed_index != null && camera_marker.time_before_pulse < 0) {
             camera_marker.time_before_pulse = camera_marker.start_time_before_pulse;
-            var pulse = new CameraPulse(camera_marker.minimap_loc, camera_marker.max_pulse_dist);
+            var pulse = new CameraPulse(camera_marker.minimap_loc, camera_marker.max_pulse_dist, this.max_render_dist());
             this._pulses.push(pulse);
         }
     },
