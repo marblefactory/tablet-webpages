@@ -88,7 +88,7 @@ function handle_get_spy_position(response) {
 
     var guards_locs = [];
 
-    for (var i=0; i<Math.floor(Math.random() * 100) + 30; i++) {
+    for (var i=0; i<10; i++) {
         guard_loc = {
             x: Math.random() * 300 + 20,
             y: Math.random() * 300 + 20
@@ -108,7 +108,7 @@ function handle_get_spy_position(response) {
         for (var i=0; i<14; i++) {
             var camera = {
                 feed_index: null,
-                max_visibility_dist: 50,
+                max_visibility_dist: 35,
                 loc: {
                     x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
                     y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.

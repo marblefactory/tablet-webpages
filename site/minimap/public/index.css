@@ -137,7 +137,8 @@ ul {
 
 #floor_list {
     position: absolute;
-    padding-top: 10px;
+    right: 12px;
+    bottom: 12px;
     width: 17vw;
 }
 
@@ -179,7 +180,7 @@ ul {
  ** the same a the floor being viewed.
  */
 .spy_floor_indicator {
-    float: left;
+    float: right;
     width: 14%; /* other 80% comes from floor select button */
     margin-right: 1%;
     height: 100%;
