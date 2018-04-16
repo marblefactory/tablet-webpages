@@ -7,23 +7,16 @@
         <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet"/>
 
         <style>
+
+        /*
+         ** General
+         */
+
         html, body {
-          width:  100%;
-          height: 100%;
-          margin: 0;
-          overflow: hidden;
-        }
-
-        h1 {
-            user-select: none;
-        }
-
-        #floor {
-            position: absolute;
-            font-family: 'Roboto Mono', monospace;
-            font-weight: bold;
-            color: white;
-            margin: 30px;
+            width:  100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
         }
 
         @keyframes fadeInScale {
@@ -31,7 +24,9 @@
             100% { opacity: 1; }
         }
 
-        /* Camera selection view */
+        /*
+         ** Camera selection view
+         */
 
         .grid-container {
             display: inline-grid;
@@ -57,7 +52,6 @@
 
         .modal_background {
             display: none;
-            display: block;
             position: fixed;
             z-index: 1;
             left: 0;
@@ -91,6 +85,14 @@
             opacity: 0.65;
         }
 
+        .camera_color_line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
         .feed_label {
             margin: 0;
             padding: 0;
@@ -113,11 +115,110 @@
             color: #ccc;
         }
 
+        /*
+         ** Minimap
+         */
+
+        #grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        #minimap {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /*
+         ** Floor Selection
+         */
+
+        ul {
+            list-style-type: none;
+            display: table;
+            height: 1px; /* Any small height will work */
+            border-collapse: separate;
+            border-spacing: 12px;
+        }
+
+        #floor_list {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            width: 17vw;
+        }
+
+        #floor_list li {
+            padding-top: 12px;
+            width: 100%;
+            display: table-row;
+        }
+
+        .floor_select_button {
+            border: none;
+            outline: none;
+            padding: 10px 8px;
+            width: 85%; /* other 20% comes from spy indicator */
+
+            background-color: #FFF4;
+
+            color: #FFFC;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: bold;
+            font-size: 130%;
+
+            transition-duration: 0.1s;
+        }
+
+        .floor_select_button:active {
+            background-color: white;
+            color: black;
+        }
+
+        /* The style of the button of the floor the player is viewing */
+        .current_floor_select_button {
+            background-color: white;
+            color: black;
+        }
+
+        /*
+         ** Used to tell the player which floor the spy is on. This is not necessarily
+         ** the same a the floor being viewed.
+         */
+        .spy_floor_indicator {
+            float: right;
+            width: 14%; /* other 80% comes from floor select button */
+            margin-left: 1%;
+            height: 100%;
+        }
+
+        .spy_floor_indicator.inactive {
+            opacity: 0.0;
+            transition-duration: 0.1s;
+        }
+
+        .spy_floor_indicator.active {
+            opacity: 1.0;
+            transition-duration: 0.1s;
+        }
         </style>
 
         <!-- <script src="js/touch.js"></script> -->
         <script>
         //<![CDATA[
+
+        function checkJsonHas(json, fieldName, typeName) {
+            if (json[fieldName] === undefined) {
+                var json_str = JSON.stringify(json, null, 2); // spacing level = 2
+                alert(`Json Parse Error: Missing '${fieldName}' when parsing '${typeName}'.\n\nGot JSON ${json_str}`);
+                return null;
+            }
+            return json[fieldName];
+        }
+
 
         /**
          * Adds touch and click events to the supplied DOM element.
@@ -163,9 +264,14 @@
             request.send(JSON.stringify(obj));
         }
 
-        function CameraSelectorView() {
+
+        /**
+         * @param {[string]} camera_feed_colors - the colors associated with each of the 4 feeds.
+         */
+        function CameraSelectorView(camera_feed_colors) {
             this._background = document.querySelector("#camera_select_background");
-            this._setup_background();``
+            this._camera_feed_colors = camera_feed_colors;
+            this._setup_background();
             this._setup_foreground();
 
             // Called when a camera feed is pressed. The index of the feed is supplied.
@@ -182,10 +288,10 @@
 
                 // Add images for the 4 feeds to select.
                 var static_images = [
+                    "https://media.giphy.com/media/OVlFjmEDhx9rG/giphy.gif",
                     "https://media.giphy.com/media/M6hgceLnI2uJi/giphy.gif",
                     "https://media.giphy.com/media/Yqn9tE2E00k4U/giphy.gif",
-                    "https://media.giphy.com/media/XuBNdP9Pb7W9i/giphy.gif",
-                    "https://media.giphy.com/media/ECeEafzJSLDoc/giphy.gif"
+                    "https://media.giphy.com/media/XuBNdP9Pb7W9i/giphy.gif"
                 ]
 
                 for (var i=0; i<static_images.length; i++) {
@@ -208,6 +314,12 @@
                     feed_label.innerHTML = `feed 0${i}`;
                     feed_div.append(feed_label);
 
+                    // Line showing the color associated with the camera.
+                    var color_div = document.createElement('div');
+                    color_div.className = 'camera_color_line';
+                    color_div.style.backgroundColor = this._camera_feed_colors[i];
+                    feed_div.append(color_div);
+
                     // Add touch events for pressing
                     add_press_event_listener(camera_static_div, pressed);
 
@@ -228,35 +340,90 @@
         };
 
 
-        // The location of a camera in the game, and whether the user is viewing the
-        // camera feed.
-        /**
-         * @param {Point} game_loc - the location of the camera in the game.
-         * @param {boolean} is_active - whether the feed of the camera is being viewed.
-         * @param {number} max_visibility_dist - the maximum distance from the camera
-         *                                       which guards can be automatically detected.
-         */
-        function Camera(game_loc, is_active, max_visibility_dist) {
-            this.game_loc = game_loc;
-            this.is_active = is_active;
-            this.max_visibility_dist = max_visibility_dist;
+        function Boundaries(min_x, min_y, max_x, max_y) {
+            this.min_x = min_x;
+            this.min_y = min_y;
+            this.max_x = max_x;
+            this.max_y = max_y;
         }
 
-        function Model() {
-            this.floor_num = 0;
+        /**
+         * @param {Point} game_loc - the location of the camera in the game.
+         * @param {number} max_visibility_dist - the maximum distance from the camera
+         *                                       which guards can be automatically detected.
+         * @param {number} feed_index - the index 0-4 corresponding to the feed of the
+         *                              camera. Or, null if the camera is not active.
+         * @param {number} id - the id in the game of the camera.
+         */
+        function Camera(game_loc, max_visibility_dist, feed_index, id) {
+            this.game_loc = game_loc;
+            this.max_visibility_dist = max_visibility_dist;
+            this.feed_index = feed_index;
+            this.id = id;
+        }
+
+        /**
+         * @param {number} dir_rad - the angle in radian, that the spy is facing.
+         * @param {Point} game_loc - the location of the spy in the game.
+         * @param {number} floor_index - the index of the floor the is on.
+         */
+        function Spy(dir_rad, game_loc, floor_index) {
+            this.dir_rad = dir_rad;
+            this.game_loc = game_loc;
+            this.floor_index = floor_index;
+        }
+
+        /**
+         * Parses a Spy from a json object.
+         */
+        Spy.from_json = function(json) {
+            var dir_rad = checkJsonHas(json, 'dir_rad', 'Spy');
+            var game_loc = checkJsonHas(json, 'loc', 'Spy');
+            var floor_index = checkJsonHas(json, 'floor_index', 'Spy');
+
+            return new Spy(dir_rad, game_loc, floor_index);
+        }
+
+        /**
+         * Represents a target that the spy is trying to reach.
+         */
+        function Target(game_loc, floor_index) {
+            this.game_loc = game_loc;
+            this.floor_index = floor_index;
+        }
+
+        /**
+         * Parses a Target from a json object.
+         */
+        Target.from_json = function(json) {
+            var game_loc = checkJsonHas(json, 'loc', 'Target');
+            var floor_index = checkJsonHas(json, 'floor_index', 'Target');
+
+            return new Target(game_loc, floor_index);
+        }
+
+        /**
+         * @param {[string]} camera_feed_colors - the colors associated with each of the 4 feeds.
+         */
+        function Model(camera_colors) {
+            // The index of the floor selected to view, or -1 if the minimap should
+            // follow the spy as they move between floors.
+            this._set_selected_floor = -1;
             this.num_floors = 3;
             this.floor_names = ['Basement', 'Floor 1', 'Roof'];
             // The boundaries of the 3d game. The locations of objects cannot go
             // outside these boundaries.
             this.game_boundaries = null;
 
-            // The direction the spy is looking in.
-            this.spy_dir_rad = null;
-
-            // The positions of objects in the game.
-            this.spy_game_loc = null;
-            this.guard_game_locs = null;
+            this.spy = null;
+            this.game_guards_locs = null;
             this.game_cameras = null;
+
+            this.game_target = null;
+
+            // The color associated with each camera. This is used to make it easier
+            // to tell which camera corresponds to which feed.
+            this.camera_colors = camera_colors;
 
             // Called once the positions of objects have been retreived the first time.
             this.onload = function() {};
@@ -271,8 +438,6 @@
             _get_boundaries: function(callback) {
                 var _this = this;
                 get('boundaries', function(response) {
-                    console.log("BOUNDARIES");
-                    console.log(response);
                     _this.game_boundaries = JSON.parse(response);
                     callback();
                 });
@@ -292,30 +457,90 @@
                     // A floor number of -1 indicates that we want the server to send
                     // back the floor on which the spy is.
                     var floor_num_obj = {
-                        floor_num: -1
+                        floor_num: this._set_selected_floor
                     };
 
                     post_obj('positions', floor_num_obj, function(response) {
-                        var locations = JSON.parse(response);
-                        
-                        _this.spy_dir_rad = locations.spy_dir_rad;
-                        _this.floor_num = locations.floor_num;
-                        _this.spy_game_loc = locations.spy_loc;
-                        _this.guard_game_locs = locations.guard_locs;
-                        _this.game_cameras = locations.cameras;
-
-                        if (!_this._called_onload) {
-                            _this.onload();
-                            _this._called_onload = true;
-                        }
-
+                        _this.update_from_game_response(response);
                         callback();
 
                         setTimeout(poll, interval_time);
                     });
                 }
+            },
+
+            /**
+             * Updates the state of the model from a response from the game.
+             */
+            update_from_game_response(response) {
+                var locations = JSON.parse(response);
+
+                this.spy = Spy.from_json(locations.spy);
+                this.game_guards_locs = locations.guards_locs;
+                this.game_cameras = locations.cameras;
+                this.game_target = Target.from_json(locations.target);
+
+                if (!this._called_onload) {
+                    this.onload();
+                    this._called_onload = true;
+                }
+            },
+
+            /**
+             * Updates the feed indices of the new game and camera which previously
+             * had a feed_index of `replace_feed_index`.
+             */
+            update_camera_feed_indices: function(new_camera_game_id, replace_feed_index) {
+                var new_camera_idx = this.game_cameras.findIndex(cam => cam.id == new_camera_game_id);
+                var old_camera_idx = this.game_cameras.findIndex(cam => cam.feed_index == replace_feed_index);
+
+                // If there isn't a camera already with that feed, simply set the
+                // feed of the new camera.
+                if (old_camera_idx == -1) {
+                    this.game_cameras[new_camera_idx].feed_index = replace_feed_index;
+                }
+                else {
+                    this.game_cameras[new_camera_idx].feed_index = this.game_cameras[old_camera_idx].feed_index;
+                    this.game_cameras[old_camera_idx].feed_index = null;
+                }
+            },
+
+            /**
+             * @return the index of the floor to display. Either the selected floor
+             *         index, or the index of the floor the spy is on if following the spy.
+             */
+            view_floor_index: function() {
+                if (this._set_selected_floor == -1) {
+                    return this.spy.floor_index;
+                }
+                return this._set_selected_floor;
+            },
+
+            /**
+             * Sets the selected floor index to either be the index of the selected
+             * floor, or the to automatically follow the spy if the floor with the
+             * spy on is selected.
+             */
+            set_selected_floor: function(floor_index) {
+                if (floor_index == this.spy.floor_index) {
+                    this._set_selected_floor = -1;
+                }
+                else {
+                    this._set_selected_floor = floor_index;
+                }
+            },
+
+            /**
+             * @return {number} the maximum distance two objects can be apart from each other.
+             */
+            max_dist: function() {
+                var game_width = this.game_boundaries.max_x - this.game_boundaries.min_x;
+                var game_height = this.game_boundaries.max_y - this.game_boundaries.min_y;
+
+                return Math.hypot(game_width, game_height);
             }
         }
+
 
         function Color(r, g, b) {
             this.r = r;
@@ -399,6 +624,7 @@
             return x + (y - x) * t;
         }
 
+
         /**
          * Loads the images with the given image names and calls the callback once they
          * are all loaded. The callback is given a list of loaded images.
@@ -411,11 +637,6 @@
                     complete(images);
                     return;
                 }
-
-                // var image = new Image();
-                // image.onload = () => _preload(images, image_names, complete);
-                // image.onerror = () => console.log(`FAILED LOADING ${name}`);
-                // image.src = name;
 
                 var name = image_names.pop();
                 var image = new Image();
@@ -432,6 +653,7 @@
             }
         }
 
+
         function Point(x, y) {
             this.x = x;
             this.y = y;
@@ -444,13 +666,23 @@
                 var dy = this.y - point.y;
                 return Math.sqrt(dx * dx + dy * dy);
             }
-        }
 
-        function Boundaries(min_x, min_y, max_x, max_y) {
-            this.min_x = min_x;
-            this.min_y = min_y;
-            this.max_x = max_x;
-            this.max_y = max_y;
+            /**
+             * Linearly interpolates between this point and the end point.
+             */
+            this.lerped = function(end, t) {
+                var x = lerp(this.x, end.x, t);
+                var y = lerp(this.y, end.y, t);
+                return new Point(x, y);
+            }
+
+            /**
+             * @return {Point} the result of adding the component of this point and the
+             *                 other point.
+             */
+            this.added = function(other) {
+                return new Point(this.x + other.x, this.y + other.y);
+            }
         }
 
         /**
@@ -482,15 +714,19 @@
             this.minimap_loc = minimap_loc;
             this.color = color;
             this.radius = radius;
-            this.opacity = 1.0;
-            this.delta_opacity = -0.003;
+            this.opacity = 0.0;
+            this.delta_opacity = -0.002;
+            this.min_opacity = 0.2;
+            // Set to false when a new marker is created. Therefore letting this
+            // marker fade away and be deleted.
+            this.can_update_opacity = true;
         }
 
         // Represents a camera marker on the minimap, which is used to display a
         // camera icon and plusing sphere to show with cameras are active.
-        function CameraMarker(minimap_loc, is_active, max_pulse_dist) {
+        function CameraMarker(minimap_loc, feed_index, max_pulse_dist, game_id) {
             this.minimap_loc = minimap_loc;
-            this.is_active = is_active;
+            this.feed_index = feed_index;
             // The maximum time before a new pulse is made.
             this.start_time_before_pulse = 250;
             // The time remaining before a pulse is made. A pulse is made immediately
@@ -498,10 +734,12 @@
             this.time_before_pulse = 0;
             // The maximum distance on the minimap which pulses can travel.
             this.max_pulse_dist = max_pulse_dist;
+            // The id of the camera in the game.
+            this.game_id = game_id;
         }
 
         // Represents a radar pulse from a camera.
-        function CameraPulse(minimap_loc, max_radius) {
+        function CameraPulse(minimap_loc, max_radius, screen_max_dist) {
             this.minimap_loc = minimap_loc;
             this.color = 'white';
             this.radius = 0;
@@ -510,8 +748,8 @@
 
             // The minimum and maximum rate at which the radius can increase.
             // Randomness helps make the cameras look less 'samey'.
-            var min_delta_r = 0.5;
-            var max_delta_r = 0.55;
+            var min_delta_r = screen_max_dist * 0.00032;
+            var max_delta_r = screen_max_dist * 0.00035;
 
             this.delta_radius = Math.random() * (max_delta_r - min_delta_r) + min_delta_r;
 
@@ -520,6 +758,84 @@
             };
         }
 
+        // Represents a target marker. The radius of the marker decreases as the spy
+        // gets closer to the target.
+        function TargetMarkerState(minimap_loc, radius, floor_index) {
+            this.minimap_loc = minimap_loc;
+            this.radius = radius;
+            this.floor_index = floor_index;
+        }
+
+        // Represents the states of the target marker. These are required for
+        // animations from the old to new state, e.g. shrinking radius.
+        function TargetMarker() {
+            this.new_state = null;
+            this.old_state = null;
+
+            // The maximum percentage of the radius of the marker to offset the marker
+            // by. Therefore randomising the position of the marker and making it
+            // harder to find the target.
+            this.jitter_radius_multiplier = 0.6;
+
+            this.anim_duration_ms = 200;
+            // The time that the animation started. Used to tell how far along the
+            // animation should be.
+            this.anim_start = null;
+        }
+
+        TargetMarker.prototype = {
+            /**
+             * @return {Point} a random point in a circle with origin (0,0) and radius r.
+             */
+            _rand_point_in_radius: function(r) {
+                var x = Math.random() * r * 2 - r;
+                var y = Math.random() * r * 2 - r;
+                return new Point(x, y);
+            },
+
+            /**
+             * Updates the new and old states based on the new position of the spy,
+             * and target.
+             */
+            update: function(minimap_loc, floor_index, spy_dist, max_dist, min_radius, max_radius) {
+                var new_radius = spy_dist / max_dist * (max_radius - min_radius) + min_radius;
+
+                // Add a random x and y to the position, which decreases as the spy
+                // gets closer to the target.
+                var jitter_radius = new_radius * this.jitter_radius_multiplier;
+                var jittered_loc = this._rand_point_in_radius(jitter_radius);
+
+                this.old_state = this.new_state;
+                this.new_state = new TargetMarkerState(jittered_loc.added(minimap_loc), new_radius, floor_index);
+
+                this.anim_start = Date.now();
+            },
+
+            /**
+             * @return {TargetMarkerState} the state interpolated between the old and
+             *         new states to animate from one state to the other over time.
+             */
+            lerped_state: function() {
+                if (this.old_state === null) {
+                    return this.new_state;
+                }
+
+                // The proportion of the animation should be completed.
+                var curr_time = Date.now();
+                var tt = (curr_time - this.anim_start) / this.anim_duration_ms;
+                var t = tt * tt;
+
+                if (t >= 1.0) {
+                    return this.new_state;
+                }
+
+                var loc = this.old_state.minimap_loc.lerped(this.new_state.minimap_loc, t);
+                var radius = lerp(this.old_state.radius, this.new_state.radius, t);
+
+                return new TargetMarkerState(loc, radius, this.new_state.floor_index);
+            }
+        };
+
         /**
          * @param {Canvas} canvas - used to draw the minimap.
          * @param {Boundaries} model - used to get information about what to display.
@@ -527,7 +843,6 @@
         function Minimap(canvas, model) {
             this.model = model;
             this.ctx = canvas.getContext('2d');
-            this.floor_label_elem = document.querySelector('#floor');
 
             // Make the canvas fullscreen.
             this.ctx.canvas.width = window.innerWidth;
@@ -536,6 +851,7 @@
             this.spy_marker = null;
             this.guard_markers = [];
             this.camera_markers = [];
+            this.target_marker = new TargetMarker();
 
             // These variables are used for converting to minimap coordinates because
             // the floor map may not fit the screen exactly.
@@ -565,7 +881,6 @@
             load_images: function(callback) {
                 var image_names = [
                     'images/cctv_icon.png',
-                    'images/floor_maps/background.png',
                     'images/floor_maps/floor2.png',
                     'images/floor_maps/floor1.png',
                     'images/floor_maps/floor0.png'
@@ -575,7 +890,6 @@
 
                 function complete(images) {
                     this.cctv_icon = images.pop();
-                    this.grid_background = images.pop();
                     this.floor_maps = images.map(img => new FloorMap(img, this.width(), this.height()));
                     callback();
                 }
@@ -589,16 +903,33 @@
                 return this.ctx.canvas.height;
             },
 
-            current_floormap: function() {
-                return this.floor_maps[this.model.floor_num];
+            max_render_dist: function() {
+                var floormap = this.current_floormap();
+                return Math.hypot(floormap.render_width, floormap.render_height);
             },
 
-            _marker_radius: function() {
+            current_floormap: function() {
+                return this.floor_maps[this.model.view_floor_index()];
+            },
+
+            _guard_marker_radius: function() {
                 return Math.min(this.width() * 0.008, 50);
             },
 
+            _spy_marker_radius: function() {
+                return Math.min(this.width() * 0.0155, 50);
+            },
+
             _camera_icon_radius: function() {
-                return Math.min(this.width() * 0.011, 50);
+                return Math.min(this.width() * 0.0125, 50);
+            },
+
+            _target_marker_min_radius: function() {
+                return Math.min(this.current_floormap().render_width * 0.012, 50);
+            },
+
+            _target_marker_max_radius: function() {
+                return this.current_floormap().render_width * 1.0;
             },
 
             /**
@@ -606,28 +937,26 @@
              * in the minimap.
              */
             _convert_game_dist_to_minimap: function(game_dist) {
-                var game_w = (this.model.game_boundaries.max_x - this.model.game_boundaries.min_x);
-                var width_mult = this.current_floormap().render_width / game_w;
-                return width_mult * game_dist;
+                return game_dist * this.max_render_dist() / this.model.max_dist();
             },
 
             /**
              * Returns the point in game coordinates into minimap coordinates.
              */
-             _convert_to_minimap_point: function(game_point) {
-                 var floormap = this.current_floormap();
+            _convert_to_minimap_point: function(game_point) {
+                var floormap = this.current_floormap();
 
-                 var game_w = (this.model.game_boundaries.max_x - this.model.game_boundaries.min_x);
-                 var width_mult = floormap.render_width / game_w;
+                var game_w = (this.model.game_boundaries.max_x - this.model.game_boundaries.min_x);
+                var width_mult = floormap.render_width / game_w;
 
-                 var game_h = (this.model.game_boundaries.max_y - this.model.game_boundaries.min_y);
-                 var height_mult = floormap.render_height / game_h;
+                var game_h = (this.model.game_boundaries.max_y - this.model.game_boundaries.min_y);
+                var height_mult = floormap.render_height / game_h;
 
-                 var minimap_x = (game_point.x - this.model.game_boundaries.min_x) * width_mult + floormap.start_x;
-                 var minimap_y = (game_point.y - this.model.game_boundaries.min_y) * height_mult + floormap.start_y;
+                var minimap_x = (game_point.x - this.model.game_boundaries.min_x) * width_mult + floormap.start_x;
+                var minimap_y = (game_point.y - this.model.game_boundaries.min_y) * height_mult + floormap.start_y;
 
-                 return new Point(minimap_x, minimap_y);
-             },
+                return new Point(minimap_x, minimap_y);
+            },
 
             /**
              * Returns whether the given point is inside the bonding box.
@@ -658,16 +987,16 @@
                 // Check which camera was pressed, if any.
                 for (var i=0; i<this.camera_markers.length; i++) {
                     if (this._is_inside_box(press_loc, this.camera_markers[i].minimap_loc, this._camera_icon_radius())) {
-                        this.on_camera_pressed(i);
+                        this.on_camera_pressed(this.camera_markers[i].game_id);
                     }
                 }
             },
 
             /**
-             * Fills the background with a background color.
+             * Fills the background with a grid image.
              */
             _draw_background_grid: function() {
-                this.ctx.drawImage(this.grid_background, 0, 0, this.width(), this.height());
+                this.ctx.clearRect(0, 0, this.width(), this.height());
             },
 
             /**
@@ -692,13 +1021,21 @@
              * @param {SpyMarker} marker - the marker to draw.
              */
             _draw_spy_marker: function(marker) {
+                // If the spy is not on the same floor, draw with reduced alpha to
+                // be able to tell where the spy is at all times.
+                var alpha = this.model.spy.floor_index === this.model.view_floor_index() ? 1.0 : 0.25;
+
                 // Draw an indicator of the direction the spy is facing.
                 var dx = marker.minimap_loc.x;
                 var dy = marker.minimap_loc.y;
-                draw_with_translation(this.ctx, dx, dy, draw_rotated_arrow.bind(this))
+                draw_with_alpha(this.ctx, alpha, draw_translated_arrow.bind(this));
+
+                function draw_translated_arrow() {
+                    draw_with_translation(this.ctx, dx, dy, draw_rotated_arrow.bind(this))
+                }
 
                 function draw_rotated_arrow() {
-                    draw_with_rotation(this.ctx, this.model.spy_dir_rad, draw_arrow_at_horizontal.bind(this));
+                    draw_with_rotation(this.ctx, this.model.spy.dir_rad, draw_arrow_at_horizontal.bind(this));
                 }
 
                 // Draws an arrow pointing horzontally to the right.
@@ -740,7 +1077,6 @@
                 if (marker.opacity <= 0) {
                     return;
                 }
-
                 draw_with_alpha(this.ctx, marker.opacity, () => this._draw_marker(marker));
             },
 
@@ -750,14 +1086,20 @@
              */
             _draw_camera_marker: function(marker) {
                 var icon_radius = this._camera_icon_radius();
+                var camera_color = marker.feed_index == null ? 'white' : this.model.camera_colors[marker.feed_index];
+
+                // Draw the background for the icon. Because the center of the camera
+                // icon is transparent, this color will show through behind.
+                fill_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, camera_color);
+
                 this.ctx.drawImage(this.cctv_icon,
                                    marker.minimap_loc.x - icon_radius,
                                    marker.minimap_loc.y - icon_radius,
                                    icon_radius * 2,
                                    icon_radius * 2);
 
-                // A white stroke around the icon.
-                stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, 1, 'white');
+                // Stroke around the camera with its feed color, or white.
+                stroke_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, 1, camera_color);
             },
 
             /**
@@ -779,16 +1121,46 @@
             },
 
             /**
-             * Draws the markers and background.
+             * Draws a target marker, but doesn't update its radius.
+             * @param {TargetMarker} marker - the marker to draw.
+             */
+            _draw_target_marker: function(marker) {
+                var _this = this;
+                var state = marker.lerped_state();
+
+                // Draw a blurred circle to indicate the area the target is in.
+                function blurred_circle() {
+                    var pos = state.minimap_loc;
+                    var radius = state.radius;
+
+                    //var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 60);
+                    var radgrad = _this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
+                    radgrad.addColorStop(0.00, '#FF0F');
+                    radgrad.addColorStop(0.85, '#FF0B');
+                    radgrad.addColorStop(1.00, '#FF00');
+
+                    _this.ctx.fillStyle = radgrad;
+                    _this.ctx.fillRect(pos.x-radius, pos.y-radius, radius*2, radius*2);
+                }
+
+                var alpha = this.model.view_floor_index() == state.floor_index ? 0.5 : 0.15;
+                draw_with_alpha(this.ctx, alpha, blurred_circle);
+            },
+
+            /**
+             * Draws the markers, pulses, and background.
              */
             _draw: function() {
                 this._draw_background_grid();
-                this._draw_background_image(this.model.floor_num);
+                this._draw_background_image(this.model.view_floor_index());
 
                 // Draw and update the camera radar pulses.
                 for (var i=0; i<this._pulses.length; i++) {
                     this._draw_pulse(this._pulses[i]);
                 }
+
+                // Draw the area the target is in.
+                this._draw_target_marker(this.target_marker);
 
                 // Draw the camera positions.
                 for (var i=0; i<this.camera_markers.length; i++) {
@@ -806,7 +1178,8 @@
 
             /**
              * Updates the guard markers - if a camera pulse hits them then their
-             * opacity returns to full, like a radar marker.
+             * opacity returns to full, like a radar marker. If their opacity is too
+             * low, then the marker is removed.
              */
             _update_guard_markers: function() {
                 // Returns whether the point (x, y) lies within the defined ring.
@@ -815,22 +1188,31 @@
                     return r_inner <= dist && dist <= r_outer;
                 }
 
-                for (var i=0; i<this.guard_markers.length; i++) {
+                for (var i=this.guard_markers.length-1; i >= 0; i--) {
                     var marker = this.guard_markers[i];
-                    marker.opacity += marker.delta_opacity;
 
-                    // Check whether a pulse is touching the marker.
-                    for (var j=0; j<this._pulses.length; j++) {
-                        var pulse = this._pulses[j];
+                    if (marker.opacity > 0) {
+                        marker.opacity += marker.delta_opacity;
+                    }
+                    else if (marker.opacity <= 0 && !marker.can_update_opacity) {
+                        // Remove the marker if the opacity is too low.
+                        this.guard_markers.splice(i, 1);
+                    }
 
-                        // The offset to the radius of the pulse, creating a ring in
-                        // which to check whether the marker lies.
-                        var offset = marker.radius;
-                        var r_outer = pulse.radius + offset;
-                        var r_inner = pulse.radius - offset;
+                    if (marker.can_update_opacity) {
+                        // Check whether a pulse is touching the marker.
+                        for (var j=0; j<this._pulses.length; j++) {
+                            var pulse = this._pulses[j];
 
-                        if (is_inside_ring(pulse.minimap_loc, r_outer, r_inner, marker.minimap_loc)) {
-                            marker.opacity = 1.0;
+                            // The offset to the radius of the pulse, creating a ring in
+                            // which to check whether the marker lies.
+                            var offset = marker.radius;
+                            var r_outer = pulse.radius + offset;
+                            var r_inner = pulse.radius - offset;
+
+                            if (is_inside_ring(pulse.minimap_loc, r_outer, r_inner, marker.minimap_loc)) {
+                                marker.opacity = 1.0;
+                            }
                         }
                     }
                 }
@@ -862,9 +1244,9 @@
                 camera_marker.time_before_pulse -= 1;
 
                 // If the camera is active, create a pulse from it.
-                if (camera_marker.is_active && camera_marker.time_before_pulse <= 0) {
+                if (camera_marker.feed_index != null && camera_marker.time_before_pulse < 0) {
                     camera_marker.time_before_pulse = camera_marker.start_time_before_pulse;
-                    var pulse = new CameraPulse(camera_marker.minimap_loc, camera_marker.max_pulse_dist);
+                    var pulse = new CameraPulse(camera_marker.minimap_loc, camera_marker.max_pulse_dist, this.max_render_dist());
                     this._pulses.push(pulse);
                 }
             },
@@ -902,37 +1284,25 @@
              * Refreshers the marker for the location of the spy on the map.
              */
             _refresh_spy_loc: function() {
-                var minimap_loc = this._convert_to_minimap_point(this.model.spy_game_loc);
-                this.spy_marker = new SpyMarker(minimap_loc, 'black', this._marker_radius() * 1.5);
+                var minimap_loc = this._convert_to_minimap_point(this.model.spy.game_loc);
+                this.spy_marker = new SpyMarker(minimap_loc, 'black', this._spy_marker_radius());
             },
 
             /**
              * Refreshers the markers for the location of the guards on the map.
              */
             _refresh_guard_locs: function() {
-                // var guard_locs_2d = this.model.guard_game_locs.map(this._convert_to_minimap_point.bind(this));
-                // this.guard_markers = guard_locs_2d.map(loc => new GuardMarker(loc, 'red', this._marker_radius()));
-
-                var guard_game_locs = this.model.guard_game_locs;
-
-                // Add or remove guard markers so the number of guard_locs matches the
-                // guard markers.
-                if (this.guard_markers.length > guard_game_locs.length) {
-                    this.guard_markers = this.guard_markers.slice(0, guard_game_locs.length);
-                }
-                else {
-                    var num_to_add = guard_game_locs.length - this.guard_markers.length;
-                    for (var i=0; i<num_to_add; i++) {
-                        // This position will be filled in after.
-                        var marker = new GuardMarker(new Point(0, 0), 'red', this._marker_radius());
-                        this.guard_markers.push(marker);
-                    }
+                // Tell the old markers not to be given any more opacity, therefore
+                // letting them fade away.
+                for (var i=0; i<this.guard_markers.length; i++) {
+                    this.guard_markers[i].can_update_opacity = false;
                 }
 
-                // Update camera markers from the game data.
-                for (var i=0; i<guard_game_locs.length; i++) {
-                    var marker = this.guard_markers[i];
-                    marker.minimap_loc = this._convert_to_minimap_point(guard_game_locs[i]);
+                // Add the new markers.
+                for (var i=0; i<this.model.game_guards_locs.length; i++) {
+                    var minimap_loc = this._convert_to_minimap_point(this.model.game_guards_locs[i]);
+                    var marker = new GuardMarker(minimap_loc, 'red', this._guard_marker_radius());
+                    this.guard_markers.push(marker);
                 }
             },
 
@@ -964,90 +1334,249 @@
                     var game_camera = game_cameras[i];
 
                     marker.minimap_loc = this._convert_to_minimap_point(game_camera.loc);
-                    marker.is_active = game_camera.is_active;
+                    marker.feed_index = game_camera.feed_index;
                     marker.max_pulse_dist = this._convert_game_dist_to_minimap(game_camera.max_visibility_dist);
+                    marker.game_id = game_camera.id;
                 }
+            },
+
+            /**
+             * Refreshes the position of the target.
+             */
+            _refresh_target: function() {
+                var minimap_loc = this._convert_to_minimap_point(this.model.game_target.game_loc);
+
+                var min_radius = this._target_marker_min_radius();
+                var max_radius = this._target_marker_max_radius();
+
+                var spy_dist = this.spy_marker.minimap_loc.dist_to(minimap_loc);
+                var max_minimap_dist = this._convert_game_dist_to_minimap(this.model.max_dist());
+
+                this.target_marker.update(minimap_loc, this.model.game_target.floor_index,
+                                          spy_dist, max_minimap_dist, min_radius, max_radius);
             },
 
             /**
              * Refreshes the minimap with the position of the spy, guards, and cameras.
              */
             refresh_positons: function() {
-                this.floor_label_elem.innerHTML = this.model.floor_names[this.model.floor_num];
+                this._refresh_spy_loc();
+                this._refresh_guard_locs();
+                this._refresh_camera_locs();
+                this._refresh_target();
+                this._draw();
+            },
 
-                this._refresh_spy_loc(this.model.spy_game_loc);
-                this._refresh_guard_locs(this.model.guard_game_locs);
-                this._refresh_camera_locs(this.model.camera_game_locs);
+            /**
+             * Clears all the guard markers, camera markers, and camera pulses.
+             * Useful for when the current floor is changed to stop anything being
+             * drawn off the floor map.
+             */
+            clear_markers: function() {
+                this.guard_markers = [];
+                this.camera_markers = [];
+                this._pulses = [];
+                this._draw();
+            }
+        };
+
+
+        /**
+         * @param {Element} floor_list - a list which displays the names of the floors.
+         */
+        function FloorSelector(floor_list, model) {
+            this.floor_list = floor_list;
+            this.model = model;
+
+            // Called when a floor is selected. The index of the selected floor is
+            // given to the callback.
+            this.did_select_floor = function(floor_index) {};
+        }
+
+        FloorSelector.prototype = {
+            /**
+             * Sets the HTLM for the list of floors.
+             */
+            setup_floor_list: function() {
+                this.floor_list.innerHTML = "";
+
+                get("images/spy_floor_marker.png", receivedBase64Image.bind(this));
+
+                function receivedBase64Image(contentBase64) {
+                    var src = `data:image/png;base64, ${contentBase64}`;
+
+                    // Iterate backwards so the higher floors are at the top of the screen.
+                    // Let is used because of the scope problem with using var.
+                    for (let i=this.model.floor_names.length-1; i>=0; i--) {
+                        var list_item = document.createElement('li');
+                        var spy_indicator = document.createElement('img');
+                        var floor_button = document.createElement('button');
+                        var text = document.createTextNode(this.model.floor_names[i]);
+
+                        var _this = this;
+                        floor_button.addEventListener('click', e => _this.did_select_floor(i));
+                        floor_button.data_floor_index = i;
+
+                        spy_indicator.className = 'spy_floor_indicator';
+                        spy_indicator.data_floor_index = i;
+                        spy_indicator.src = src;
+
+                        floor_button.append(text);
+                        list_item.append(spy_indicator);
+                        list_item.append(floor_button);
+                        this.floor_list.append(list_item);
+                    }
+
+                    this.update_selected_floor();
+                    this.update_spy_floor_marker();
+                }
+            },
+
+            /**
+             * Updates the CSS classes of the buttons to indicate the selected floor.
+             */
+            update_selected_floor: function() {
+                var floor_select_buttons = this.floor_list.querySelectorAll('button');
+
+                for (var i=0; i<floor_select_buttons.length; i++) {
+                    var button = floor_select_buttons[i];
+                    var selected_class = button.data_floor_index === this.model.view_floor_index() ? 'current_floor_select_button' : '';
+                    button.className = `floor_select_button ${selected_class}`;
+                }
+            },
+
+            /**
+             * Updates the marker indicating which floor the spy is on.
+             */
+            update_spy_floor_marker: function() {
+                var spy_floor_indicators = this.floor_list.querySelectorAll('.spy_floor_indicator');
+
+                for (var i=0; i<spy_floor_indicators.length; i++) {
+                    var floor_indicator = spy_floor_indicators[i];
+                    // Class to indicate whether the spy is on this floor.
+                    var activeClassName = this.model.spy.floor_index == floor_indicator.data_floor_index ? 'active' : 'inactive';
+                    floor_indicator.className = `spy_floor_indicator ${activeClassName}`;
+                }
+            },
+
+            update: function() {
+                this.update_selected_floor();
+                this.update_spy_floor_marker();
             }
         };
 
 
         window.onload = function() {
+            // Prevent right clicks.
+            document.addEventListener('contextmenu', event => event.preventDefault());
+
             // Used to store the pressed camera index. This is then combined with the
             // feed pressed to tell which camera view to replace and the new camera view.
-            var new_camera_index = -1;
-
-            // Setup the camera selector view, used to replace a camera feed.
-            var camera_selector = new CameraSelectorView();
-            camera_selector.hide();
-
-            camera_selector.on_feed_pressed = function(i) {
-                console.log(`Replace feed ${i} with camera ${new_camera_index}`);
-
-                // Which camera to replace with the new feed.
-                var obj = {
-                    replace_index: i,
-                    new_camera_index: new_camera_index
-                };
-
-                post_obj('camera_chosen', obj);
-            };
+            var new_camera_game_id = -1;
 
             // Setup the model for the minimap.
-            var model = new Model();
+            var camera_colors = ["#F00", "#00dd1a", "#FF0", "#0FF"];
+            var model = new Model(camera_colors);
 
-            // Setup the minimap.
             var canvas = document.getElementById('minimap');
             var minimap = new Minimap(canvas, model);
 
-            console.log("Starting Loading Images...");
+            var floor_list = document.querySelector('#floor_list');
+            var floor_selector = new FloorSelector(floor_list, model);
+
+            // Setup the camera selector view, used to replace a camera feed.
+            var camera_selector = new CameraSelectorView(camera_colors);
+            camera_selector.hide();
+
+            camera_selector.on_feed_pressed = function(feed_index) {
+                var new_camera = model.game_cameras.find(cam => cam.id == new_camera_game_id);
+
+                // Check that the feed of the new camera is not the same feed it is
+                // replacing, i.e. has no effect.
+                if (new_camera !== undefined && feed_index !== new_camera.feed_index) {
+                    // Which camera to replace with the new feed.
+                    var obj = {
+                        replace_feed_index: feed_index,
+                        new_camera_game_id: new_camera_game_id
+                    };
+
+                    // Once we know the camera feeds have been updated correctly, update
+                    // the indices so the camera colors are updated sooner than when
+                    // the next poll occurs.
+                    post_obj('camera_chosen', obj, function() {
+                        model.update_camera_feed_indices(new_camera_game_id, feed_index);
+                        minimap.refresh_positons();
+                    });
+                }
+            };
+
+            // Load the minimap and model.
             minimap.load_images(minimap_loaded);
-            console.log("Done Loading Images...");
 
             function minimap_loaded() {
-                console.log("LOADED MAP");
                 model.onload = function() {
-                    console.log("LOADED MODEL");
+                    floor_selector.setup_floor_list();
                     minimap.run_loop();
                 };
 
-                // Start the model getting the positions.
-                // model.poll_positions(800, function() {
-                //     minimap.refresh_positons();
-                // });
-
-                model.poll_positions(800, function() {
+                model.poll_positions(1600, function() {
+                    // Update the selected floor in case the spy is being automatically
+                    // followed and changes floor.
+                    floor_selector.update();
                     minimap.refresh_positons();
                 });
             }
 
             // Open the camera selector if a camera is pressed.
-            minimap.on_camera_pressed = function(i) {
+            minimap.on_camera_pressed = function(camera_game_id) {
                 camera_selector.show();
-                new_camera_index = i;
+                new_camera_game_id = camera_game_id;
+            }
+
+            // Display the pressed floor.
+            floor_selector.did_select_floor = function(floor_index) {
+                model.set_selected_floor(floor_index);
+                floor_selector.update();
+
+                // Get the positions of all the objects on the requested floor.
+                var floor_num_obj = {
+                    floor_num: floor_index
+                };
+                post_obj('floor_selected', floor_num_obj, function(response) {
+                    minimap.clear_markers();
+                    model.update_from_game_response(response);
+                    minimap.refresh_positons();
+                });
             }
         }
 
-        console.log("Reached end of JS");
+        console.log("HERE");
 
         //]]>
         </script>
 
     </head>
     <body>
-        <h1 id="floor">Floor</h1>
-        <canvas id="minimap"></canvas>
+        <!-- Minimap Background -->
+        <svg id="grid" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+                    <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#999" stroke-width="0.5" />
+                </pattern>
+                <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+                    <rect width="80" height="80" fill="url(#smallGrid)" />
+                    <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#999" stroke-width="1" />
+                </pattern>
+            </defs>
 
+            <rect width="100%" height="100%" fill="hsl(211, 50%, 30%)" />
+            <rect width="100%" height="100%" fill="url(#smallGrid)" />
+        </svg>
+
+        <canvas id="minimap"></canvas>
+        <ul id="floor_list"></ul>
+
+        <!-- Camera Selector -->
         <div id="camera_select_background" class="modal_background">
             <div id="camera_select_foreground" class="modal_foreground">
                 <div id="camera_select_title">Choose a feed to replace</div>
