@@ -261,7 +261,7 @@ Minimap.prototype = {
     },
 
     _camera_icon_radius: function() {
-        return Math.min(this.width() * 0.0135, 50);
+        return Math.min(this.width() * 0.0125, 50);
     },
 
     _target_marker_min_radius: function() {
