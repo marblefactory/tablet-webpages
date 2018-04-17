@@ -44,6 +44,15 @@ function Boundaries(min_x, min_y, max_x, max_y) {
     this.max_y = max_y;
 }
 
+Boundaries.from_json = function(json) {
+    var min_x = checkJsonHas(json, 'min_x', 'Boundaries');
+    var min_y = checkJsonHas(json, 'min_y', 'Boundaries');
+    var max_x = checkJsonHas(json, 'max_x', 'Boundaries');
+    var max_y = checkJsonHas(json, 'max_y', 'Boundaries');
+
+    return new Boundaries(min_x, min_y, max_x, max_y);
+};
+
 /**
  * @param {Point} game_loc - the location of the camera in the game.
  * @param {number} max_visibility_dist - the maximum distance from the camera
@@ -62,7 +71,7 @@ function Camera(game_loc, max_visibility_dist, feed_index, id) {
 Camera.from_json = function(json) {
     var feed_index = checkJsonHas(json, 'feed_index', 'Camera');
     var max_visibility_dist = checkJsonHas(json, 'max_visibility_dist', 'Camera');
-    var loc = checkJsonHas(json, 'loc', 'Camera');
+    var loc = Point.from_json(checkJsonHas(json, 'loc', 'Camera'));
     var id = checkJsonHas(json, 'id', 'Camera');
 
     return new Camera(loc, max_visibility_dist, feed_index, id);
@@ -84,7 +93,7 @@ function Spy(dir_rad, game_loc, floor_index) {
  */
 Spy.from_json = function(json) {
     var dir_rad = checkJsonHas(json, 'dir_rad', 'Spy');
-    var game_loc = checkJsonHas(json, 'loc', 'Spy');
+    var game_loc = Point.from_json(checkJsonHas(json, 'loc', 'Spy'));
     var floor_index = checkJsonHas(json, 'floor_index', 'Spy');
 
     return new Spy(dir_rad, game_loc, floor_index);
@@ -102,7 +111,7 @@ function Target(game_loc, floor_index) {
  * Parses a Target from a json object.
  */
 Target.from_json = function(json) {
-    var game_loc = checkJsonHas(json, 'loc', 'Target');
+    var game_loc = Point.from_json(checkJsonHas(json, 'loc', 'Target'));
     var floor_index = checkJsonHas(json, 'floor_index', 'Target');
 
     return new Target(game_loc, floor_index);
@@ -144,7 +153,7 @@ Model.prototype = {
     _get_boundaries: function(callback) {
         var _this = this;
         get('boundaries', function(response) {
-            _this.game_boundaries = JSON.parse(response);
+            _this.game_boundaries = Boundaries.from_json(JSON.parse(response));
             callback();
         });
     },
