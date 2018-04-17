@@ -69,6 +69,19 @@ html, body {
     color: white;
 }
 
+.camera_static_background {
+    width: 100%;
+    height: 100%;
+}
+
+.camera_static_background.inactive {
+    background-color: red;
+}
+
+.camera_static_background.active {
+    background-color: black;
+}
+
 .camera_static {
     width: 100%;
     height: 100%;

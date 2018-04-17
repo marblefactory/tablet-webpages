@@ -28,6 +28,13 @@ CameraSelectorView.prototype = {
             "https://media.giphy.com/media/XuBNdP9Pb7W9i/giphy.gif"
         ]
 
+        var feed_label_names = [
+            'Spy Body Camera (Reserved)',
+            'Feed 01',
+            'Feed 02',
+            'Feed 03'
+        ];
+
         for (var i=0; i<static_images.length; i++) {
             // A div to contain the feeds.
             var feed_div = document.createElement('div');
@@ -35,31 +42,42 @@ CameraSelectorView.prototype = {
             feed_div.className = 'grid-item';
             foreground.append(feed_div);
 
+            var camera_static_background_class = i === 0 ? 'inactive' : 'active';
+            var camera_static_background = document.createElement('div');
+            camera_static_background.className = `camera_static_background ${camera_static_background_class}`;
+            feed_div.append(camera_static_background);
+
             // An image of the camera static.
             var camera_static_div = document.createElement('div');
             camera_static_div.data_index = i; // Used to tell which feed was pressed.
             camera_static_div.className = 'camera_static';
             camera_static_div.style.backgroundImage = `url(${static_images[i]})`;
-            feed_div.append(camera_static_div);
+            camera_static_background.append(camera_static_div);
 
             // A label indicating the name of the camera feed.
             var feed_label = document.createElement('h2');
             feed_label.className = 'feed_label';
-            feed_label.innerHTML = `feed 0${i}`;
+            feed_label.innerHTML = feed_label_names[i];
             feed_div.append(feed_label);
 
             // Line showing the color associated with the camera.
-            var color_div = document.createElement('div');
-            color_div.className = 'camera_color_line';
-            color_div.style.backgroundColor = this._camera_feed_colors[i];
-            feed_div.append(color_div);
+            if (i !== 0) {
+                var color_div = document.createElement('div');
+                color_div.className = 'camera_color_line';
+                color_div.style.backgroundColor = this._camera_feed_colors[i];
+                feed_div.append(color_div);
+            }
 
             // Add touch events for pressing
             add_press_event_listener(camera_static_div, pressed);
 
             var _this = this;
-            function pressed() {
-                _this.on_feed_pressed(this.data_index);
+            function pressed(event) {
+                if (this.data_index === 0){
+                    event.stopPropagation();
+                } else {
+                    _this.on_feed_pressed(this.data_index);
+                }
             }
         }
     },

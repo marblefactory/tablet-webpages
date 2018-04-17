@@ -8,7 +8,7 @@ window.onload = function() {
     var new_camera_game_id = -1;
 
     // Setup the model for the minimap.
-    var camera_colors = ["#F00", "#00dd1a", "#FF0", "#0FF"];
+    var camera_colors = ["#000", "#00dd1a", "#FF0", "#F00"];
     var model = new Model(camera_colors);
 
     var canvas = document.getElementById('minimap');
