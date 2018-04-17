@@ -180,19 +180,19 @@ function handle_posted_camera_chosen(request, response) {
  * Receives a request to update the selected floor, and sends back the positions
  * of the game objects in the same format as the '/positions' handler.
  */
-function handle_floor_selected(request, response) {
-    var body = "";
-    request.on('data', function (chunk) {
-        body += chunk;
-    });
-    request.on('end', function () {
-        var json = JSON.parse(body);
-
-        // Update the global selected floor.
-        g_selected_floor_num = json.floor_num;
-        handle_get_spy_position(response);
-    });
-}
+// function handle_floor_selected(request, response) {
+//     var body = "";
+//     request.on('data', function (chunk) {
+//         body += chunk;
+//     });
+//     request.on('end', function () {
+//         var json = JSON.parse(body);
+//
+//         // Update the global selected floor.
+//         g_selected_floor_num = json.floor_num;
+//         handle_get_spy_position(response);
+//     });
+// }
 
 // Serve a request by delivering a file.
 function handle(request, response) {
@@ -210,9 +210,9 @@ function handle(request, response) {
     else if (url == '/dist_to_objective') {
         handle_distance_to_objective(request, response);
     }
-    else if (url == '/floor_selected') {
-        handle_floor_selected(request, response);
-    }
+    // else if (url == '/floor_selected') {
+    //     handle_floor_selected(request, response);
+    // }
     else {
         if (url.endsWith("/")) url = url + "index.html";
         if (isBanned(url)) return fail(response, NotFound, "URL has been banned");

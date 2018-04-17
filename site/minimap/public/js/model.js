@@ -143,6 +143,9 @@ function Model(camera_colors) {
     // Called once the positions of objects have been retreived the first time.
     this.onload = function() {};
     this._called_onload = false;
+
+    // Called when the model is updated via a poll to the game server.
+    this.on_poll = function() {};
 }
 
 Model.prototype = {
@@ -162,7 +165,7 @@ Model.prototype = {
      * Gets the boundaries of the map then polls the spy and guards position
      * interval_time after the last position was received.
      */
-    poll_positions: function(interval_time, callback) {
+    poll_positions: function(interval_time) {
         this._get_boundaries(function() {
             poll();
         });
@@ -177,7 +180,7 @@ Model.prototype = {
 
             post_obj('positions', floor_num_obj, function(response) {
                 _this.update_from_game_response(response);
-                callback();
+                _this.on_poll();
 
                 setTimeout(poll, interval_time);
             });

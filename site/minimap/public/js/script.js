@@ -52,12 +52,14 @@ window.onload = function() {
             minimap.run_loop();
         };
 
-        model.poll_positions(1600, function() {
+        model.on_poll = function() {
             // Update the selected floor in case the spy is being automatically
             // followed and changes floor.
             floor_selector.update();
             minimap.refresh_positons();
-        });
+        };
+
+        model.poll_positions(1600);
     }
 
     // Open the camera selector if a camera is pressed.
@@ -75,10 +77,10 @@ window.onload = function() {
         var floor_num_obj = {
             floor_num: floor_index
         };
-        post_obj('floor_selected', floor_num_obj, function(response) {
-            minimap.clear_markers();
-            model.update_from_game_response(response);
-            minimap.refresh_positons();
-        });
+        // post_obj('floor_selected', floor_num_obj, function(response) {
+        //     minimap.clear_markers();
+        //     model.update_from_game_response(response);
+        //     minimap.refresh_positons();
+        // });
     }
 }
