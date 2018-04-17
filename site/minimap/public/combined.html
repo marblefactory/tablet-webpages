@@ -376,6 +376,7 @@
             }
         };
 
+
         function Point(x, y) {
             this.x = x;
             this.y = y;
@@ -520,6 +521,9 @@
             // Called once the positions of objects have been retreived the first time.
             this.onload = function() {};
             this._called_onload = false;
+
+            // Called when the model is updated via a poll to the game server.
+            this.on_poll = function() {};
         }
 
         Model.prototype = {
@@ -527,7 +531,7 @@
              * Gets the boundaries of the map in the game. The boundaries are used to
              * convert between 3D game positions, and positions on the minimap.
              */
-            _get_boundaries: function(callback) {
+            get_boundaries: function(callback) {
                 var _this = this;
                 get('boundaries', function(response) {
                     _this.game_boundaries = Boundaries.from_json(JSON.parse(response));
@@ -539,26 +543,26 @@
              * Gets the boundaries of the map then polls the spy and guards position
              * interval_time after the last position was received.
              */
-            poll_positions: function(interval_time, callback) {
-                this._get_boundaries(function() {
-                    poll();
-                });
+            poll_positions_every: function(interval_time) {
+                this.poll_positions();
+                setTimeout(() => this.poll_positions_every(interval_time), interval_time);
+            },
+
+            /**
+             * Polls the positions of the game objects once.
+             */
+            poll_positions: function() {
+                // A floor number of -1 indicates that we want the server to send
+                // back the floor on which the spy is.
+                var floor_num_obj = {
+                    floor_num: this._selected_floor
+                };
 
                 var _this = this;
-                function poll() {
-                    // A floor number of -1 indicates that we want the server to send
-                    // back the floor on which the spy is.
-                    var floor_num_obj = {
-                        floor_num: _this._selected_floor
-                    };
-
-                    post_obj('positions', floor_num_obj, function(response) {
-                        _this.update_from_game_response(response);
-                        callback();
-
-                        setTimeout(poll, interval_time);
-                    });
-                }
+                post_obj('positions', floor_num_obj, function(response) {
+                    _this.update_from_game_response(response);
+                    _this.on_poll();
+                });
             },
 
             /**
@@ -1527,6 +1531,7 @@
         };
 
 
+
         window.onload = function() {
             // Prevent right clicks.
             document.addEventListener('contextmenu', event => event.preventDefault());
@@ -1536,7 +1541,7 @@
             var new_camera_game_id = -1;
 
             // Setup the model for the minimap.
-            var camera_colors = ["#F00", "#00dd1a", "#FF0", "#0FF"];
+            var camera_colors = ["#000", "#00dd1a", "#FF0", "#F00"];
             var model = new Model(camera_colors);
 
             var canvas = document.getElementById('minimap');
@@ -1580,11 +1585,23 @@
                     minimap.run_loop();
                 };
 
-                model.poll_positions(1600, function() {
+                model.on_poll = function() {
                     // Update the selected floor in case the spy is being automatically
                     // followed and changes floor.
                     floor_selector.update();
                     minimap.refresh_positons();
+                };
+
+                model.get_boundaries(function() {
+                    // Display the pressed floor.
+                    // Updating the floor relies on the boundaries having been loaded.
+                    floor_selector.did_select_floor = function(floor_index) {
+                        model.set_selected_floor(floor_index);
+                        floor_selector.update();
+                        model.poll_positions();
+                    }
+
+                    model.poll_positions_every(1600);
                 });
             }
 
@@ -1593,25 +1610,7 @@
                 camera_selector.show();
                 new_camera_game_id = camera_game_id;
             }
-
-            // Display the pressed floor.
-            floor_selector.did_select_floor = function(floor_index) {
-                model.set_selected_floor(floor_index);
-                floor_selector.update();
-
-                // Get the positions of all the objects on the requested floor.
-                var floor_num_obj = {
-                    floor_num: floor_index
-                };
-                post_obj('floor_selected', floor_num_obj, function(response) {
-                    minimap.clear_markers();
-                    model.update_from_game_response(response);
-                    minimap.refresh_positons();
-                });
-            }
         }
-
-        console.log("HERE");
 
         //]]>
         </script>
