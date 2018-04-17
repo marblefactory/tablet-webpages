@@ -20,6 +20,9 @@ function get(url_postfix, callback) {
  * end of the url of the server.
  */
 function post_obj(url_postfix, obj, callback) {
+    console.log("Posting to Server:");
+    console.log(obj);
+
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
         if (request.readyState == 4 && request.status == 200 && callback) {

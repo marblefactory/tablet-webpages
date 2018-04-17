@@ -67,7 +67,7 @@ Target.from_json = function(json) {
 function Model(camera_colors) {
     // The index of the floor selected to view, or -1 if the minimap should
     // follow the spy as they move between floors.
-    this._set_selected_floor = -1;
+    this._selected_floor = -1;
     this.num_floors = 3;
     this.floor_names = ['Basement', 'Floor 1', 'Roof'];
     // The boundaries of the 3d game. The locations of objects cannot go
@@ -116,7 +116,7 @@ Model.prototype = {
             // A floor number of -1 indicates that we want the server to send
             // back the floor on which the spy is.
             var floor_num_obj = {
-                floor_num: this._set_selected_floor
+                floor_num: _this._selected_floor
             };
 
             post_obj('positions', floor_num_obj, function(response) {
@@ -169,10 +169,10 @@ Model.prototype = {
      *         index, or the index of the floor the spy is on if following the spy.
      */
     view_floor_index: function() {
-        if (this._set_selected_floor == -1) {
+        if (this._selected_floor == -1) {
             return this.spy.floor_index;
         }
-        return this._set_selected_floor;
+        return this._selected_floor;
     },
 
     /**
@@ -182,10 +182,10 @@ Model.prototype = {
      */
     set_selected_floor: function(floor_index) {
         if (floor_index == this.spy.floor_index) {
-            this._set_selected_floor = -1;
+            this._selected_floor = -1;
         }
         else {
-            this._set_selected_floor = floor_index;
+            this._selected_floor = floor_index;
         }
     },
 

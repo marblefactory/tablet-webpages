@@ -250,6 +250,9 @@
          * end of the url of the server.
          */
         function post_obj(url_postfix, obj, callback) {
+            console.log("Posting to Server:");
+            console.log(obj);
+
             var request = new XMLHttpRequest();
             request.onreadystatechange = function() {
                 if (request.readyState == 4 && request.status == 200 && callback) {
@@ -457,7 +460,7 @@
                     // A floor number of -1 indicates that we want the server to send
                     // back the floor on which the spy is.
                     var floor_num_obj = {
-                        floor_num: this._set_selected_floor
+                        floor_num: _this._set_selected_floor
                     };
 
                     post_obj('positions', floor_num_obj, function(response) {
