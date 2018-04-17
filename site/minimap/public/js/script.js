@@ -59,28 +59,22 @@ window.onload = function() {
             minimap.refresh_positons();
         };
 
-        model.poll_positions(1600);
+        model.get_boundaries(function() {
+            // Display the pressed floor.
+            // Updating the floor relies on the boundaries having been loaded.
+            floor_selector.did_select_floor = function(floor_index) {
+                model.set_selected_floor(floor_index);
+                floor_selector.update();
+                model.poll_positions();
+            }
+
+            model.poll_positions_every(1600);
+        });
     }
 
     // Open the camera selector if a camera is pressed.
     minimap.on_camera_pressed = function(camera_game_id) {
         camera_selector.show();
         new_camera_game_id = camera_game_id;
-    }
-
-    // Display the pressed floor.
-    floor_selector.did_select_floor = function(floor_index) {
-        model.set_selected_floor(floor_index);
-        floor_selector.update();
-
-        // Get the positions of all the objects on the requested floor.
-        var floor_num_obj = {
-            floor_num: floor_index
-        };
-        // post_obj('floor_selected', floor_num_obj, function(response) {
-        //     minimap.clear_markers();
-        //     model.update_from_game_response(response);
-        //     minimap.refresh_positons();
-        // });
     }
 }

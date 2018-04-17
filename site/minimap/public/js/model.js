@@ -153,7 +153,7 @@ Model.prototype = {
      * Gets the boundaries of the map in the game. The boundaries are used to
      * convert between 3D game positions, and positions on the minimap.
      */
-    _get_boundaries: function(callback) {
+    get_boundaries: function(callback) {
         var _this = this;
         get('boundaries', function(response) {
             _this.game_boundaries = Boundaries.from_json(JSON.parse(response));
@@ -165,26 +165,26 @@ Model.prototype = {
      * Gets the boundaries of the map then polls the spy and guards position
      * interval_time after the last position was received.
      */
-    poll_positions: function(interval_time) {
-        this._get_boundaries(function() {
-            poll();
-        });
+    poll_positions_every: function(interval_time) {
+        this.poll_positions();
+        setTimeout(() => this.poll_positions_every(interval_time), interval_time);
+    },
+
+    /**
+     * Polls the positions of the game objects once.
+     */
+    poll_positions: function() {
+        // A floor number of -1 indicates that we want the server to send
+        // back the floor on which the spy is.
+        var floor_num_obj = {
+            floor_num: this._selected_floor
+        };
 
         var _this = this;
-        function poll() {
-            // A floor number of -1 indicates that we want the server to send
-            // back the floor on which the spy is.
-            var floor_num_obj = {
-                floor_num: _this._selected_floor
-            };
-
-            post_obj('positions', floor_num_obj, function(response) {
-                _this.update_from_game_response(response);
-                _this.on_poll();
-
-                setTimeout(poll, interval_time);
-            });
-        }
+        post_obj('positions', floor_num_obj, function(response) {
+            _this.update_from_game_response(response);
+            _this.on_poll();
+        });
     },
 
     /**
