@@ -478,10 +478,13 @@
             update_from_game_response(response) {
                 var locations = JSON.parse(response);
 
-                this.spy = Spy.from_json(locations.spy);
-                this.game_guards_locs = locations.guards_locs;
-                this.game_cameras = locations.cameras;
-                this.game_target = Target.from_json(locations.target);
+                var game_spy_json = checkJsonHas(locations, 'spy', 'Model');
+                var game_target_json = checkJsonHas(locations, 'target', 'Model');
+
+                this.spy = Spy.from_json(game_spy_json);
+                this.game_guards_locs = checkJsonHas(locations, 'guards_locs', 'Model');
+                this.game_cameras = checkJsonHas(locations, 'cameras', 'Model');
+                this.game_target = Target.from_json(game_target_json);
 
                 if (!this._called_onload) {
                     this.onload();

@@ -1,35 +1,4 @@
 
-function Point(x, y) {
-    this.x = x;
-    this.y = y;
-
-    /**
-     * @return {number} the distance from this point to the given point.
-     */
-    this.dist_to = function(point) {
-        var dx = this.x - point.x;
-        var dy = this.y - point.y;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    /**
-     * Linearly interpolates between this point and the end point.
-     */
-    this.lerped = function(end, t) {
-        var x = lerp(this.x, end.x, t);
-        var y = lerp(this.y, end.y, t);
-        return new Point(x, y);
-    }
-
-    /**
-     * @return {Point} the result of adding the component of this point and the
-     *                 other point.
-     */
-    this.added = function(other) {
-        return new Point(this.x + other.x, this.y + other.y);
-    }
-}
-
 /**
  * @param {Image} image - the blueprint of the floor plan.
  * @param {number} screen_width - the width of the screen, used to calculate

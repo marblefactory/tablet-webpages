@@ -1,4 +1,42 @@
 
+function Point(x, y) {
+    this.x = x;
+    this.y = y;
+
+    /**
+     * @return {number} the distance from this point to the given point.
+     */
+    this.dist_to = function(point) {
+        var dx = this.x - point.x;
+        var dy = this.y - point.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /**
+     * Linearly interpolates between this point and the end point.
+     */
+    this.lerped = function(end, t) {
+        var x = lerp(this.x, end.x, t);
+        var y = lerp(this.y, end.y, t);
+        return new Point(x, y);
+    }
+
+    /**
+     * @return {Point} the result of adding the component of this point and the
+     *                 other point.
+     */
+    this.added = function(other) {
+        return new Point(this.x + other.x, this.y + other.y);
+    }
+}
+
+Point.from_json = function(json) {
+    var x = checkJsonHas(json, 'x', 'Point');
+    var y = checkJsonHas(json, 'y', 'Point');
+
+    return new Point(x, y);
+};
+
 function Boundaries(min_x, min_y, max_x, max_y) {
     this.min_x = min_x;
     this.min_y = min_y;
@@ -15,11 +53,20 @@ function Boundaries(min_x, min_y, max_x, max_y) {
  * @param {number} id - the id in the game of the camera.
  */
 function Camera(game_loc, max_visibility_dist, feed_index, id) {
-    this.game_loc = game_loc;
+    this.loc = game_loc;
     this.max_visibility_dist = max_visibility_dist;
     this.feed_index = feed_index;
     this.id = id;
 }
+
+Camera.from_json = function(json) {
+    var feed_index = checkJsonHas(json, 'feed_index', 'Camera');
+    var max_visibility_dist = checkJsonHas(json, 'max_visibility_dist', 'Camera');
+    var loc = checkJsonHas(json, 'loc', 'Camera');
+    var id = checkJsonHas(json, 'id', 'Camera');
+
+    return new Camera(loc, max_visibility_dist, feed_index, id);
+};
 
 /**
  * @param {number} dir_rad - the angle in radian, that the spy is facing.
@@ -134,10 +181,13 @@ Model.prototype = {
     update_from_game_response(response) {
         var locations = JSON.parse(response);
 
-        this.spy = Spy.from_json(locations.spy);
-        this.game_guards_locs = locations.guards_locs;
-        this.game_cameras = locations.cameras;
-        this.game_target = Target.from_json(locations.target);
+        var game_spy_json = checkJsonHas(locations, 'spy', 'Model');
+        var game_target_json = checkJsonHas(locations, 'target', 'Model');
+
+        this.spy = Spy.from_json(game_spy_json);
+        this.game_guards_locs = checkJsonHas(locations, 'guards_locs', 'Model').map(Point.from_json);
+        this.game_cameras = checkJsonHas(locations, 'cameras', 'Model').map(Camera.from_json);
+        this.game_target = Target.from_json(game_target_json);
 
         if (!this._called_onload) {
             this.onload();
