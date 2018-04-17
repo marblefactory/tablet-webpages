@@ -33,14 +33,6 @@ html, body {
     position: relative;
 }
 
-.grid-item:hover {
-    background-color: #666;
-}
-
-.grid-item:active {
-    background-color: white;
-}
-
 .modal_background {
     display: none;
     position: fixed;
@@ -80,6 +72,14 @@ html, body {
 
 .camera_static_background.active {
     background-color: black;
+}
+
+.camera_static_background.active:hover {
+    background-color: #666;
+}
+
+.camera_static_background.active:active {
+    background-color: white;
 }
 
 .camera_static {
