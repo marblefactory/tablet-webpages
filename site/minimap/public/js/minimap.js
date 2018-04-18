@@ -238,6 +238,10 @@ Minimap.prototype = {
         return Math.min(this.width() * 0.0125, 50);
     },
 
+    _camera_pulse_max_radius: function() {
+        return this.width() * 0.06;
+    },
+
     _target_marker_min_radius: function() {
         return Math.min(this.current_floormap().render_width * 0.012, 50);
     },
@@ -649,7 +653,7 @@ Minimap.prototype = {
 
             marker.minimap_loc = this._convert_to_minimap_point(game_camera.loc);
             marker.feed_index = game_camera.feed_index;
-            marker.max_pulse_dist = this._convert_game_dist_to_minimap(game_camera.max_visibility_dist);
+            marker.max_pulse_dist = this._camera_pulse_max_radius();
             marker.game_id = game_camera.id;
         }
     },

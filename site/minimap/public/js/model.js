@@ -55,26 +55,22 @@ Boundaries.from_json = function(json) {
 
 /**
  * @param {Point} game_loc - the location of the camera in the game.
- * @param {number} max_visibility_dist - the maximum distance from the camera
- *                                       which guards can be automatically detected.
  * @param {number} feed_index - the index 0-4 corresponding to the feed of the
  *                              camera. Or, null if the camera is not active.
  * @param {number} id - the id in the game of the camera.
  */
-function Camera(game_loc, max_visibility_dist, feed_index, id) {
+function Camera(game_loc, feed_index, id) {
     this.loc = game_loc;
-    this.max_visibility_dist = max_visibility_dist;
     this.feed_index = feed_index;
     this.id = id;
 }
 
 Camera.from_json = function(json) {
     var feed_index = checkJsonHas(json, 'feed_index', 'Camera');
-    var max_visibility_dist = checkJsonHas(json, 'max_visibility_dist', 'Camera');
     var loc = Point.from_json(checkJsonHas(json, 'loc', 'Camera'));
     var id = checkJsonHas(json, 'id', 'Camera');
 
-    return new Camera(loc, max_visibility_dist, feed_index, id);
+    return new Camera(loc, feed_index, id);
 };
 
 /**

@@ -377,6 +377,7 @@
         };
 
 
+
         function Point(x, y) {
             this.x = x;
             this.y = y;
@@ -433,26 +434,22 @@
 
         /**
          * @param {Point} game_loc - the location of the camera in the game.
-         * @param {number} max_visibility_dist - the maximum distance from the camera
-         *                                       which guards can be automatically detected.
          * @param {number} feed_index - the index 0-4 corresponding to the feed of the
          *                              camera. Or, null if the camera is not active.
          * @param {number} id - the id in the game of the camera.
          */
-        function Camera(game_loc, max_visibility_dist, feed_index, id) {
+        function Camera(game_loc, feed_index, id) {
             this.loc = game_loc;
-            this.max_visibility_dist = max_visibility_dist;
             this.feed_index = feed_index;
             this.id = id;
         }
 
         Camera.from_json = function(json) {
             var feed_index = checkJsonHas(json, 'feed_index', 'Camera');
-            var max_visibility_dist = checkJsonHas(json, 'max_visibility_dist', 'Camera');
             var loc = Point.from_json(checkJsonHas(json, 'loc', 'Camera'));
             var id = checkJsonHas(json, 'id', 'Camera');
 
-            return new Camera(loc, max_visibility_dist, feed_index, id);
+            return new Camera(loc, feed_index, id);
         };
 
         /**
@@ -750,6 +747,7 @@
             }
         }
 
+
         /**
          * @param {Image} image - the blueprint of the floor plan.
          * @param {number} screen_width - the width of the screen, used to calculate
@@ -987,6 +985,10 @@
 
             _camera_icon_radius: function() {
                 return Math.min(this.width() * 0.0125, 50);
+            },
+
+            _camera_pulse_max_radius: function() {
+                return this.width() * 0.06;
             },
 
             _target_marker_min_radius: function() {
@@ -1400,7 +1402,7 @@
 
                     marker.minimap_loc = this._convert_to_minimap_point(game_camera.loc);
                     marker.feed_index = game_camera.feed_index;
-                    marker.max_pulse_dist = this._convert_game_dist_to_minimap(game_camera.max_visibility_dist);
+                    marker.max_pulse_dist = this._camera_pulse_max_radius();
                     marker.game_id = game_camera.id;
                 }
             },
@@ -1444,7 +1446,6 @@
                 this._draw();
             }
         };
-
 
         /**
          * @param {Element} floor_list - a list which displays the names of the floors.

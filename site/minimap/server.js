@@ -108,7 +108,6 @@ function handle_get_spy_position(response) {
         for (var i=0; i<14; i++) {
             var camera = {
                 feed_index: null,
-                max_visibility_dist: 35,
                 loc: {
                     x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
                     y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
@@ -176,24 +175,6 @@ function handle_posted_camera_chosen(request, response) {
     deliver(response, 'application/json', undefined, JSON.stringify(x));
 }
 
-/**
- * Receives a request to update the selected floor, and sends back the positions
- * of the game objects in the same format as the '/positions' handler.
- */
-// function handle_floor_selected(request, response) {
-//     var body = "";
-//     request.on('data', function (chunk) {
-//         body += chunk;
-//     });
-//     request.on('end', function () {
-//         var json = JSON.parse(body);
-//
-//         // Update the global selected floor.
-//         g_selected_floor_num = json.floor_num;
-//         handle_get_spy_position(response);
-//     });
-// }
-
 // Serve a request by delivering a file.
 function handle(request, response) {
     var url = request.url.toLowerCase();
@@ -210,9 +191,6 @@ function handle(request, response) {
     else if (url == '/dist_to_objective') {
         handle_distance_to_objective(request, response);
     }
-    // else if (url == '/floor_selected') {
-    //     handle_floor_selected(request, response);
-    // }
     else {
         if (url.endsWith("/")) url = url + "index.html";
         if (isBanned(url)) return fail(response, NotFound, "URL has been banned");
