@@ -68,13 +68,14 @@ window.onload = function() {
                 model.poll_positions();
             }
 
+            // Open the camera selector if a camera is pressed.
+            minimap.on_camera_pressed = function(camera_game_id) {
+                camera_selector.show();
+                new_camera_game_id = camera_game_id;
+                model.poll_positions();
+            }
+
             model.poll_positions_every(1600);
         });
-    }
-
-    // Open the camera selector if a camera is pressed.
-    minimap.on_camera_pressed = function(camera_game_id) {
-        camera_selector.show();
-        new_camera_game_id = camera_game_id;
     }
 }
