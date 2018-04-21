@@ -413,8 +413,8 @@ Minimap.prototype = {
         function draw_direction_indicator() {
             var path = _this.ctx.beginPath();
             _this.ctx.moveTo(0, 0);
-            _this.ctx.lineTo(icon_radius * 2.5, icon_radius * 0.8);
-            _this.ctx.lineTo(icon_radius * 2.5, -icon_radius * 0.8);
+            _this.ctx.lineTo(icon_radius * 2.5, icon_radius * 1.2);
+            _this.ctx.lineTo(icon_radius * 2.5, -icon_radius * 1.2);
             _this.ctx.closePath();
 
             _this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
