@@ -59,18 +59,20 @@ Boundaries.from_json = function(json) {
  *                              camera. Or, null if the camera is not active.
  * @param {number} id - the id in the game of the camera.
  */
-function Camera(game_loc, feed_index, id) {
+function Camera(game_loc, feed_index, id, dir_rad) {
     this.loc = game_loc;
     this.feed_index = feed_index;
     this.id = id;
+    this.dir_rad = dir_rad;
 }
 
 Camera.from_json = function(json) {
     var feed_index = checkJsonHas(json, 'feed_index', 'Camera');
     var loc = Point.from_json(checkJsonHas(json, 'loc', 'Camera'));
     var id = checkJsonHas(json, 'id', 'Camera');
+    var dir_rad = checkJsonHas(json, 'dir_rad', 'Camera');
 
-    return new Camera(loc, feed_index, id);
+    return new Camera(loc, feed_index, id, dir_rad);
 };
 
 /**

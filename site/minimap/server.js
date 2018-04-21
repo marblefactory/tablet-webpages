@@ -112,7 +112,8 @@ function handle_get_spy_position(response) {
                     x: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
                     y: Math.random() * 300 + 20, // The position, in game coordinates, of the spy.
                 },
-                id: i
+                id: i,
+                dir_rad: Math.random() * 3.14 * 2
             };
 
             g_cameras.push(camera);

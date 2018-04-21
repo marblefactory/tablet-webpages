@@ -38,7 +38,7 @@ function GuardMarker(minimap_loc, color, radius) {
 
 // Represents a camera marker on the minimap, which is used to display a
 // camera icon and plusing sphere to show with cameras are active.
-function CameraMarker(minimap_loc, feed_index, max_pulse_dist, game_id) {
+function CameraMarker(minimap_loc, feed_index, max_pulse_dist, game_id, dir_rad) {
     this.minimap_loc = minimap_loc;
     this.feed_index = feed_index;
     // The maximum time before a new pulse is made.
@@ -50,6 +50,8 @@ function CameraMarker(minimap_loc, feed_index, max_pulse_dist, game_id) {
     this.max_pulse_dist = max_pulse_dist;
     // The id of the camera in the game.
     this.game_id = game_id;
+    // The direction the camera is facing.
+    this.dir_rad = dir_rad;
 }
 
 // Represents a radar pulse from a camera.
@@ -406,6 +408,25 @@ Minimap.prototype = {
         var icon_radius = this._camera_icon_radius();
         var camera_color = marker.feed_index == null ? 'white' : this.model.camera_colors[marker.feed_index];
 
+        // Draw the camera direction marker.
+        var _this = this;
+        function draw_direction_indicator() {
+            var path = _this.ctx.beginPath();
+            _this.ctx.moveTo(0, 0);
+            _this.ctx.lineTo(icon_radius * 2.5, icon_radius * 0.8);
+            _this.ctx.lineTo(icon_radius * 2.5, -icon_radius * 0.8);
+            _this.ctx.closePath();
+
+            _this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            _this.ctx.fill();
+        }
+
+        draw_with_translation(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, function() {
+            draw_with_rotation(_this.ctx, marker.dir_rad, function() {
+                draw_direction_indicator();
+            });
+        });
+
         // Draw the background for the icon. Because the center of the camera
         // icon is transparent, this color will show through behind.
         fill_circle(this.ctx, marker.minimap_loc.x, marker.minimap_loc.y, icon_radius, camera_color);
@@ -655,6 +676,7 @@ Minimap.prototype = {
             marker.feed_index = game_camera.feed_index;
             marker.max_pulse_dist = this._camera_pulse_max_radius();
             marker.game_id = game_camera.id;
+            marker.dir_rad = game_camera.dir_rad;
         }
     },
 
