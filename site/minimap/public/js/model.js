@@ -123,7 +123,7 @@ function Model(camera_colors) {
     // follow the spy as they move between floors.
     this._selected_floor = -1;
     this.num_floors = 3;
-    this.floor_names = ['Basement', 'Floor 1', 'Roof'];
+    this.floor_names = ['Basement', 'Ground Floor', 'Roof'];
     // The boundaries of the 3d game. The locations of objects cannot go
     // outside these boundaries.
     this.game_boundaries = null;
