@@ -105,10 +105,20 @@ function findType(url) {
 // Deliver the file that has been read in to the browser.
 function deliver(response, type, err, content) {
     if (err) return fail(response, NotFound, "File not found");
-    var typeHeader = { "Content-Type": type };
-    response.writeHead(OK, typeHeader);
-    response.write(content);
-    response.end();
+
+    if (type === 'image/png' || type === 'image/svg+xml') {
+        var textTypeHeader = { "Content-Type": "text/plain" };
+        response.writeHead(OK, textTypeHeader);
+        var base64Encoded = content.toString('base64');
+        response.write(base64Encoded, "utf8");
+        response.end();
+    }
+    else {
+        var typeHeader = { "Content-Type": type };
+        response.writeHead(OK, typeHeader);
+        response.write(content);
+        response.end();
+    }
 }
 
 // Give a minimal failure response to the browser

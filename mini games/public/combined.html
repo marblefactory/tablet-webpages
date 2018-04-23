@@ -12,7 +12,6 @@
             align-items: center;
             background-color: black;
         }
-
         #display {
             top: 50%;
         }
@@ -25,19 +24,47 @@
 
     var mini_game_num = 1;
     var count;
+    var app;
+    var playing_game = false;
+
+    var image_files = ["images/load.png","images/sink.png", "images/single_pipe.png",  "images/pipe_three.png", "images/pipe_right.png", "images/pipe_left.png",  "images/source.png", "/images/filter.png", "images/background_image.png"];
+
+    function preload(image_names, callback) {
+        _preload([], image_names, callback);
+
+        function _preload(images, image_names, complete) {
+            if (image_names.length == 0) {
+                complete(images);
+                return;
+            }
+
+            var name = image_names.pop();
+            var image = new Image();
+
+            get(name, receivedBase64Image);
+            function receivedBase64Image(contentBase64) {
+                var src = `data:image/png;base64, ${contentBase64}`;
+                image.src = src;
+                _preload(images, image_names, complete);
+            }
+
+            images.push(image);
+        }
+    }
 
     //makes get request from server
     function get(url_postfix, callback) {
         var get_request = new XMLHttpRequest();
         url = window.location.origin + '/' + url_postfix;
-        get_resquest.open("GET", url, true);
-
-        if (get_request.readyState == 4 && get_request.status == 200) {
-            callback(get_request.responseText);
+        get_request.onreadystatechange = function () {
+            if (get_request.readyState == 4 && get_request.status == 200) {
+                callback(get_request.responseText);
+            }
         }
-
+        
+        get_request.open("GET", url, true);
+        
         get_request.send(null);
-
     }
 
     function post_obj(url_postfix, obj) {
@@ -47,12 +74,48 @@
         post_request.open("POST", url, true);
         post_request.setRequestHeader("Content-Type", 'application/json');
         post_request.send(JSON.stringify(obj));
-        console.log(JSON.stringify(obj))
+    }
+
+     //polls game to check if it should start minigame
+    function poll(images) {
+        get('minigame-start', function(response) {
+            var result = JSON.parse(response);
+            //if response gives true then make correct game
+            if (result.start && !playing_game) {
+                app.destroy();
+                remove_canvas();
+                //loop through games 1 to 3
+                if (mini_game_num === 1) {
+                    make_game1(images);
+                    mini_game_num = 2;
+                }
+                if (mini_game_num === 2) {
+                    make_game2(images);
+                    mini_game_num = 3;
+                }
+                if (mini_game_num === 3) {
+                    make_game3(image_files);
+                    mini_game_num = 1;
+                }
+            }
+            else if (playing_game && !result.start){
+                app.destroy();
+                remove_canvas();
+                make_terminal();
+            }
+            //poll gain if false
+            else {
+                setTimeout(function(){
+                    poll(images)
+                }
+                    , 800);
+            }
+        });
     }
 
     class Pipe extends PIXI.Sprite {
         constructor(image, data) {
-                super(PIXI.Texture.fromImage(image));
+                super(PIXI.Texture.from(image));
                 this.anchor.set(0.5);
                 this.interactive = data.interactive;
                 this.scale.x = data.scale_x;
@@ -102,23 +165,27 @@
 
     PIXI.utils.sayHello();
 
+    function remove_canvas(){
+        var canvas_elem = document.querySelector("canvas");
+        canvas_elem.parentNode.removeChild(canvas_elem);
+    }
+
     function make_terminal() {
-        const app = new PIXI.Application({
+        app = new PIXI.Application({
             height: window.innerHeight * 0.95,
             width: window.innerWidth * 0.95,
-            backgroundColor: 0x404142,
-            forceCanvas: true
+            backgroundColor: 0x000000
         });
 
         document.getElementById("display").appendChild(app.view);
 
         var textOptions = {
-            fontFamily: "Arial", // Set  style, size and font
+            fontFamily: "Courier New", // Set  style, size and font
             fontSize: "64px",
             fontSylte: "bold",
             fill: '#222323', // Set fill color to blue
             align: 'center', // Center align the text, since it's multiline
-            stroke: '#e2e2e2', // Set stroke color to a dark blue gray color
+            stroke: '#00FF00    ', // Set stroke color to a dark blue gray color
             strokeThickness: 5, // Set stroke thickness to 20
             lineJoin: 'round' // Set the lineJoin to round
         }
@@ -131,81 +198,50 @@
 
         app.stage.addChild(center_text);
 
-        //polls game to check if it should start minigame
-        function poll() {
-
-            get('minigame-start', function(response) {
-                var result = JSON.parse(response);
-                //if response gives true then make correct game
-                if (result.start) {
-                    app.destroy();
-                    //loop through games 1 to 3
-                    if (mini_game_num === 1) {
-                        make_game1();
-                        mini_game_num = 2;
-                    }
-                    if (mini_game_num === 2) {
-                        make_game2();
-                        mini_game_num = 3;
-                    }
-                    if (mini_game_num === 3) {
-                        make_game3();
-                        mini_game_num = 1;
-                    }
-                }
-                //poll gain if false
-                else {
-                    setTimeout(poll, 800);
-                }
-            });
-        }
-
     }
 
-    function make_game() {
+    function make_game(images) {
         count = 1;
-        var app = new PIXI.Application({
+        app = new PIXI.Application({
             height: 950 * 0.75,
             width: 1300 * 0.75,
             backgroundColor: 0x9D9D9D,
             forceCanvas: false
         });
         document.getElementById("display").appendChild(app.view);
-        const background = PIXI.Sprite.fromImage("/images/background_image.png");
+        const background = PIXI.Sprite.from(images[0]);
 
         background.anchor.set(0.5);
         background.x = app.view.width * 0.5;
         background.y = app.view.height * 0.5;
 
-        var displacement_map = new PIXI.Sprite.fromImage("/images/filter.png");
+        var displacement_map = new PIXI.Sprite.from(images[1]);
         var glitch_filter = new PIXI.filters.DisplacementFilter(displacement_map);
 
         background.filters = [glitch_filter];
 
         app.stage.addChild(background);
-
-        return app;
     }
 
-    function check_final(final, app) {
+    function check_final(final, images) {
         if (final.correct) {
             console.log("Game Won!")
-            start_loading(app);
+            start_loading(images);
             var obj = {
                 result : true
             }
             post_obj("terminal-result", obj);
-            window.setTimeout(go_terminal, 5000, app);
+            window.setTimeout(go_terminal, 5000);
         }
     }
 
-    function start_loading(app) {
+    function start_loading(images) {
         app.stage.interactiveChildren = false;
         var blur_filter = new PIXI.filters.BlurFilter();
         blur_filter.blurX = 2;
         app.stage.children[0].filters = [blur_filter];
 
-        var load = PIXI.Sprite.fromImage("/images/load.png");
+        var load = PIXI.Sprite.from(images[8]);
         load.interactive = true;
         load.anchor.set(0.5);
         load.x = app.renderer.view.width * 0.5;
@@ -218,15 +254,16 @@
         });
     }
 
-    function go_terminal(app) {
-        app.destroy(true);
+    function go_terminal() {
+        app.destroy();
+        remove_canvas();
         make_terminal();
     }
 
-    function make_game1() {
-        var app = make_game()
+    function make_game1(images) {
+        make_game(images)
 
-        var source = new Pipe("/images/source.png", {
+        var source = new Pipe(images[2], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.125,
@@ -241,7 +278,7 @@
             pulse: false
         });
 
-        var pipe1 = new Pipe("/images/pipe_three.png", {
+        var pipe1 = new Pipe(images[5], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.1575,
@@ -258,7 +295,7 @@
 
         pipe1.add_parent_pipe(source);
 
-        var pipe2 = new Pipe("/images/single_pipe.png", {
+        var pipe2 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.125,
@@ -275,7 +312,7 @@
 
         pipe2.add_parent_pipe(pipe1);
 
-        var pipe3 = new Pipe("/images/single_pipe.png", {
+        var pipe3 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.44,
@@ -292,7 +329,7 @@
 
         pipe3.add_parent_pipe(pipe1);
 
-        var pipe4 = new Pipe("/images/pipe_left.png", {
+        var pipe4 = new Pipe(images[3], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.7225,
@@ -309,7 +346,7 @@
 
         pipe4.add_parent_pipe(pipe3);
 
-        var pipe5 = new Pipe("/images/pipe_left.png", {
+        var pipe5 = new Pipe(images[3], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.1575,
@@ -326,7 +363,7 @@
 
         pipe5.add_parent_pipe(pipe2);
 
-        var pipe6 = new Pipe("/images/single_pipe.png", {
+        var pipe6 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.45,
@@ -343,7 +380,7 @@
 
         pipe6.add_parent_pipe(pipe5);
 
-        var pipe7 = new Pipe("/images/single_pipe.png", {
+        var pipe7 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.755,
@@ -360,7 +397,7 @@
 
         pipe7.add_parent_pipe(pipe4);
 
-        var pipe8 = new Pipe("/images/pipe_three.png", {
+        var pipe8 = new Pipe(images[5], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.755,
@@ -378,7 +415,7 @@
         pipe8.add_parent_pipe(pipe6);
         pipe8.add_parent_pipe(pipe7);
 
-        var final = new Pipe("/images/sink.png", {
+        var final = new Pipe(images[7], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.85,
@@ -427,34 +464,34 @@
         pipe1.on("pointerdown", () => {
             pipe1.rotate();
             pipe1.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe4.on("pointerdown", () => {
             pipe4.rotate();
             pipe4.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe5.on("pointerdown", () => {
             pipe5.rotate();
             pipe5.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe8.on("pointerdown", () => {
             pipe8.rotate();
             pipe8.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
     }
 
-    function make_game2() {
+    function make_game2(images) {
 
-        var app = make_game();
+        make_game(images);
 
-        var source1 = new Pipe("/images/source.png", {
+        var source1 = new Pipe(images[2], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.05,
@@ -469,7 +506,7 @@
             pulse: false
         });
 
-        var pipe1 = new Pipe("/images/pipe_three.png", {
+        var pipe1 = new Pipe(images[5], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.13,
@@ -486,7 +523,7 @@
 
         pipe1.add_parent_pipe(source1);
 
-        var straight_pipe1 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe1 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.165,
@@ -503,7 +540,7 @@
 
         straight_pipe1.add_parent_pipe(pipe1);
 
-        var pipe2 = new Pipe("/images/pipe_left.png", {
+        var pipe2 = new Pipe(images[3], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.1975,
@@ -520,7 +557,7 @@
 
         pipe2.add_parent_pipe(straight_pipe1);
 
-        var straight_pipe2 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe2 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.165,
@@ -537,7 +574,7 @@
 
         straight_pipe2.add_parent_pipe(pipe1);
 
-        var pipe3 = new Pipe("/images/pipe_right.png", {
+        var pipe3 = new Pipe(images[4], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.1975,
@@ -554,7 +591,7 @@
 
         pipe3.add_parent_pipe(straight_pipe2);
 
-        var straight_pipe3 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe3 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.315,
@@ -571,7 +608,7 @@
 
         straight_pipe3.add_parent_pipe(pipe2);
 
-        var sink1 = new Pipe("/images/sink.png", {
+        var sink1 = new Pipe(images[7], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.43,
@@ -588,7 +625,7 @@
 
         sink1.add_parent_pipe(straight_pipe3);
 
-        var source2 = new Pipe("/images/source.png", {
+        var source2 = new Pipe(images[2], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.485,
@@ -605,7 +642,7 @@
 
         source2.add_parent_pipe(sink1);
 
-        var pipe4 = new Pipe("/images/pipe_three.png", {
+        var pipe4 = new Pipe(images[5], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.575,
@@ -622,7 +659,7 @@
 
         pipe4.add_parent_pipe(source2);
 
-        var straight_pipe4 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe4 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.37,
@@ -639,7 +676,7 @@
 
         straight_pipe4.add_parent_pipe(pipe3);
 
-        var pipe5 = new Pipe("/images/pipe_left.png", {
+        var pipe5 = new Pipe(images[3], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.5425   ,
@@ -656,7 +693,7 @@
 
         pipe5.add_parent_pipe(straight_pipe4);
 
-        var straight_pipe5 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe5 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.575,
@@ -674,7 +711,7 @@
         straight_pipe5.add_parent_pipe(pipe5);
         pipe4.add_parent_pipe(straight_pipe5);
 
-        var straight_pipe6 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe6 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.75,
@@ -691,7 +728,7 @@
 
         straight_pipe6.add_parent_pipe(pipe4);
 
-        var final = new Pipe("/images/sink.png", {
+        var final = new Pipe(images[7], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.91,
@@ -745,38 +782,38 @@
         pipe1.on("pointerdown", () => {
             pipe1.rotate();
             pipe1.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe2.on("pointerdown", () => {
             pipe2.rotate();
             pipe2.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe3.on("pointerdown", () => {
             pipe3.rotate();
             pipe3.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe4.on("pointerdown", () => {
             pipe4.rotate();
             pipe4.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe5.on("pointerdown", () => {
             pipe5.rotate();
             pipe5.update();
-            check_final(final, app);
+            check_final(final, images);
         });
     }
 
-    function make_game3() {
-        var app = make_game();
+    function make_game3(images) {
+        make_game(images);
 
-        var source = new Pipe("/images/source.png", {
+        var source = new Pipe(images[2], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.05,
@@ -791,7 +828,7 @@
             pulse: false
         });
 
-        var pipe1 = new Pipe("/images/pipe_three.png", {
+        var pipe1 = new Pipe(images[5], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.12,
@@ -808,7 +845,7 @@
 
         pipe1.add_parent_pipe(source);
 
-        var straight_pipe1 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe1 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.1525,
@@ -825,7 +862,7 @@
 
         straight_pipe1.add_parent_pipe(pipe1);
 
-        var pipe2 = new Pipe("/images/pipe_left.png", {
+        var pipe2 = new Pipe(images[3], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.185,
@@ -842,7 +879,7 @@
 
         pipe2.add_parent_pipe(straight_pipe1);
 
-        var straight_pipe2 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe2 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.1525,
@@ -859,7 +896,7 @@
 
         straight_pipe2.add_parent_pipe(pipe1);
 
-        var pipe3 = new Pipe("/images/pipe_three.png", {
+        var pipe3 = new Pipe(images[5], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.187,
@@ -876,7 +913,7 @@
 
         pipe3.add_parent_pipe(straight_pipe2);
 
-        var straight_pipe3 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe3 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.34,
@@ -893,7 +930,7 @@
 
         straight_pipe3.add_parent_pipe(pipe2);
 
-        var pipe4 = new Pipe("/images/pipe_three.png", {
+        var pipe4 = new Pipe(images[5], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.5,
@@ -910,7 +947,7 @@
 
         pipe4.add_parent_pipe(straight_pipe3);
 
-        var straight_pipe4 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe4 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.1525,
@@ -927,7 +964,7 @@
 
         straight_pipe4.add_parent_pipe(pipe3);
 
-        var pipe5 = new Pipe("/images/pipe_right.png", {
+        var pipe5 = new Pipe(images[4], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.185,
@@ -944,7 +981,7 @@
 
         pipe5.add_parent_pipe(straight_pipe4);
 
-        var straight_pipe5 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe5 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.33,
@@ -961,7 +998,7 @@
 
         straight_pipe5.add_parent_pipe(pipe5);
 
-        var pipe6 = new Pipe("/images/pipe_left.png", {
+        var pipe6 = new Pipe(images[3], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.4675,
@@ -978,7 +1015,7 @@
 
         pipe6.add_parent_pipe(straight_pipe5);
 
-        var straight_pipe6 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe6 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.5,
@@ -996,7 +1033,7 @@
         pipe4.add_parent_pipe(straight_pipe6);
         straight_pipe6.add_parent_pipe(pipe6);
 
-        var straight_pipe7 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe7 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.645,
@@ -1013,7 +1050,7 @@
 
         straight_pipe7.add_parent_pipe(pipe4);
 
-        var pipe7 = new Pipe("/images/pipe_left.png", {
+        var pipe7 = new Pipe(images[3], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.7725,
@@ -1030,7 +1067,7 @@
 
         pipe7.add_parent_pipe(straight_pipe7);
 
-        var straight_pipe8 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe8 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.49,
@@ -1047,7 +1084,7 @@
 
         straight_pipe8.add_parent_pipe(pipe3);
 
-        var pipe8 = new Pipe("/images/pipe_three.png", {
+        var pipe8 = new Pipe(images[5], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.805,
@@ -1064,7 +1101,7 @@
 
         pipe8.add_parent_pipe(straight_pipe8);
 
-        var straight_pipe9 = new Pipe("/images/single_pipe.png", {
+        var straight_pipe9 = new Pipe(images[6], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.805,
@@ -1082,7 +1119,7 @@
         pipe8.add_parent_pipe(straight_pipe9);
         straight_pipe9.add_parent_pipe(pipe7);
 
-        var final = new Pipe("/images/sink.png", {
+        var final = new Pipe(images[7], {
             width: app.renderer.view.width,
             height: app.renderer.view.height,
             x: 0.89,
@@ -1140,49 +1177,49 @@
         pipe1.on("pointerdown", () => {
             pipe1.rotate();
             pipe1.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe2.on("pointerdown", () => {
             pipe2.rotate();
             pipe2.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe3.on("pointerdown", () => {
             pipe3.rotate();
             pipe3.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe4.on("pointerdown", () => {
             pipe4.rotate();
             pipe4.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe5.on("pointerdown", () => {
             pipe5.rotate();
             pipe5.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe6.on("pointerdown", () => {
             pipe6.rotate();
             pipe6.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe7.on("pointerdown", () => {
             pipe7.rotate();
             pipe7.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
         pipe8.on("pointerdown", () => {
             pipe8.rotate();
             pipe8.update();
-            check_final(final, app);
+            check_final(final, images);
         });
 
     }
@@ -1200,8 +1237,11 @@
     }
 
     window.addEventListener("load", function() {
-        make_game3();
-        start();
+        preload(image_files,function (base64_images) {
+            make_terminal();
+            start();    
+            poll(base64_images);
+        });
     }, false);
 
     //]]>
