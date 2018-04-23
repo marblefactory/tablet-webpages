@@ -61,9 +61,7 @@
                 callback(get_request.responseText);
             }
         }
-        
         get_request.open("GET", url, true);
-        
         get_request.send(null);
     }
 
@@ -86,30 +84,29 @@
                 remove_canvas();
                 //loop through games 1 to 3
                 if (mini_game_num === 1) {
+                    playing_game = true;
                     make_game1(images);
                     mini_game_num = 2;
                 }
-                if (mini_game_num === 2) {
+                else if (mini_game_num === 2) {
+                    playing_game = true;
                     make_game2(images);
                     mini_game_num = 3;
                 }
-                if (mini_game_num === 3) {
-                    make_game3(image_files);
+                else if (mini_game_num === 3) {
+                    playing_game = true;
+                    make_game3(images);
                     mini_game_num = 1;
                 }
             }
             else if (playing_game && !result.start){
+                playing_game == false;
                 app.destroy();
                 remove_canvas();
                 make_terminal();
             }
-            //poll gain if false
-            else {
-                setTimeout(function(){
-                    poll(images)
-                }
-                    , 800);
-            }
+            setTimeout(function(){ poll(images) }, 800);
+
         });
     }
 
@@ -255,6 +252,7 @@
     }
 
     function go_terminal() {
+        playing_game = false;
         app.destroy();
         remove_canvas();
         make_terminal();

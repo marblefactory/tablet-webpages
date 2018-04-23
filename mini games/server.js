@@ -16,6 +16,7 @@
 
 var port = 8080;
 var verbose = true;
+var count = 0;
 
 // Load the library modules, and define the global constants.
 // See http://en.wikipedia.org/wiki/List_of_HTTP_status_codes.
@@ -64,16 +65,20 @@ function checkSite() {
 function handle(request, response) {
     var url = request.url.toLowerCase();
 
-    if (url == '/games') {
-        if (url.endsWith("/")) url = url + "game1.html";
-        if (isBanned(url)) return fail(response, NotFound, "URL has been banned");
-        url = "/game1.html";
-        var type = findType(url);
-        if (type == null) return fail(response, BadType, "File type unsupported");
-        var file = "./public" + url;
-        fs.readFile(file, ready);
-
-        function ready(err, content) { deliver(response, type, err, content); }
+    if (url == '/minigame-start') {
+        if (count > 10){
+            deliver(response, 'application/json', undefined, JSON.stringify({start:true}));
+            console.log("Play game");
+            count++;
+            if (count === 20){
+                count = 0;
+            }
+        }
+        else {
+            deliver(response, 'application/json', undefined, JSON.stringify({start:false}));
+            console.log("Not starting game");   
+            count++;
+        }
     } else {
         if (url.endsWith("/")) url = url + "combined.html";
         if (isBanned(url)) return fail(response, NotFound, "URL has been banned");
