@@ -417,7 +417,7 @@ Minimap.prototype = {
             _this.ctx.lineTo(icon_radius * 2.5, -icon_radius * 1.2);
             _this.ctx.closePath();
 
-            _this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            _this.ctx.fillStyle = 'rgba(255, 255, 255, 0.23)';
             _this.ctx.fill();
         }
 
